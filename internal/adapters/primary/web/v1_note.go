@@ -1,6 +1,7 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -17,7 +18,7 @@ func (h *Handler) bindV1Note(r *gin.RouterGroup) {
 }
 
 type v1CreateNoteRequest struct {
-	Content   string    `json:"content"    binding:"required"`
+	Content   string    `json:"content"`
 	Slug      string    `json:"slug"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
@@ -29,7 +30,7 @@ type v1CreateNoteResponse struct {
 func (h *Handler) v1CreateNote(c *gin.Context) {
 	var req v1CreateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newRespones(c, http.StatusBadRequest, err.Error())
+		newError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -40,9 +41,13 @@ func (h *Handler) v1CreateNote(c *gin.Context) {
 		ExpiresAt: req.ExpiresAt,
 	})
 	if err != nil {
-		// TODO: handle app specific errors
+		if errors.Is(err, domain.ErrNoteContentIsEmpty) ||
+			errors.Is(err, domain.ErrNoteExpired) {
+			newError(c, http.StatusBadRequest, err.Error())
+			return
+		}
 
-		newRespones(c, http.StatusInternalServerError, err.Error())
+		newInternalError(c, err)
 		return
 	}
 
@@ -59,9 +64,12 @@ func (h *Handler) v1GetNoteBySlug(c *gin.Context) {
 
 	note, err := h.noteServce.GetBySlug(c.Request.Context(), slug)
 	if err != nil {
-		// TODO: handle app specific errors
+		if errors.Is(err, domain.ErrNoteNotFound) {
+			newError(c, http.StatusNotFound, err.Error())
+			return
+		}
 
-		newRespones(c, http.StatusInternalServerError, err.Error())
+		newInternalError(c, err)
 		return
 	}
 
