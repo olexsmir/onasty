@@ -38,3 +38,24 @@ func (s *Store) Create(ctx context.Context, inp domain.Note) (string, error) {
 	err = s.db.QueryRow(ctx, query, args...).Scan(&res)
 	return res, err
 }
+
+func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error) {
+	query, args, err := pgq.
+		Delete("notes").
+		Where("slug = ?", slug).
+		Returning("content", "slug", "created_at", "expires_at").
+		SQL()
+	if err != nil {
+		return domain.Note{}, err
+	}
+
+	var res domain.Note
+	err = s.db.QueryRow(ctx, query, args...).
+		Scan(&res.Content, &res.Slug, &res.CreatedAt, &res.ExpiresAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return domain.Note{}, domain.ErrNoteNotFound
+	}
+
+	return res, err
+}

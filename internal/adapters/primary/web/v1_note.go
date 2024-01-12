@@ -48,8 +48,25 @@ func (h *Handler) v1CreateNote(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, v1CreateNoteResponse{
 		ID: res.String(),
-	})
+
+type v1GetNoteBySlugResponse struct {
+	Content  string    `json:"content"`
+	CratedAt time.Time `json:"crated_at"`
 }
 
 func (h *Handler) v1GetNoteBySlug(c *gin.Context) {
+	slug := c.Param("slug")
+
+	note, err := h.noteServce.GetBySlug(c.Request.Context(), slug)
+	if err != nil {
+		// TODO: handle app specific errors
+
+		newRespones(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, v1GetNoteBySlugResponse{
+		Content:  note.Content,
+		CratedAt: note.CreatedAt,
+	})
 }
