@@ -2,10 +2,10 @@ package noterepo
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/core/domain"
@@ -53,8 +53,8 @@ func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error)
 	err = s.db.QueryRow(ctx, query, args...).
 		Scan(&res.Content, &res.Slug, &res.CreatedAt, &res.ExpiresAt)
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return domain.Note{}, domain.ErrNoteNotFound
+	if errors.Is(err, pgx.ErrNoRows) {
+		return res, domain.ErrNoteNotFound
 	}
 
 	return res, err
