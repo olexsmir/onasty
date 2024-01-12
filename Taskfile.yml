@@ -1,0 +1,12 @@
+version: '3'
+
+dotenv:
+  - ".env.dev"
+
+tasks:
+  build:
+    - go build -o .bin/onasty ./cmd/apiserver/
+
+  run:
+    - task: build
+    - .bin/onasty
