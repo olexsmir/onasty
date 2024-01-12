@@ -46,8 +46,8 @@ func (h *Handler) v1CreateNote(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, v1CreateNoteResponse{
-		ID: res.String(),
+	c.JSON(http.StatusCreated, v1CreateNoteResponse{res})
+}
 
 type v1GetNoteBySlugResponse struct {
 	Content  string    `json:"content"`
