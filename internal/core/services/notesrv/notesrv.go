@@ -22,12 +22,15 @@ func New(store ports.NoteStorer) *Service {
 }
 
 func (s *Service) Create(ctx context.Context, inp domain.Note) (string, error) {
-	// TODO: validate input
-
+	// FIXME: dont log content
 	slog.With("inp", inp).Info("createing note")
 
 	if inp.Slug == "" {
 		inp.Slug = uuid.New().String()
+	}
+
+	if inp.Validate() != nil {
+		return "", inp.Validate()
 	}
 
 	return s.store.Create(ctx, inp)
