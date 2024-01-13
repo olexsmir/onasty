@@ -45,7 +45,7 @@ func TestNote_Validate(t *testing.T) {
 			name:    "invalid with expires_at in past",
 			wantErr: true,
 			fields: Note{
-				Content: "content",
+				Content:   "content",
 				ExpiresAt: time.Now().Add(-time.Hour),
 			},
 		},

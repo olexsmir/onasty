@@ -3,6 +3,9 @@ version: '3'
 dotenv:
   - ".env.dev"
 
+includes:
+  migrate: ./migrations/Taskfile.yml
+
 tasks:
   build:
     - go build -o .bin/onasty ./cmd/apiserver/
@@ -10,3 +13,6 @@ tasks:
   run:
     - task: build
     - .bin/onasty
+
+  docker:up:
+    - docker compose up -d
