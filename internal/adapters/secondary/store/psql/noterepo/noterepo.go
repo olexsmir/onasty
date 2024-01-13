@@ -25,7 +25,8 @@ func New(db *psql.DB) *Store {
 }
 
 func (s *Store) Create(ctx context.Context, inp domain.Note) (string, error) {
-	query, args, err := pgq.Insert("notes").
+	query, args, err := pgq.
+		Insert("notes").
 		Columns("content", "slug", "created_at", "expires_at").
 		Values(inp.Content, inp.Slug, inp.CreatedAt, inp.ExpiresAt).
 		Returning("slug").
