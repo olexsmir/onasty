@@ -124,15 +124,23 @@ linters-settings:
     # the gods will judge me but I just don't like naked returns at all
     max-func-lines: 0
 
-
 issues:
+  # Maximum count of issues with the same text.
+  # Set to 0 to disable.
+  # Default: 3
+  max-same-issues: 50
+
   exclude-rules:
-    - path: (_test\.go|tests|e2e)
+    - source: "//noinspection"
+      linters: [ gocritic ]
+    - path: "_test\\.go"
       linters:
         - bodyclose
         - dupl
         - funlen
         - goerr113
+        - goconst
         - gosec
         - noctx
+        - wrapcheck
         - lll
