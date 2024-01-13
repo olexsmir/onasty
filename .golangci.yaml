@@ -1,0 +1,26 @@
+linters:
+  fast: true
+  disable:
+    - structcheck # gives false positives
+
+run:
+  timeout: 10m
+  tests: true
+
+linters-settings:
+  exhaustive:
+    default-signifies-exhaustive: true
+  nakedret:
+    # the gods will judge me but I just don't like naked returns at all
+    max-func-lines: 0
+
+issues:
+  exclude-rules:
+    - path: (_test\.go|tests|e2e)
+      linters:
+        - bodyclose
+        - dupl
+        - funlen
+        - goerr113
+        - gosec
+        - noctx
