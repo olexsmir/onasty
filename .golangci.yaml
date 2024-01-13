@@ -120,8 +120,6 @@ linters-settings:
     disable:
       - fieldalignment # too strict
 
-
-
   nakedret:
     # the gods will judge me but I just don't like naked returns at all
     max-func-lines: 0
