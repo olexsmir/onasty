@@ -18,7 +18,7 @@ type Credentials struct {
 type DB struct{ *pgxpool.Pool }
 
 func Connect(ctx context.Context, conn Credentials) (*DB, error) {
-	db, err := pgxpool.New(ctx, fmt.Sprintf(
+	db, err := pgxpool.New(ctx, fmt.Sprintf( //nolint:nosprintfhostport
 		"postgres://%s:%s@%s:%s/%s",
 		conn.Username,
 		conn.Password,
