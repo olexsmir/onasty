@@ -19,7 +19,7 @@ import (
 func main() {
 	cfg, err := config.New()
 	if err != nil {
-		slog.With("error", err).Error("failed to load config", err.Error())
+		slog.With("error", err).Error("failed to load config")
 	}
 
 	ctx := context.Background()
@@ -31,7 +31,7 @@ func main() {
 		Database: cfg.PostgresDatabase,
 	})
 	if err != nil {
-		slog.With("error", err).Error("failed to connect to database", err.Error())
+		slog.With("error", err).Error("failed to connect to database")
 	}
 
 	noterepo := noterepo.New(psqlDB)
@@ -46,7 +46,7 @@ func main() {
 	go func() {
 		slog.With("port", cfg.ServerPort).Info("starting http server on")
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
-			slog.With("error", err).Error("failed to start http server", err.Error())
+			slog.With("error", err).Error("failed to start http server")
 		}
 	}()
 
@@ -56,10 +56,10 @@ func main() {
 	<-quit
 
 	if err := srv.Shutdown(context.Background()); err != nil {
-		slog.With("error", err).Error("failed to shutdown http server", err.Error())
+		slog.With("error", err).Error("failed to shutdown http server")
 	}
 
 	if err := psqlDB.Close(); err != nil {
-		slog.With("error", err).Error("failed to disconect form database", err.Error())
+		slog.With("error", err).Error("failed to disconect form database")
 	}
 }
