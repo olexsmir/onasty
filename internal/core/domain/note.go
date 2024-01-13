@@ -26,7 +26,8 @@ func (n Note) Validate() error {
 		return ErrNoteContentIsEmpty
 	}
 
-	if n.ExpiresAt.Before(time.Now()) {
+	if !n.ExpiresAt.IsZero() &&
+		n.ExpiresAt.Before(time.Now()) {
 		return ErrNoteExpired
 	}
 
