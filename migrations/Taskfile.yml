@@ -1,6 +1,5 @@
 version: '3'
 
-
 env:
   TERN_MIGRATIONS: ./migrations/
 
