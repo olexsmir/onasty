@@ -1,0 +1,17 @@
+version: '3'
+
+
+env:
+  TERN_MIGRATIONS: ./migrations/
+
+tasks:
+  new:
+    desc: create new migration `new -- <migrationName>`
+    cmds:
+      - tern new {{ .CLI_ARGS }}
+
+  up:
+    - tern migrate
+
+  down:
+    - tern migrate -d 1
