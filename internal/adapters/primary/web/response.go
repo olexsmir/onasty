@@ -19,7 +19,7 @@ func newError(c *gin.Context, status int, msg string) {
 func newInternalError(c *gin.Context, err error, msg ...string) {
 	slog.With("status", "internal error").Error(err.Error())
 
-	if len(msg) == 1 {
+	if len(msg) != 0 {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response{
 			Message: msg[0],
 		})
