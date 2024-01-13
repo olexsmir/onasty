@@ -20,3 +20,16 @@ type Note struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
+
+func (n Note) Validate() error {
+	if n.Content == "" {
+		return ErrNoteContentIsEmpty
+	}
+
+	if !n.ExpiresAt.IsZero() &&
+		n.ExpiresAt.Before(time.Now()) {
+		return ErrNoteExpired
+	}
+
+	return nil
+}
