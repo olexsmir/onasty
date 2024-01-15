@@ -26,7 +26,7 @@ func (h *Handler) InitRoutes() http.Handler {
 	r := gin.Default()
 	r.Use(
 		gin.Recovery(),
-		gin.Logger(),
+		gin.Logger(), // TODO: change to slog?
 	)
 
 	r.NoRoute(h.notFoundHandler)
