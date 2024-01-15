@@ -1,6 +1,7 @@
 package web
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,8 +26,11 @@ func (h *Handler) InitRoutes() http.Handler {
 	r := gin.Default()
 	r.Use(
 		gin.Recovery(),
-		gin.Logger(),
+		gin.Logger(), // TODO: change to slog?
 	)
+
+	r.NoRoute(h.notFoundHandler)
+	r.NoMethod(h.notFoundHandler)
 
 	api := r.Group("/api")
 	api.GET("/ping", h.pingHandler)
@@ -43,4 +47,9 @@ func (h *Handler) pingHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
+}
+
+func (h *Handler) notFoundHandler(c *gin.Context) {
+	slog.Info("not found")
+	c.AbortWithStatus(http.StatusNotFound)
 }
