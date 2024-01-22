@@ -46,12 +46,10 @@ func (s *Service) GetBySlug(ctx context.Context, slug string) (domain.Note, erro
 	}
 
 	if note.ExpiresAt.Before(time.Now()) {
-		slog.Info("expired note")
 		return domain.Note{}, domain.ErrNoteNotFound
 	}
 
 	if note.BurnAfterShow {
-		slog.Info("deleting note")
 		return note, s.store.DeleteByID(ctx, note.ID)
 	}
 
