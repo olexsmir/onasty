@@ -49,7 +49,7 @@ func (s *Service) GetBySlug(ctx context.Context, slug string) (domain.Note, erro
 		return domain.Note{}, domain.ErrNoteExpired
 	}
 
-	if note.BurnAfterShow {
+	if !note.DontDeleteBeforeExpiration {
 		return note, s.store.DeleteByID(ctx, note.ID)
 	}
 
