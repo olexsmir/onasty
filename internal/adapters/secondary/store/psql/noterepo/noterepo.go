@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/henvic/pgq"
 	"github.com/jackc/pgx/v5"
 
@@ -42,9 +43,9 @@ func (s *Store) Create(ctx context.Context, inp domain.Note) (string, error) {
 
 func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error) {
 	query, args, err := pgq.
-		Delete("notes").
+		Select("id", "content", "slug", "burn_after_show", "created_at", "expires_at").
+		From("notes").
 		Where("slug = ?", slug).
-		Returning("content", "slug", "created_at", "expires_at").
 		SQL()
 	if err != nil {
 		return domain.Note{}, err
@@ -52,11 +53,28 @@ func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error)
 
 	var res domain.Note
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&res.Content, &res.Slug, &res.CreatedAt, &res.ExpiresAt)
+		Scan(&res.ID, &res.Content, &res.Slug, &res.BurnAfterShow, &res.CreatedAt, &res.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return res, domain.ErrNoteNotFound
 	}
 
 	return res, err
+}
+
+func (s *Store) DeleteByID(ctx context.Context, id uuid.UUID) error {
+	query, args, err := pgq.
+		Delete("notes").
+		Where("id = ?", id).
+		SQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(ctx, query, args...)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.ErrNoteNotFound
+	}
+
+	return err
 }
