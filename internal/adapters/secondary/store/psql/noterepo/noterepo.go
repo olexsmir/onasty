@@ -43,14 +43,7 @@ func (s *Store) Create(ctx context.Context, inp domain.Note) (string, error) {
 
 func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error) {
 	query, args, err := pgq.
-		Select(
-			"id",
-			"content",
-			"slug",
-			"dont_delete_before_expiration ",
-			"created_at",
-			"expires_at",
-		).
+		Select("id", "content", "slug", "burn_before_expiration", "created_at", "expires_at").
 		From("notes").
 		Where("slug = ?", slug).
 		SQL()
@@ -60,7 +53,7 @@ func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error)
 
 	var res domain.Note
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&res.ID, &res.Content, &res.Slug, &res.DontDeleteBeforeExpiration, &res.CreatedAt, &res.ExpiresAt)
+		Scan(&res.ID, &res.Content, &res.Slug, &res.BurnBeforeExpiration, &res.CreatedAt, &res.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return res, domain.ErrNoteNotFound

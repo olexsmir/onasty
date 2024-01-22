@@ -24,7 +24,7 @@ type v1CreateNoteRequest struct {
 }
 
 type v1CreateNoteResponse struct {
-	ID string `json:"id"`
+	Slug string `json:"slug"`
 }
 
 func (h *Handler) v1CreateNote(c *gin.Context) {

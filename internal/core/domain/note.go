@@ -14,12 +14,12 @@ var (
 )
 
 type Note struct {
-	ID                         uuid.UUID
-	Content                    string
-	Slug                       string
-	DontDeleteBeforeExpiration bool
-	CreatedAt                  time.Time
-	ExpiresAt                  time.Time
+	ID                   uuid.UUID
+	Content              string
+	Slug                 string
+	BurnBeforeExpiration bool
+	CreatedAt            time.Time
+	ExpiresAt            time.Time
 }
 
 func (n Note) Validate() error {
