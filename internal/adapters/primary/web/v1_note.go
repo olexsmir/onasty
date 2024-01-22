@@ -24,7 +24,7 @@ type v1CreateNoteRequest struct {
 }
 
 type v1CreateNoteResponse struct {
-	ID string `json:"id"`
+	Slug string `json:"slug"`
 }
 
 func (h *Handler) v1CreateNote(c *gin.Context) {
@@ -64,7 +64,8 @@ func (h *Handler) v1GetNoteBySlug(c *gin.Context) {
 
 	note, err := h.noteServce.GetBySlug(c.Request.Context(), slug)
 	if err != nil {
-		if errors.Is(err, domain.ErrNoteNotFound) {
+		if errors.Is(err, domain.ErrNoteNotFound) ||
+			errors.Is(err, domain.ErrNoteExpired) {
 			newError(c, http.StatusNotFound, err.Error())
 			return
 		}

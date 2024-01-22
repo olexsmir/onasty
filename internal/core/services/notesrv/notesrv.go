@@ -3,6 +3,7 @@ package notesrv
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/olexsmir/onasty/internal/core/domain"
@@ -36,8 +37,21 @@ func (s *Service) Create(ctx context.Context, inp domain.Note) (string, error) {
 	return s.store.Create(ctx, inp)
 }
 
-func (s *Service) GetBySlug(ctx context.Context, inp string) (domain.Note, error) {
-	slog.With("slug", inp).Info("getting note by slug")
+func (s *Service) GetBySlug(ctx context.Context, slug string) (domain.Note, error) {
+	slog.With("slug", slug).Info("getting note by slug")
 
-	return s.store.GetBySlug(ctx, inp)
+	note, err := s.store.GetBySlug(ctx, slug)
+	if err != nil {
+		return domain.Note{}, err
+	}
+
+	if note.ExpiresAt.Before(time.Now()) {
+		return domain.Note{}, domain.ErrNoteExpired
+	}
+
+	if note.BurnBeforeExpiration {
+		return note, s.store.DeleteByID(ctx, note.ID)
+	}
+
+	return note, nil
 }
