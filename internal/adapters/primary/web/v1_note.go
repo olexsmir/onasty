@@ -64,7 +64,8 @@ func (h *Handler) v1GetNoteBySlug(c *gin.Context) {
 
 	note, err := h.noteServce.GetBySlug(c.Request.Context(), slug)
 	if err != nil {
-		if errors.Is(err, domain.ErrNoteNotFound) {
+		if errors.Is(err, domain.ErrNoteNotFound) ||
+			errors.Is(err, domain.ErrNoteExpired) {
 			newError(c, http.StatusNotFound, err.Error())
 			return
 		}

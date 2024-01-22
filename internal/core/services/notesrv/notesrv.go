@@ -46,7 +46,7 @@ func (s *Service) GetBySlug(ctx context.Context, slug string) (domain.Note, erro
 	}
 
 	if note.ExpiresAt.Before(time.Now()) {
-		return domain.Note{}, domain.ErrNoteNotFound
+		return domain.Note{}, domain.ErrNoteExpired
 	}
 
 	if note.BurnAfterShow {
