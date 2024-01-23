@@ -23,10 +23,10 @@ func NewHandler(deps HandlerDeps) *Handler {
 }
 
 func (h *Handler) InitRoutes() http.Handler {
-	r := gin.Default()
+	r := gin.New()
 	r.Use(
 		gin.Recovery(),
-		gin.Logger(), // TODO: change to slog?
+		h.logger(),
 	)
 
 	r.NoRoute(h.notFoundHandler)

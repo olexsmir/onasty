@@ -48,7 +48,7 @@ func main() {
 	// http server
 	srv := web.NewServer(cfg.ServerPort, handlers.InitRoutes())
 	go func() {
-		slog.With("port", cfg.ServerPort).Info("starting http server on")
+		slog.With("port", cfg.ServerPort).Info("starting http server")
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.With("error", err).Error("failed to start http server")
 		}
