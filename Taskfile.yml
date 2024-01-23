@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 dotenv:
   - ".env.dev"
@@ -13,6 +13,9 @@ tasks:
   run:
     - task: build
     - .bin/onasty
+
+  lint:
+    - golangci-lint run
 
   docker:up:
     - docker compose up -d
