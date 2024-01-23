@@ -19,10 +19,14 @@ import (
 func main() {
 	cfg, err := config.New()
 	if err != nil {
-		slog.With("error", err).Error("failed to load config")
+		panic("failed to load config")
 	}
 
-	ctx := context.Background()
+	setupLogger(cfg)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	psqlDB, err := psql.Connect(ctx, psql.Credentials{
 		Username: cfg.PostgresUsername,
 		Password: cfg.PostgresPassword,
@@ -62,4 +66,30 @@ func main() {
 	if err := psqlDB.Close(); err != nil {
 		slog.With("error", err).Error("failed to disconect form database")
 	}
+}
+
+func setupLogger(cfg *config.Config) {
+	loggerLevels := map[string]slog.Level{
+		"info":  slog.LevelInfo,
+		"debug": slog.LevelDebug,
+		"error": slog.LevelError,
+		"warn":  slog.LevelWarn,
+	}
+
+	logLevel, ok := loggerLevels[cfg.LogLevel]
+	if !ok {
+		panic("unknown log level")
+	}
+
+	var slogHandler slog.Handler
+	switch cfg.LogFormat {
+	case "json":
+		slogHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+	case "text":
+		slogHandler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+	default:
+		panic("unknown log format")
+	}
+
+	slog.SetDefault(slog.New(slogHandler))
 }

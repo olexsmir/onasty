@@ -7,6 +7,9 @@ type Config struct {
 	ServerPort string
 	CorsOrigin string
 
+	LogLevel  string
+	LogFormat string
+
 	PostgresUsername string
 	PostgresPassword string
 	PostgresHost     string
@@ -19,6 +22,9 @@ func New() (*Config, error) {
 		AppEnv:     GetenvOrDefault("APP_ENV", "debug"),
 		ServerPort: GetenvOrDefault("SERVER_PORT", "3000"),
 		CorsOrigin: GetenvOrDefault("CORS_ORIGIN", "*"),
+
+		LogLevel:  GetenvOrDefault("LOG_LEVEL", "debug"),
+		LogFormat: GetenvOrDefault("LOG_FORMAT", "json"),
 
 		PostgresUsername: GetenvOrDefault("POSTGRES_USERNAME", ""),
 		PostgresPassword: GetenvOrDefault("POSTGRES_PASSWORD", ""),
