@@ -18,9 +18,10 @@ func (h *Handler) bindV1Note(r *gin.RouterGroup) {
 }
 
 type v1CreateNoteRequest struct {
-	Content   string    `json:"content"`
-	Slug      string    `json:"slug"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Content              string    `json:"content"`
+	Slug                 string    `json:"slug"`
+	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	ExpiresAt            time.Time `json:"expires_at"`
 }
 
 type v1CreateNoteResponse struct {
@@ -35,10 +36,11 @@ func (h *Handler) v1CreateNote(c *gin.Context) {
 	}
 
 	res, err := h.noteServce.Create(c.Request.Context(), domain.Note{
-		Content:   req.Content,
-		Slug:      req.Slug,
-		CreatedAt: time.Now(),
-		ExpiresAt: req.ExpiresAt,
+		Content:              req.Content,
+		Slug:                 req.Slug,
+		BurnBeforeExpiration: req.BurnBeforeExpiration,
+		CreatedAt:            time.Now(),
+		ExpiresAt:            req.ExpiresAt,
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrNoteContentIsEmpty) ||
