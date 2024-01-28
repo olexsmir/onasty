@@ -38,6 +38,10 @@ func (s *Store) Create(ctx context.Context, inp domain.Note) (string, error) {
 
 	var res string
 	err = s.db.QueryRow(ctx, query, args...).Scan(&res)
+	if psql.IsDuplicateErr(err) {
+		return "", domain.ErrNoteSlugIsAlreadyInUse
+	}
+
 	return res, err
 }
 
