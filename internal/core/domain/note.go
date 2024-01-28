@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	ErrNoteNotFound       = errors.New("note: not found")
-	ErrNoteContentIsEmpty = errors.New("note: content is empty")
-	ErrNoteExpired        = errors.New("note: expired")
+	ErrNoteNotFound           = errors.New("note: not found")
+	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
+	ErrNoteExpired            = errors.New("note: expired")
+	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
 )
 
 type Note struct {

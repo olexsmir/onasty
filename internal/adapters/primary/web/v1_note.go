@@ -44,7 +44,8 @@ func (h *Handler) v1CreateNote(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, domain.ErrNoteContentIsEmpty) ||
-			errors.Is(err, domain.ErrNoteExpired) {
+			errors.Is(err, domain.ErrNoteExpired) ||
+			errors.Is(err, domain.ErrNoteSlugIsAlreadyInUse) {
 			newError(c, http.StatusBadRequest, err.Error())
 			return
 		}
