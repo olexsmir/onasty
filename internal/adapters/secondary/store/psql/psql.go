@@ -2,8 +2,10 @@ package psql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -42,4 +44,12 @@ func Connect(ctx context.Context, conn Credentials) (*DB, error) {
 func (d *DB) Close() error {
 	d.Pool.Close()
 	return nil
+}
+
+func IsDuplicateErr(err error) bool {
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		return pgErr.Code == "23505" // unique_violation
+	}
+	return false
 }
