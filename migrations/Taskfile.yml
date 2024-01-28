@@ -1,16 +1,22 @@
 version: '3'
 
 env:
-  TERN_MIGRATIONS: ./migrations/
+  MIGRATIONS_DIR: ./migrations/
 
 tasks:
   new:
     desc: create new migration `new -- <migrationName>`
     cmds:
-      - tern new {{ .CLI_ARGS }}
+      - migrate create -ext sql -dir {{.MIGRATIONS_DIR}} {{ .CLI_ARGS }}
 
   up:
-    - tern migrate
+    - migrate -database $POSTGRESQL_URL  -path {{.MIGRATIONS_DIR}} up
 
   down:
-    - tern migrate -d 1
+    - migrate -database $POSTGRESQL_URL -path {{.MIGRATIONS_DIR}} down 1
+
+  drop:
+    - migrate -database $POSTGRESQL_URL -path {{.MIGRATIONS_DIR}} drop
+
+  echo: 
+  - echo $POSTGRESQL_URL
