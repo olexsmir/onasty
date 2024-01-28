@@ -5,7 +5,3 @@ create table notes (
   created_at timestamptz not null default now(),
   expires_at timestamptz
 );
-
----- create above / drop below ----
-
-drop table notes;

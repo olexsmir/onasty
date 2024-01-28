@@ -10,6 +10,7 @@ tasks:
   build:
     - go build -o .bin/onasty ./cmd/apiserver/
 
+
   run:
     - task: build
     - .bin/onasty
