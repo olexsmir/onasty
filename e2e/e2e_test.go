@@ -39,7 +39,7 @@ func TestAppSuite(t *testing.T) {
 	}
 
 	// gin output is too verbose(and annoying) in tests
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.TestMode)
 
 	suite.Run(t, new(AppTestSuite))
 }
