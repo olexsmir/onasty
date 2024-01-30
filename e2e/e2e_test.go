@@ -77,21 +77,18 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 		postgres.WithDatabase(dbCredential),
 		testcontainers.WithWaitStrategy(
 			wait.ForListeningPort("5432/tcp")))
-	if err != nil {
-		return nil, func() {}, err
-	}
+	s.require.NoError(err)
 
-	stop := func() { _ = postgresContainer.Terminate(s.ctx) }
+	stop := func() {
+		err = postgresContainer.Terminate(s.ctx)
+		s.require.NoError(err)
+	}
 
 	host, err := postgresContainer.Host(s.ctx)
-	if err != nil {
-		return nil, func() {}, err
-	}
+	s.require.NoError(err)
 
 	port, err := postgresContainer.MappedPort(s.ctx, "5432/tcp")
-	if err != nil {
-		return nil, func() {}, err
-	}
+	s.require.NoError(err)
 
 	db, err := psql.Connect(s.ctx, psql.Credentials{
 		Username: dbCredential,
@@ -100,27 +97,20 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 		Port:     port.Port(),
 		Database: dbCredential,
 	})
-	if err != nil {
-		return nil, func() {}, err
-	}
+	s.require.NoError(err)
 
 	sdb := stdlib.OpenDBFromPool(db.Pool)
 	driver, err := pgx.WithInstance(sdb, &pgx.Config{})
-	if err != nil {
-		return nil, func() {}, err
-	}
+	s.require.NoError(err)
 
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://../migrations/",
 		"pgxv5", driver,
 	)
-	if err != nil {
-		return nil, func() {}, err
-	}
+	s.require.NoError(err)
 
-	if err := m.Up(); err != nil {
-		return nil, func() {}, err
-	}
+	err = m.Up()
+	s.require.NoError(err)
 
 	return db, stop, driver.Close()
 }
