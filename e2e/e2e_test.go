@@ -34,6 +34,9 @@ type (
 
 		router http.Handler
 	}
+	errorResponse struct {
+		Message string `json:"message"`
+	}
 )
 
 func TestAppSuite(t *testing.T) {
