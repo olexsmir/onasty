@@ -1,11 +1,23 @@
 package e2e
 
-import "net/http"
+import (
+	"net/http"
+)
+
+type noteResponse struct {
+	Slug string `json:"slug"`
+}
 
 func (s *AppTestSuite) TestNote_Create_RandomSlug() {
-	resp := s.request("POST", "/api/v1/note", s.jsonify(map[string]any{
+	resp := s.httpRequest("POST", "/api/v1/note", s.jsonify(map[string]any{
 		"content": "testing",
 	}))
 
-	s.Require().Equal(http.StatusCreated, resp.Code)
+	var note noteResponse
+	s.readBodyAndUnjsonify(resp.Body, &note)
+
+	dbNote := s.getNoteFromDBBySlug(note.Slug)
+
+	s.Equal(http.StatusCreated, resp.Code)
+	s.NotEmpty(dbNote)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/core/services/notesrv"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -21,17 +22,19 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-type stopDBFunc func()
+type (
+	stopDBFunc   func()
+	AppTestSuite struct {
+		suite.Suite
 
-type AppTestSuite struct {
-	suite.Suite
+		ctx     context.Context
+		require *require.Assertions
+		db      *psql.DB
+		stopDB  stopDBFunc
 
-	ctx    context.Context
-	db     *psql.DB
-	stopDB stopDBFunc
-
-	router http.Handler
-}
+		router http.Handler
+	}
+)
 
 func TestAppSuite(t *testing.T) {
 	if testing.Short() {
@@ -46,6 +49,7 @@ func TestAppSuite(t *testing.T) {
 
 func (s *AppTestSuite) SetupTest() {
 	s.ctx = context.Background()
+	s.require = s.Require()
 
 	db, stop, err := s.prepPostgres()
 	s.Require().NoError(err)
