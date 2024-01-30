@@ -50,7 +50,7 @@ func TestAppSuite(t *testing.T) {
 	suite.Run(t, new(AppTestSuite))
 }
 
-func (s *AppTestSuite) SetupTest() {
+func (s *AppTestSuite) SetupSuite() {
 	s.ctx = context.Background()
 	s.require = s.Require()
 
@@ -68,12 +68,13 @@ func (s *AppTestSuite) TearDownSuite() {
 }
 
 func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
+	dbCredential := "testing"
 	postgresContainer, err := postgres.RunContainer(
 		s.ctx,
 		testcontainers.WithImage("postgres:16-alpine"),
-		postgres.WithUsername("testing"),
-		postgres.WithPassword("testing"),
-		postgres.WithDatabase("testing"),
+		postgres.WithUsername(dbCredential),
+		postgres.WithPassword(dbCredential),
+		postgres.WithDatabase(dbCredential),
 		testcontainers.WithWaitStrategy(
 			wait.ForListeningPort("5432/tcp")))
 	if err != nil {
@@ -93,11 +94,11 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 	}
 
 	db, err := psql.Connect(s.ctx, psql.Credentials{
-		Username: "testing",
-		Password: "testing",
+		Username: dbCredential,
+		Password: dbCredential,
 		Host:     host,
 		Port:     port.Port(),
-		Database: "testing",
+		Database: dbCredential,
 	})
 	if err != nil {
 		return nil, func() {}, err
