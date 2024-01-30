@@ -23,3 +23,6 @@ tasks:
 
   test:unit:
     - go test -v --short ./...
+
+  test:e2e:
+    - go test -v ./e2e/
