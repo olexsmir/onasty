@@ -53,3 +53,16 @@ func (s *AppTestSuite) getNoteFromDBBySlug(slug string) domain.Note {
 
 	return res
 }
+
+func (s *AppTestSuite) insertNote(note domain.Note) {
+	query, args, err := pgq.
+		Insert("notes").
+		Columns("id", "content", "slug", "burn_before_expiration ", "created_at", "expires_at").
+		Values(note, note.Content, note.Slug, note.BurnBeforeExpiration, note.CreatedAt, note.ExpiresAt).
+		Returning("id", "slug").
+		SQL()
+	s.require.NoError(err)
+
+	_, err = s.postgresDB.Exec(s.ctx, query, args...)
+	s.require.NoError(err)
+}

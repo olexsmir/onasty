@@ -62,10 +62,21 @@ func (s *AppTestSuite) SetupSuite() {
 	s.stopPostgres = stop
 
 	s.initDeps()
+	s.populatePostgres()
 }
 
 func (s *AppTestSuite) TearDownSuite() {
 	s.stopPostgres()
+}
+
+func (s *AppTestSuite) initDeps() {
+	noterepo := noterepo.New(s.postgresDB)
+	notesrv := notesrv.New(noterepo)
+	handlers := web.NewHandler(web.HandlerDeps{
+		NoteService: notesrv,
+	})
+
+	s.router = handlers.InitRoutes()
 }
 
 func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
@@ -120,12 +131,8 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 	return db, stop, driver.Close()
 }
 
-func (s *AppTestSuite) initDeps() {
-	noterepo := noterepo.New(s.postgresDB)
-	notesrv := notesrv.New(noterepo)
-	handlers := web.NewHandler(web.HandlerDeps{
-		NoteService: notesrv,
-	})
-
-	s.router = handlers.InitRoutes()
+func (s *AppTestSuite) populatePostgres() {
+	s.insertNote(note)
+	s.insertNote(noteWithExpiration)
+	s.insertNote(noteExpired)
 }
