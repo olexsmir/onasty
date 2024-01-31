@@ -45,13 +45,15 @@ func (s *Service) GetBySlug(ctx context.Context, slug string) (domain.Note, erro
 		return domain.Note{}, err
 	}
 
-	if note.ExpiresAt.Before(time.Now()) {
+	isntExprTimeEmpty := !note.ExpiresAt.IsZero()
+
+	if note.ExpiresAt.Before(time.Now()) && isntExprTimeEmpty {
 		return domain.Note{}, domain.ErrNoteExpired
 	}
 
-	if note.BurnBeforeExpiration {
-		return note, s.store.DeleteByID(ctx, note.ID)
+	if !note.BurnBeforeExpiration && isntExprTimeEmpty {
+		return note, nil
 	}
 
-	return note, nil
+	return note, s.store.DeleteByID(ctx, note.ID)
 }
