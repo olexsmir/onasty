@@ -8,16 +8,16 @@ import (
 	"github.com/olexsmir/onasty/internal/core/domain"
 )
 
-type createNoteResponse struct {
+type v1createNoteResponse struct {
 	Slug string `json:"slug"`
 }
 
-type getNoteResponse struct {
+type v1getNoteResponse struct {
 	Content  string    `json:"content"`
 	CratedAt time.Time `json:"crated_at"`
 }
 
-func (s *AppTestSuite) TestNote_Create_AllOpts() {
+func (s *AppTestSuite) TestNoteV1_Create_AllOpts() {
 	content := "testing"
 	slug := "some-semi-random-slug"
 	burnBeforeExpiration := true
@@ -30,7 +30,7 @@ func (s *AppTestSuite) TestNote_Create_AllOpts() {
 		"expires_at":             expireAt,
 	}))
 
-	var res createNoteResponse
+	var res v1createNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
 	dbNote := s.getNoteFromDBBySlug(res.Slug)
@@ -42,7 +42,7 @@ func (s *AppTestSuite) TestNote_Create_AllOpts() {
 	s.Equal(expireAt.Unix(), dbNote.ExpiresAt.Unix())
 }
 
-func (s *AppTestSuite) TestNote_Create_CantBeWirhoutContent() {
+func (s *AppTestSuite) TestNoteV1_Create_CantBeWirhoutContent() {
 	httpResp := s.httpRequest(http.MethodPost, "/api/v1/note", s.jsonify(map[string]any{}))
 
 	var res errorResponse
@@ -52,12 +52,12 @@ func (s *AppTestSuite) TestNote_Create_CantBeWirhoutContent() {
 	s.Equal(res.Message, domain.ErrNoteContentIsEmpty.Error())
 }
 
-func (s *AppTestSuite) TestNote_Create_RandomSlug() {
+func (s *AppTestSuite) TestNoteV1_Create_RandomSlug() {
 	httpResp := s.httpRequest(http.MethodPost, "/api/v1/note", s.jsonify(map[string]any{
 		"content": "testing",
 	}))
 
-	var res createNoteResponse
+	var res v1createNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
 	dbNote := s.getNoteFromDBBySlug(res.Slug)
@@ -66,7 +66,7 @@ func (s *AppTestSuite) TestNote_Create_RandomSlug() {
 	s.NotEmpty(dbNote)
 }
 
-func (s *AppTestSuite) TestNote_Create_ExplicitSlug() {
+func (s *AppTestSuite) TestNoteV1_Create_ExplicitSlug() {
 	slug := "test-slug"
 	content := "testing"
 
@@ -75,7 +75,7 @@ func (s *AppTestSuite) TestNote_Create_ExplicitSlug() {
 		"slug":    slug,
 	}))
 
-	var res createNoteResponse
+	var res v1createNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
 	dbNote := s.getNoteFromDBBySlug(res.Slug)
@@ -85,7 +85,7 @@ func (s *AppTestSuite) TestNote_Create_ExplicitSlug() {
 	s.Equal(content, dbNote.Content)
 }
 
-func (s *AppTestSuite) TestNote_Create_SlugAlreadyInUse() {
+func (s *AppTestSuite) TestNoteV1_Create_SlugAlreadyInUse() {
 	note := domain.Note{
 		ID:      uuid.New(),
 		Content: "content",
@@ -105,7 +105,7 @@ func (s *AppTestSuite) TestNote_Create_SlugAlreadyInUse() {
 	s.Equal(res.Message, domain.ErrNoteSlugIsAlreadyInUse.Error())
 }
 
-func (s *AppTestSuite) TestNote_Create_ExpiresAtInThePast() {
+func (s *AppTestSuite) TestNoteV1_Create_ExpiresAtInThePast() {
 	httpResp := s.httpRequest(http.MethodPost, "/api/v1/note", s.jsonify(map[string]any{
 		"content":    "testing",
 		"expires_at": time.Now().Add(-1 * time.Minute),
@@ -118,7 +118,7 @@ func (s *AppTestSuite) TestNote_Create_ExpiresAtInThePast() {
 	s.Equal(res.Message, domain.ErrNoteExpired.Error())
 }
 
-func (s *AppTestSuite) TestNote_Get_ShouldAndReturnNoteAndRemoveIt() {
+func (s *AppTestSuite) TestNoteV1_Get_ShouldAndReturnNoteAndRemoveIt() {
 	note := domain.Note{
 		ID:        uuid.New(),
 		Content:   "content",
@@ -133,7 +133,7 @@ func (s *AppTestSuite) TestNote_Get_ShouldAndReturnNoteAndRemoveIt() {
 		s.jsonify(map[string]any{}),
 	)
 
-	var res getNoteResponse
+	var res v1getNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
 	dbNote := s.getNoteFromDBBySlug(note.Slug)
@@ -144,7 +144,7 @@ func (s *AppTestSuite) TestNote_Get_ShouldAndReturnNoteAndRemoveIt() {
 	s.Empty(dbNote)
 }
 
-func (s *AppTestSuite) TestNote_Get_TheresNoSuchNote() {
+func (s *AppTestSuite) TestNoteV1_Get_TheresNoSuchNote() {
 	httpResp := s.httpRequest(
 		http.MethodGet,
 		"/api/v1/note/"+uuid.New().String(),
@@ -157,7 +157,7 @@ func (s *AppTestSuite) TestNote_Get_TheresNoSuchNote() {
 	s.Equal(http.StatusNotFound, httpResp.Code)
 }
 
-func (s *AppTestSuite) TestNote_Get_Expired() {
+func (s *AppTestSuite) TestNoteV1_Get_Expired() {
 	note := domain.Note{
 		ID:        uuid.New(),
 		Content:   "content",
@@ -180,7 +180,7 @@ func (s *AppTestSuite) TestNote_Get_Expired() {
 	s.Equal(res.Message, domain.ErrNoteExpired.Error())
 }
 
-func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToTrue() {
+func (s *AppTestSuite) TestNoteV1_Get_RespectBurnBeforeExpirationOption_setToTrue() {
 	note := domain.Note{
 		ID:                   uuid.New(),
 		Content:              "content",
@@ -197,7 +197,7 @@ func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToTrue(
 		s.jsonify(map[string]any{}),
 	)
 
-	var res getNoteResponse
+	var res v1getNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
 	dbNote := s.getNoteFromDBBySlug(note.Slug)
@@ -208,7 +208,7 @@ func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToTrue(
 	s.Equal(note.CreatedAt.Unix(), res.CratedAt.Unix())
 }
 
-func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToFalse() {
+func (s *AppTestSuite) TestNoteV1_Get_RespectBurnBeforeExpirationOption_setToFalse() {
 	note := domain.Note{
 		ID:                   uuid.New(),
 		Content:              "content",
@@ -225,7 +225,7 @@ func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToFalse
 		s.jsonify(map[string]any{}),
 	)
 
-	var res getNoteResponse
+	var res v1getNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
 	dbNote := s.getNoteFromDBBySlug(note.Slug)
@@ -236,7 +236,7 @@ func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToFalse
 	s.Equal(note.CreatedAt.Unix(), res.CratedAt.Unix())
 }
 
-func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_getAfterExpiration() {
+func (s *AppTestSuite) TestNoteV1_Get_RespectBurnBeforeExpirationOption_getAfterExpiration() {
 	note := domain.Note{
 		ID:                   uuid.New(),
 		Content:              "content",
