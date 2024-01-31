@@ -179,3 +179,59 @@ func (s *AppTestSuite) TestNote_Get_Expired() {
 	s.Equal(http.StatusNotFound, httpResp.Code)
 	s.Equal(res.Message, domain.ErrNoteExpired.Error())
 }
+
+func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToTrue() {
+	note := domain.Note{
+		ID:                   uuid.New(),
+		Content:              "content",
+		Slug:                 uuid.New().String(),
+		BurnBeforeExpiration: true,
+		CreatedAt:            time.Now(),
+		ExpiresAt:            time.Now().Add(1 * time.Minute),
+	}
+	s.insertNote(note)
+
+	httpResp := s.httpRequest(
+		http.MethodGet,
+		"/api/v1/note/"+note.Slug,
+		s.jsonify(map[string]any{}),
+	)
+
+	var res getNoteResponse
+	s.readBodyAndUnjsonify(httpResp.Body, &res)
+
+	dbNote := s.getNoteFromDBBySlug(note.Slug)
+
+	s.Empty(dbNote)
+	s.Equal(http.StatusOK, httpResp.Code)
+	s.Equal(note.Content, res.Content)
+	s.Equal(note.CreatedAt.Unix(), res.CratedAt.Unix())
+}
+
+func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToFalse() {
+	note := domain.Note{
+		ID:                   uuid.New(),
+		Content:              "content",
+		Slug:                 uuid.New().String(),
+		BurnBeforeExpiration: false,
+		CreatedAt:            time.Now(),
+		ExpiresAt:            time.Now().Add(1 * time.Minute),
+	}
+	s.insertNote(note)
+
+	httpResp := s.httpRequest(
+		http.MethodGet,
+		"/api/v1/note/"+note.Slug,
+		s.jsonify(map[string]any{}),
+	)
+
+	var res getNoteResponse
+	s.readBodyAndUnjsonify(httpResp.Body, &res)
+
+	dbNote := s.getNoteFromDBBySlug(note.Slug)
+
+	s.NotEmpty(dbNote)
+	s.Equal(http.StatusOK, httpResp.Code)
+	s.Equal(note.Content, res.Content)
+	s.Equal(note.CreatedAt.Unix(), res.CratedAt.Unix())
+}
