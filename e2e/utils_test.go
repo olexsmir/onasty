@@ -47,7 +47,7 @@ func (s *AppTestSuite) getNoteFromDBBySlug(slug string) domain.Note {
 	s.require.NoError(err)
 
 	var res domain.Note
-	err = s.db.QueryRow(s.ctx, query, args...).
+	err = s.postgresDB.QueryRow(s.ctx, query, args...).
 		Scan(&res.ID, &res.Content, &res.Slug, &res.BurnBeforeExpiration, &res.CreatedAt, &res.ExpiresAt)
 	s.require.NoError(err)
 
