@@ -156,3 +156,26 @@ func (s *AppTestSuite) TestNote_Get_TheresNoSuchNote() {
 
 	s.Equal(http.StatusNotFound, httpResp.Code)
 }
+
+func (s *AppTestSuite) TestNote_Get_Expired() {
+	note := domain.Note{
+		ID:        uuid.New(),
+		Content:   "content",
+		Slug:      uuid.New().String(),
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(-1 * time.Minute),
+	}
+	s.insertNote(note)
+
+	httpResp := s.httpRequest(
+		http.MethodGet,
+		"/api/v1/note/"+note.Slug,
+		s.jsonify(map[string]any{}),
+	)
+
+	var res errorResponse
+	s.readBodyAndUnjsonify(httpResp.Body, &res)
+
+	s.Equal(http.StatusNotFound, httpResp.Code)
+	s.Equal(res.Message, domain.ErrNoteExpired.Error())
+}
