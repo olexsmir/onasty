@@ -62,7 +62,6 @@ func (s *AppTestSuite) SetupSuite() {
 	s.stopPostgres = stop
 
 	s.initDeps()
-	s.populatePostgres()
 }
 
 func (s *AppTestSuite) TearDownSuite() {
@@ -129,10 +128,4 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 	s.require.NoError(err)
 
 	return db, stop, driver.Close()
-}
-
-func (s *AppTestSuite) populatePostgres() {
-	s.insertNote(note)
-	s.insertNote(noteWithExpiration)
-	s.insertNote(noteExpired)
 }
