@@ -29,8 +29,9 @@ type (
 
 		ctx     context.Context
 		require *require.Assertions
-		db      *psql.DB
-		stopDB  stopDBFunc
+
+		postgresDB   *psql.DB
+		stopPostgres stopDBFunc
 
 		router http.Handler
 	}
@@ -57,14 +58,14 @@ func (s *AppTestSuite) SetupSuite() {
 	db, stop, err := s.prepPostgres()
 	s.Require().NoError(err)
 
-	s.db = db
-	s.stopDB = stop
+	s.postgresDB = db
+	s.stopPostgres = stop
 
 	s.initDeps()
 }
 
 func (s *AppTestSuite) TearDownSuite() {
-	s.stopDB()
+	s.stopPostgres()
 }
 
 func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
@@ -116,7 +117,7 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 }
 
 func (s *AppTestSuite) initDeps() {
-	noterepo := noterepo.New(s.db)
+	noterepo := noterepo.New(s.postgresDB)
 	notesrv := notesrv.New(noterepo)
 	handlers := web.NewHandler(web.HandlerDeps{
 		NoteService: notesrv,
