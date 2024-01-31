@@ -69,7 +69,8 @@ func (s *Store) GetBySlug(ctx context.Context, slug string) (domain.Note, error)
 func (s *Store) DeleteByID(ctx context.Context, id uuid.UUID) error {
 	query, args, err := pgq.
 		Delete("notes").
-		Where("id = ?", id).
+		// FIXME: find a way to just use uuid instead of converting it to string
+		Where(pgq.Eq{"id": id.String()}).
 		SQL()
 	if err != nil {
 		return err
