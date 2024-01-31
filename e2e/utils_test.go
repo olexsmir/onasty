@@ -3,11 +3,13 @@ package e2e
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/core/domain"
 )
 
@@ -49,8 +51,11 @@ func (s *AppTestSuite) getNoteFromDBBySlug(slug string) domain.Note {
 	var res domain.Note
 	err = s.postgresDB.QueryRow(s.ctx, query, args...).
 		Scan(&res.ID, &res.Content, &res.Slug, &res.BurnBeforeExpiration, &res.CreatedAt, &res.ExpiresAt)
-	s.require.NoError(err)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.Note{}
+	}
 
+	s.require.NoError(err)
 	return res
 }
 

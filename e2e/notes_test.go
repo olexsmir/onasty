@@ -136,12 +136,12 @@ func (s *AppTestSuite) TestNote_Get_ShouldAndReturnNoteAndRemoveIt() {
 	var res getNoteResponse
 	s.readBodyAndUnjsonify(httpResp.Body, &res)
 
-	// dbNote := s.getNoteFromDBBySlug(note.Slug)
+	dbNote := s.getNoteFromDBBySlug(note.Slug)
 
 	s.Equal(http.StatusOK, httpResp.Code)
 	s.Equal(note.Content, res.Content)
 	s.Equal(note.CreatedAt.Unix(), res.CratedAt.Unix())
-	// s.Empty(dbNote)
+	s.Empty(dbNote)
 }
 
 func (s *AppTestSuite) TestNote_Get_TheresNoSuchNote() {
