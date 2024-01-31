@@ -77,7 +77,8 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 		postgres.WithPassword(dbCredential),
 		postgres.WithDatabase(dbCredential),
 		testcontainers.WithWaitStrategy(
-			wait.ForListeningPort("5432/tcp")))
+			wait.ForListeningPort("5432/tcp")),
+	)
 	s.require.NoError(err)
 
 	stop := func() {
