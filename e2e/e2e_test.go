@@ -69,6 +69,7 @@ func (s *AppTestSuite) TearDownSuite() {
 }
 
 func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
+	// setup dcoker container
 	dbCredential := "testing"
 	postgresContainer, err := postgres.RunContainer(
 		s.ctx,
@@ -86,6 +87,7 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 		s.require.NoError(err)
 	}
 
+	// connect to the db
 	host, err := postgresContainer.Host(s.ctx)
 	s.require.NoError(err)
 
@@ -101,6 +103,7 @@ func (s *AppTestSuite) prepPostgres() (*psql.DB, stopDBFunc, error) {
 	})
 	s.require.NoError(err)
 
+	// run migrations
 	sdb := stdlib.OpenDBFromPool(db.Pool)
 	driver, err := pgx.WithInstance(sdb, &pgx.Config{})
 	s.require.NoError(err)
