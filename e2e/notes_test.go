@@ -235,3 +235,27 @@ func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_setToFalse
 	s.Equal(note.Content, res.Content)
 	s.Equal(note.CreatedAt.Unix(), res.CratedAt.Unix())
 }
+
+func (s *AppTestSuite) TestNote_Get_RespectBurnBeforeExpirationOption_getAfterExpiration() {
+	note := domain.Note{
+		ID:                   uuid.New(),
+		Content:              "content",
+		Slug:                 uuid.New().String(),
+		BurnBeforeExpiration: false,
+		CreatedAt:            time.Now().Add(-2 * time.Minute),
+		ExpiresAt:            time.Now(),
+	}
+	s.insertNote(note)
+
+	httpResp := s.httpRequest(
+		http.MethodGet,
+		"/api/v1/note/"+note.Slug,
+		s.jsonify(map[string]any{}),
+	)
+
+	var res errorResponse
+	s.readBodyAndUnjsonify(httpResp.Body, &res)
+
+	s.Equal(http.StatusNotFound, httpResp.Code)
+	s.Equal(res.Message, domain.ErrNoteExpired.Error())
+}
