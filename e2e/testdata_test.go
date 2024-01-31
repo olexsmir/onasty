@@ -9,16 +9,15 @@ import (
 
 var (
 	note = domain.Note{
-		ID:                   uuid.MustParse("00000000-0000-0000-0000-000000000001"),
+		ID:                   uuid.New(),
 		Content:              "first, testing content",
 		Slug:                 "first-testing-content",
 		BurnBeforeExpiration: false,
 		CreatedAt:            time.Now(),
-		ExpiresAt:            time.Time{},
 	}
 
 	noteWithExpiration = domain.Note{
-		ID:                   uuid.MustParse("00000000-0000-0000-0000-000000000002"),
+		ID:                   uuid.New(),
 		Content:              "testing",
 		Slug:                 uuid.New().String(),
 		BurnBeforeExpiration: false,
@@ -27,7 +26,7 @@ var (
 	}
 
 	noteExpired = domain.Note{
-		ID:                   uuid.MustParse("00000000-0000-0000-0000-000000000003"),
+		ID:                   uuid.New(),
 		Content:              "testing",
 		Slug:                 uuid.New().String(),
 		BurnBeforeExpiration: false,

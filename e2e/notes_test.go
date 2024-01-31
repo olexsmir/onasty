@@ -78,3 +78,21 @@ func (s *AppTestSuite) TestNote_Create_ExplicitSlug() {
 	s.Equal(res.Slug, dbNote.Slug)
 	s.Equal(content, dbNote.Content)
 }
+
+func (s *AppTestSuite) TestNote_Create_SlugAlreadyInUse() {
+	s.insertNote(note)
+
+	httpResp := s.httpRequest(http.MethodPost, "/api/v1/note", s.jsonify(map[string]any{
+		"content": "testing",
+		"slug":    note.Slug,
+	}))
+
+	var res errorResponse
+	s.readBodyAndUnjsonify(httpResp.Body, &res)
+
+	s.Equal(http.StatusBadRequest, httpResp.Code)
+	s.Equal(res.Message, domain.ErrNoteSlugIsAlreadyInUse.Error())
+}
+
+func (*AppTestSuite) TestNote_Get_ShouldAndReturnNoteAndRemoveIt() {
+}
