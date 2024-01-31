@@ -242,7 +242,7 @@ func (s *AppTestSuite) TestNoteV1_Get_RespectBurnBeforeExpirationOption_getAfter
 		Content:              "content",
 		Slug:                 uuid.New().String(),
 		BurnBeforeExpiration: false,
-		CreatedAt:            time.Now().Add(-2 * time.Minute),
+		CreatedAt:            time.Now().Add(-time.Minute),
 		ExpiresAt:            time.Now(),
 	}
 	s.insertNote(note)
