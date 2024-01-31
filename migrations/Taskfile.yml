@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 env:
   MIGRATIONS_DIR: ./migrations/
@@ -17,6 +17,3 @@ tasks:
 
   drop:
     - migrate -database $POSTGRESQL_URL -path {{.MIGRATIONS_DIR}} drop
-
-  echo: 
-  - echo $POSTGRESQL_URL
