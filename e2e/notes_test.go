@@ -21,7 +21,7 @@ func (s *AppTestSuite) TestNoteV1_Create_AllOpts() {
 	content := "testing"
 	slug := "some-semi-random-slug"
 	burnBeforeExpiration := true
-	expireAt := time.Now().Add(7 * time.Minute)
+	expireAt := time.Now().Add(69 * time.Minute)
 
 	httpResp := s.httpRequest(http.MethodPost, "/api/v1/note", s.jsonify(map[string]any{
 		"content":                content,
@@ -108,7 +108,7 @@ func (s *AppTestSuite) TestNoteV1_Create_SlugAlreadyInUse() {
 func (s *AppTestSuite) TestNoteV1_Create_ExpiresAtInThePast() {
 	httpResp := s.httpRequest(http.MethodPost, "/api/v1/note", s.jsonify(map[string]any{
 		"content":    "testing",
-		"expires_at": time.Now().Add(-1 * time.Minute),
+		"expires_at": time.Now().Add(-time.Minute),
 	}))
 
 	var res errorResponse
@@ -163,7 +163,7 @@ func (s *AppTestSuite) TestNoteV1_Get_Expired() {
 		Content:   "content",
 		Slug:      uuid.New().String(),
 		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(-1 * time.Minute),
+		ExpiresAt: time.Now().Add(-time.Minute),
 	}
 	s.insertNote(note)
 
@@ -187,7 +187,7 @@ func (s *AppTestSuite) TestNoteV1_Get_RespectBurnBeforeExpirationOption_setToTru
 		Slug:                 uuid.New().String(),
 		BurnBeforeExpiration: true,
 		CreatedAt:            time.Now(),
-		ExpiresAt:            time.Now().Add(1 * time.Minute),
+		ExpiresAt:            time.Now().Add(time.Minute),
 	}
 	s.insertNote(note)
 
@@ -215,7 +215,7 @@ func (s *AppTestSuite) TestNoteV1_Get_RespectBurnBeforeExpirationOption_setToFal
 		Slug:                 uuid.New().String(),
 		BurnBeforeExpiration: false,
 		CreatedAt:            time.Now(),
-		ExpiresAt:            time.Now().Add(1 * time.Minute),
+		ExpiresAt:            time.Now().Add(time.Minute),
 	}
 	s.insertNote(note)
 
