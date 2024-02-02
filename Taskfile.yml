@@ -10,7 +10,6 @@ tasks:
   build:
     - go build -o .bin/onasty ./cmd/apiserver/
 
-
   run:
     - task: build
     - .bin/onasty
@@ -23,3 +22,6 @@ tasks:
 
   test:unit:
     - go test -v --short ./...
+
+  test:e2e:
+    - go test -v ./e2e/

@@ -17,7 +17,7 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.mod
 
-      - name: Build
+      - name: Build API
         run: go build -v ./cmd/apiserver
 
       - name: Unit tests
@@ -28,3 +28,6 @@ jobs:
         with:
           version: latest
           args: ./...
+
+      - name: e2e tests
+        run: go test -v ./e2e/
