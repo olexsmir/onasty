@@ -68,6 +68,8 @@ func (s *AppTestSuite) TearDownSuite() {
 	s.stopPostgres()
 }
 
+// initDeps initializes the dependencies for the app
+// and sets up the router for tests
 func (s *AppTestSuite) initDeps() {
 	noterepo := noterepo.New(s.postgresDB)
 	notesrv := notesrv.New(noterepo)
