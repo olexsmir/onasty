@@ -1,9 +1,11 @@
 package web
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/core/domain"
 )
 
 func (h *Handler) bindV1Auth(r *gin.RouterGroup) {
@@ -15,7 +17,7 @@ func (h *Handler) bindV1Auth(r *gin.RouterGroup) {
 
 		authorized := auth.Group("/")
 		{
-		authorized.Use(h.v1AuthorizedMiddleware)
+			authorized.Use(h.v1AuthorizedMiddleware)
 			authorized.POST("/logout", h.v1Logout)
 		}
 	}
@@ -32,6 +34,21 @@ func (h Handler) v1SignUp(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		// TODO: do not expose internal(kinda) error
 		newError(c, 400, err.Error())
+		return
+	}
+
+	if err := h.userService.SignUp(c.Request.Context(), domain.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
+	}); err != nil {
+		if errors.Is(err, domain.ErrUserEmailIsAlreadyInUse) ||
+			errors.Is(err, domain.ErrEmailIsInvalid) {
+			newError(c, http.StatusNotFound, err.Error())
+			return
+		}
+
+		newInternalError(c, err)
 		return
 	}
 

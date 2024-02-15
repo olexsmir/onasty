@@ -2,6 +2,7 @@ package usersrv
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/olexsmir/onasty/internal/core/domain"
@@ -26,7 +27,22 @@ func (s *Service) SignUp(
 	ctx context.Context,
 	inp domain.User,
 ) error {
-	panic("not implemented") // TODO: Implement
+	// FIXME: dont log password
+	slog.With("inp", inp).Info("user: signing up")
+
+	if err := inp.Validate(); err != nil {
+		return err
+	}
+
+	slog.Info("user: hashing password")
+	p, err := s.hasher.Hash(inp.Password)
+	if err != nil {
+		return err
+	}
+
+	inp.Password = string(p)
+
+	return s.store.Create(ctx, inp)
 }
 
 func (s *Service) SignIn(
