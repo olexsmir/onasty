@@ -14,14 +14,14 @@ type HandlerDeps struct {
 }
 
 type Handler struct {
-	noteServce ports.NoteServicer
-	userServce ports.UserServicer
+	noteService ports.NoteServicer
+	userService ports.UserServicer
 }
 
 func NewHandler(deps HandlerDeps) *Handler {
 	return &Handler{
-		noteServce: deps.NoteService,
-		userServce: deps.UserService,
+		noteService: deps.NoteService,
+		userService: deps.UserService,
 	}
 }
 
