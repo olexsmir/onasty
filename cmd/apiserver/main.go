@@ -12,8 +12,10 @@ import (
 	"github.com/olexsmir/onasty/internal/adapters/primary/web"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/noterepo"
+	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/userrepo"
 	"github.com/olexsmir/onasty/internal/core/config"
 	"github.com/olexsmir/onasty/internal/core/services/notesrv"
+	"github.com/olexsmir/onasty/internal/core/services/usersrv"
 )
 
 func main() {
@@ -41,8 +43,12 @@ func main() {
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
 
+	userrepo := userrepo.New(psqlDB)
+	usersrv := usersrv.New(userrepo)
+
 	handlers := web.NewHandler(web.HandlerDeps{
 		NoteService: notesrv,
+		UserService: usersrv,
 	})
 
 	// http server

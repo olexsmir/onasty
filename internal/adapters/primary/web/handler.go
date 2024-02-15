@@ -10,15 +10,18 @@ import (
 
 type HandlerDeps struct {
 	NoteService ports.NoteServicer
+	UserService ports.UserServicer
 }
 
 type Handler struct {
 	noteServce ports.NoteServicer
+	userServce ports.UserServicer
 }
 
 func NewHandler(deps HandlerDeps) *Handler {
 	return &Handler{
 		noteServce: deps.NoteService,
+		userServce: deps.UserService,
 	}
 }
 
