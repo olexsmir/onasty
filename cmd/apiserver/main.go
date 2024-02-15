@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/olexsmir/onasty/internal/adapters/primary/web"
+	"github.com/olexsmir/onasty/internal/adapters/secondary/hash/argon2"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/userrepo"
@@ -40,11 +41,13 @@ func main() {
 		slog.With("error", err).Error("failed to connect to database")
 	}
 
+	argon2Hasher := argon2.New()
+
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
 
 	userrepo := userrepo.New(psqlDB)
-	usersrv := usersrv.New(userrepo)
+	usersrv := usersrv.New(userrepo, argon2Hasher)
 
 	handlers := web.NewHandler(web.HandlerDeps{
 		NoteService: notesrv,

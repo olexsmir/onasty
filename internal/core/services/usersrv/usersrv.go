@@ -11,12 +11,14 @@ import (
 var _ ports.UserServicer = (*Service)(nil)
 
 type Service struct {
-	store ports.UserStorer
+	store  ports.UserStorer
+	hasher ports.Hasher
 }
 
-func New(store ports.UserStorer) *Service {
+func New(store ports.UserStorer, hasher ports.Hasher) *Service {
 	return &Service{
-		store: store,
+		store:  store,
+		hasher: hasher,
 	}
 }
 

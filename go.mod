@@ -3,6 +3,7 @@ module github.com/olexsmir/onasty
 go 1.21.6
 
 require (
+	github.com/alexedwards/argon2id v1.0.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/google/uuid v1.6.0
