@@ -16,12 +16,12 @@ var (
 )
 
 type User struct {
-	ID             uuid.UUID
-	Username       string
-	Email          string
-	Password       string
-	CreatedAt      time.Time
-	LastLoginnedAt time.Time
+	ID          uuid.UUID
+	Username    string
+	Email       string
+	Password    string
+	CreatedAt   time.Time
+	LastLoginAt time.Time
 }
 
 func (u User) Validate() error {
