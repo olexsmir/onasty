@@ -14,6 +14,7 @@ import (
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/userrepo"
+	"github.com/olexsmir/onasty/internal/adapters/secondary/tokens/jwt"
 	"github.com/olexsmir/onasty/internal/core/config"
 	"github.com/olexsmir/onasty/internal/core/services/notesrv"
 	"github.com/olexsmir/onasty/internal/core/services/usersrv"
@@ -42,12 +43,13 @@ func main() {
 	}
 
 	argon2Hasher := argon2.New()
+	jwtTokenizer := jwt.New(cfg.JWTSigningKey)
 
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
 
 	userrepo := userrepo.New(psqlDB)
-	usersrv := usersrv.New(userrepo, argon2Hasher)
+	usersrv := usersrv.New(userrepo, argon2Hasher, jwtTokenizer)
 
 	handlers := web.NewHandler(web.HandlerDeps{
 		NoteService: notesrv,
