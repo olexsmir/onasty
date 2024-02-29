@@ -3,6 +3,7 @@ package usersrv
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/olexsmir/onasty/internal/core/domain"
@@ -12,14 +13,26 @@ import (
 var _ ports.UserServicer = (*Service)(nil)
 
 type Service struct {
-	store  ports.UserStorer
-	hasher ports.Hasher
+	store     ports.UserStorer
+	hasher    ports.Hasher
+	tokeniser ports.JWTTokeniser
+
+	accessTokenTTL  time.Duration
+	refreshTokenTTL time.Duration
 }
 
-func New(store ports.UserStorer, hasher ports.Hasher) *Service {
+func New(
+	store ports.UserStorer,
+	hasher ports.Hasher,
+	tokeniser ports.JWTTokeniser,
+	accessTokenTTL, refreshTokenTTL time.Duration,
+) *Service {
 	return &Service{
-		store:  store,
-		hasher: hasher,
+		store:           store,
+		hasher:          hasher,
+		tokeniser:       tokeniser,
+		accessTokenTTL:  accessTokenTTL,
+		refreshTokenTTL: refreshTokenTTL,
 	}
 }
 
@@ -49,7 +62,20 @@ func (s *Service) SignIn(
 	ctx context.Context,
 	inp domain.User,
 ) (domain.UserTokens, error) {
-	panic("not implemented") // TODO: Implement
+	passwordHash, err := s.hasher.Hash(inp.Password)
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	user, err := s.store.GetUserByCredentials(ctx, domain.UserCredentials{
+		Email:    inp.Email,
+		Password: string(passwordHash),
+	})
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	return s.getTokensAndSetSession(ctx, user.ID)
 }
 
 func (s *Service) RefreshTokens(
@@ -61,4 +87,26 @@ func (s *Service) RefreshTokens(
 
 func (s *Service) Logout(ctx context.Context, userId uuid.UUID) error {
 	panic("not implemented") // TODO: Implement
+}
+
+func (s *Service) getTokensAndSetSession(
+	ctx context.Context,
+	userID uuid.UUID,
+) (domain.UserTokens, error) {
+	accessToken, err := s.tokeniser.GetToken(userID.String(), s.accessTokenTTL)
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	refreshToken, err := s.tokeniser.GetRefreshToken()
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	err = s.store.SetSession(ctx, userID, refreshToken, time.Now().Add(s.refreshTokenTTL))
+
+	return domain.UserTokens{
+		Access:  accessToken,
+		Refresh: refreshToken,
+	}, err
 }
