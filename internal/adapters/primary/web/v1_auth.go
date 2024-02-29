@@ -55,8 +55,47 @@ func (h Handler) v1SignUp(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
-func (h *Handler) v1SignIn(c *gin.Context)
+type v1SignInRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
-func (h *Handler) v1RefreshTokens(c *gin.Context)
+type v1SignInResponse struct {
+	Access  string `json:"access_token"`
+	Refresh string `json:"refresh_token"`
+}
 
-func (h *Handler) v1Logout(c *gin.Context)
+func (h *Handler) v1SignIn(c *gin.Context) {
+	var req v1SignInRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, 400, err.Error())
+		return
+	}
+
+	tokens, err := h.userService.SignIn(c.Request.Context(), domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			newError(c, http.StatusNotFound, err.Error())
+			return
+		}
+
+		newInternalError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, v1SignInResponse{
+		Access:  tokens.Access,
+		Refresh: tokens.Refresh,
+	})
+}
+
+func (h *Handler) v1RefreshTokens(c *gin.Context) {
+	c.Status(http.StatusInternalServerError)
+}
+
+func (h *Handler) v1Logout(c *gin.Context) {
+	c.Status(http.StatusInternalServerError)
+}

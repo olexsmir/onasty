@@ -44,6 +44,7 @@ func (h *Handler) InitRoutes() http.Handler {
 
 func (h *Handler) bindV1Routes(r *gin.RouterGroup) {
 	h.bindV1Note(r)
+	h.bindV1Auth(r)
 }
 
 func (h *Handler) pingHandler(c *gin.Context) {
