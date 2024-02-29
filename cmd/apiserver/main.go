@@ -49,7 +49,13 @@ func main() {
 	notesrv := notesrv.New(noterepo)
 
 	userrepo := userrepo.New(psqlDB)
-	usersrv := usersrv.New(userrepo, argon2Hasher, jwtTokenizer)
+	usersrv := usersrv.New(
+		userrepo,
+		argon2Hasher,
+		jwtTokenizer,
+		cfg.JWTAccessTokenTTL,
+		cfg.JWTRefreshTokenTTL,
+	)
 
 	handlers := web.NewHandler(web.HandlerDeps{
 		NoteService: notesrv,
