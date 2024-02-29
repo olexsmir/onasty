@@ -2,9 +2,12 @@ package userrepo
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/core/domain"
 	"github.com/olexsmir/onasty/internal/ports"
@@ -44,7 +47,45 @@ func (s *Store) GetUserByCredentials(
 	ctx context.Context,
 	inp domain.UserCredentials,
 ) (domain.User, error) {
-	panic("not implemented") // TODO: Implement
+	query, args, err := pgq.
+		Select("id", "username", "email", "password", "created_at", "last_login_at").
+		From("users").
+		Where(pgq.Eq{
+			"email":    inp.Email,
+			"password": inp.Password,
+		}).
+		SQL()
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	var res domain.User
+	err = s.db.QueryRow(ctx, query, args...).
+		Scan(&res.ID, &res.Username, &res.Email, &res.Password, &res.CreatedAt, &res.LastLoginAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return res, domain.ErrNoteNotFound
+	}
+
+	return res, err
+}
+
+func (s *Store) SetSession(
+	ctx context.Context,
+	id uuid.UUID,
+	refreshToken string,
+	expiresAt time.Time,
+) error {
+	query, args, err := pgq.
+		Insert("sessions").
+		Columns("user_id", "refresh_token", "expires_at").
+		Values(id, refreshToken, expiresAt).
+		SQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(ctx, query, args...)
+	return err
 }
 
 func (s *Store) RemoveSession(ctx context.Context, userId uuid.UUID) error {
