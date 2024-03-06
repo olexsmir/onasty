@@ -11,10 +11,10 @@ import (
 
 	"github.com/olexsmir/onasty/internal/adapters/primary/web"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/hash/argon2"
+	"github.com/olexsmir/onasty/internal/adapters/secondary/jwt"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/userrepo"
-	"github.com/olexsmir/onasty/internal/adapters/secondary/tokens/jwt"
 	"github.com/olexsmir/onasty/internal/core/config"
 	"github.com/olexsmir/onasty/internal/core/services/notesrv"
 	"github.com/olexsmir/onasty/internal/core/services/usersrv"

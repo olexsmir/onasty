@@ -15,7 +15,7 @@ var _ ports.UserServicer = (*Service)(nil)
 type Service struct {
 	store     ports.UserStorer
 	hasher    ports.Hasher
-	tokeniser ports.JWTTokeniser
+	tokeniser ports.JWTTokenProvider
 
 	accessTokenTTL  time.Duration
 	refreshTokenTTL time.Duration
@@ -24,7 +24,7 @@ type Service struct {
 func New(
 	store ports.UserStorer,
 	hasher ports.Hasher,
-	tokeniser ports.JWTTokeniser,
+	tokeniser ports.JWTTokenProvider,
 	accessTokenTTL, refreshTokenTTL time.Duration,
 ) *Service {
 	return &Service{

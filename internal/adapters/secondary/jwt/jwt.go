@@ -10,12 +10,12 @@ import (
 	"github.com/olexsmir/onasty/internal/ports"
 )
 
-var _ ports.JWTTokeniser = (*Tokens)(nil)
-
 var (
 	ErrUnexpectedMigningMethod = errors.New("unexpected signing method")
 	ErrCannotParseClaims       = errors.New("cannot parse claims")
 )
+
+var _ ports.JWTTokenProvider = (*Tokens)(nil)
 
 type Tokens struct {
 	key string
