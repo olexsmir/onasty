@@ -16,7 +16,7 @@ func newError(c *gin.Context, status int, msg string) {
 	c.AbortWithStatusJSON(status, response{msg})
 }
 
-func newInternalError(c *gin.Context, err error, msg ...string) {
+func newInternalError(c *gin.Context, err error, msg ...string) { //nolint:unparam
 	slog.With("status", "internal error").Error(err.Error())
 
 	if len(msg) != 0 {
