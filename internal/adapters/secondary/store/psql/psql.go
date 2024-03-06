@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -19,6 +20,8 @@ type Credentials struct {
 	Port     string
 	Database string
 }
+
+var _ io.Closer = (*DB)(nil)
 
 type DB struct{ *pgxpool.Pool }
 
