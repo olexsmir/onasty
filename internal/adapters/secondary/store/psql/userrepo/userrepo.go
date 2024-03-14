@@ -63,7 +63,7 @@ func (s *Store) GetUserByCredentials(
 	err = s.db.QueryRow(ctx, query, args...).
 		Scan(&res.ID, &res.Username, &res.Email, &res.Password, &res.CreatedAt, &res.LastLoginAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return res, domain.ErrNoteNotFound
+		return res, domain.ErrUserNotFound
 	}
 
 	return res, err
