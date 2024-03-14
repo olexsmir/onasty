@@ -47,13 +47,14 @@ func (s *Service) SignUp(
 		return err
 	}
 
-	slog.Info("user: hashing password")
+	// TODO: handle if eamil already in use
+
 	p, err := s.hasher.Hash(inp.Password)
 	if err != nil {
 		return err
 	}
 
-	inp.Password = string(p)
+	inp.Password = p
 
 	return s.store.Create(ctx, inp)
 }

@@ -10,8 +10,8 @@ import (
 	"syscall"
 
 	"github.com/olexsmir/onasty/internal/adapters/primary/web"
-	"github.com/olexsmir/onasty/internal/adapters/secondary/hash/argon2"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/jwt"
+	"github.com/olexsmir/onasty/internal/adapters/secondary/sha256"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/adapters/secondary/store/psql/userrepo"
@@ -42,7 +42,7 @@ func main() {
 		slog.With("error", err).Error("failed to connect to database")
 	}
 
-	argon2Hasher := argon2.New()
+	passwordHasher := sha256.NewSHA256Hasher(cfg.PasswordHashSalt)
 	jwtTokenizer := jwt.New(cfg.JWTSigningKey)
 
 	noterepo := noterepo.New(psqlDB)
@@ -51,7 +51,7 @@ func main() {
 	userrepo := userrepo.New(psqlDB)
 	usersrv := usersrv.New(
 		userrepo,
-		argon2Hasher,
+		passwordHasher,
 		jwtTokenizer,
 		cfg.JWTAccessTokenTTL,
 		cfg.JWTRefreshTokenTTL,

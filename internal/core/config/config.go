@@ -10,6 +10,8 @@ type Config struct {
 	ServerPort string
 	CorsOrigin string
 
+	PasswordHashSalt string
+
 	JWTSigningKey      string
 	JWTAccessTokenTTL  time.Duration
 	JWTRefreshTokenTTL time.Duration
@@ -29,6 +31,8 @@ func New() (*Config, error) {
 		AppEnv:     GetenvOrDefault("APP_ENV", "debug"),
 		ServerPort: GetenvOrDefault("SERVER_PORT", "3000"),
 		CorsOrigin: GetenvOrDefault("CORS_ORIGIN", "*"),
+
+		PasswordHashSalt: GetenvOrDefault("PASSWORD_HASH_SALT", ""),
 
 		JWTSigningKey:      GetenvOrDefault("JWT_SIGNING_KEY", "IT-HAS-TO-BE-SECRET"),
 		JWTAccessTokenTTL:  MustParseDuration(GetenvOrDefault("JWT_ACCESS_TOKEN_TTL", "60m")),
