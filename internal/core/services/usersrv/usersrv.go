@@ -70,30 +70,54 @@ func (s *Service) SignIn(
 
 	user, err := s.store.GetUserByCredentials(ctx, domain.UserCredentials{
 		Email:    inp.Email,
-		Password: string(passwordHash),
+		Password: passwordHash,
 	})
 	if err != nil {
 		return domain.UserTokens{}, err
 	}
 
-	return s.getTokensAndSetSession(ctx, user.ID)
+	tokens, err := s.getTokens(user.ID)
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+	err = s.store.SetSession(ctx, user.ID, tokens.Refresh, time.Now().Add(s.refreshTokenTTL))
+
+	return domain.UserTokens{
+		Access:  tokens.Access,
+		Refresh: tokens.Refresh,
+	}, err
 }
 
 func (s *Service) RefreshTokens(
 	ctx context.Context,
 	refreshToken string,
 ) (domain.UserTokens, error) {
-	panic("not implemented") // TODO: Implement
+	slog.With("refreshToken", refreshToken).Debug("user: refreshing tokens")
+	user, err := s.store.GetUserByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	tokens, err := s.getTokens(user.ID)
+	if err != nil {
+		return domain.UserTokens{}, err
+	}
+
+	slog.With("user", user).Debug("user: refreshing tokens")
+	slog.With("tokens", tokens).Debug("user: refreshing tokens")
+
+	slog.Debug("updating session")
+	err = s.store.UpdateSession(ctx, user.ID, refreshToken, tokens.Refresh)
+	slog.Debug("session updated")
+
+	return tokens, err
 }
 
 func (s *Service) Logout(ctx context.Context, userId uuid.UUID) error {
 	panic("not implemented") // TODO: Implement
 }
 
-func (s *Service) getTokensAndSetSession(
-	ctx context.Context,
-	userID uuid.UUID,
-) (domain.UserTokens, error) {
+func (s *Service) getTokens(userID uuid.UUID) (domain.UserTokens, error) {
 	accessToken, err := s.tokeniser.GetToken(userID.String(), s.accessTokenTTL)
 	if err != nil {
 		return domain.UserTokens{}, err
@@ -104,10 +128,8 @@ func (s *Service) getTokensAndSetSession(
 		return domain.UserTokens{}, err
 	}
 
-	err = s.store.SetSession(ctx, userID, refreshToken, time.Now().Add(s.refreshTokenTTL))
-
 	return domain.UserTokens{
 		Access:  accessToken,
 		Refresh: refreshToken,
-	}, err
+	}, nil
 }

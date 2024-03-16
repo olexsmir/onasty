@@ -69,6 +69,25 @@ func (s *Store) GetUserByCredentials(
 	return res, err
 }
 
+func (s *Store) GetUserByRefreshToken(
+	ctx context.Context,
+	refreshToken string,
+) (domain.User, error) {
+	query := `
+select id, username, email, password, created_at, last_login_at from users
+where id = (select user_id from sessions where refresh_token = $1);`
+
+	var res domain.User
+	err := s.db.QueryRow(ctx, query, refreshToken).
+		Scan(&res.ID, &res.Username, &res.Email, &res.Password, &res.CreatedAt, &res.LastLoginAt)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return res, domain.ErrUsersSessionNotFound
+	}
+
+	return res, nil
+}
+
 func (s *Store) SetSession(
 	ctx context.Context,
 	id uuid.UUID,
@@ -88,6 +107,42 @@ func (s *Store) SetSession(
 	return err
 }
 
-func (s *Store) RemoveSession(ctx context.Context, userId uuid.UUID) error {
-	panic("not implemented") // TODO: Implement
+func (s *Store) UpdateSession(
+	ctx context.Context,
+	userID uuid.UUID,
+	refreshToken string,
+	newRefreshToken string,
+) error {
+	query := `
+update sessions
+set
+  refresh_token = $1
+where
+  user_id = $2
+  and refresh_token = $3
+  and expires_at < now()
+`
+
+	_, err := s.db.Exec(ctx, query, newRefreshToken, userID, refreshToken)
+	// if res.RowsAffected() != 1 {
+	// 	return domain.ErrUsersSessionNotFound
+	// }
+
+	return err
+}
+
+func (s *Store) RemoveSession(ctx context.Context, userID uuid.UUID) error {
+	query, args, err := pgq.
+		Delete("sessions").
+		Where(pgq.Eq{
+			// NOTE: also, add refreshToken?
+			"user_id": userID,
+		}).
+		SQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = s.db.Exec(ctx, query, args...)
+	return err
 }

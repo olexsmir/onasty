@@ -92,8 +92,32 @@ func (h *Handler) v1SignIn(c *gin.Context) {
 	})
 }
 
+type v1RefreshTokensRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 func (h *Handler) v1RefreshTokens(c *gin.Context) {
-	c.Status(http.StatusInternalServerError)
+	var req v1RefreshTokensRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, 400, err.Error())
+		return
+	}
+
+	tokens, err := h.userService.RefreshTokens(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		if errors.Is(err, domain.ErrUsersSessionNotFound) {
+			newError(c, http.StatusNotFound, err.Error())
+			return
+		}
+
+		newInternalError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, v1SignInResponse{
+		Access:  tokens.Access,
+		Refresh: tokens.Refresh,
+	})
 }
 
 func (h *Handler) v1Logout(c *gin.Context) {
