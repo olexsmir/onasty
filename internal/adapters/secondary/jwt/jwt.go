@@ -44,8 +44,7 @@ func (t *Tokens) Parse(userToken string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	return claims.GetSubject()
+	return claims.GetSubject() //nolint:govet
 }
 
 func (t *Tokens) GetRefreshToken() (string, error) {
