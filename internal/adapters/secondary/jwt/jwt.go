@@ -11,18 +11,18 @@ import (
 )
 
 var (
-	ErrUnexpectedMigningMethod = errors.New("unexpected signing method")
-	ErrCannotParseClaims       = errors.New("cannot parse claims")
+	ErrUnexpectedSingningMethod = errors.New("unexpected signing method")
+	ErrCannotParseClaims        = errors.New("cannot parse claims")
 )
 
 var _ ports.JWTTokenProvider = (*Tokens)(nil)
 
 type Tokens struct {
-	key string
+	signingKey string
 }
 
 func New(key string) *Tokens {
-	return &Tokens{key: key}
+	return &Tokens{signingKey: key}
 }
 
 func (t *Tokens) GetToken(subject string, ttl time.Duration) (string, error) {
@@ -30,21 +30,23 @@ func (t *Tokens) GetToken(subject string, ttl time.Duration) (string, error) {
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
 		Subject:   subject,
 	})
-	return tok.SigningString()
+	return tok.SignedString([]byte(t.signingKey))
 }
 
 func (t *Tokens) Parse(userToken string) (string, error) {
-	var claims jwt.Claims
-	_, err := jwt.ParseWithClaims(userToken, claims, func(tok *jwt.Token) (interface{}, error) {
-		if _, ok := tok.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, ErrUnexpectedMigningMethod
+	var claims jwt.RegisteredClaims
+	_, err := jwt.ParseWithClaims(userToken, &claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, ErrUnexpectedSingningMethod
 		}
-		return []byte(t.key), nil
-	})
+		return []byte(t.signingKey), nil
+	},
+	)
 	if err != nil {
 		return "", err
 	}
-	return claims.GetSubject() //nolint:govet
+
+	return claims.Subject, nil
 }
 
 func (t *Tokens) GetRefreshToken() (string, error) {

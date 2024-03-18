@@ -123,21 +123,19 @@ where
   and expires_at < now()
 `
 
-	_, err := s.db.Exec(ctx, query, newRefreshToken, userID, refreshToken)
-	// if res.RowsAffected() != 1 {
-	// 	return domain.ErrUsersSessionNotFound
-	// }
+	res, err := s.db.Exec(ctx, query, newRefreshToken, userID, refreshToken)
+	if res.RowsAffected() != 1 {
+		return domain.ErrUsersSessionNotFound
+	}
 
 	return err
 }
 
 func (s *Store) RemoveSession(ctx context.Context, userID uuid.UUID) error {
+	// NOTE: also, add refreshToken?
 	query, args, err := pgq.
 		Delete("sessions").
-		Where(pgq.Eq{
-			// NOTE: also, add refreshToken?
-			"user_id": userID,
-		}).
+		Where("user_id", userID.String()).
 		SQL()
 	if err != nil {
 		return err

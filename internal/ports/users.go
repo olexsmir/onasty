@@ -12,6 +12,7 @@ type UserServicer interface {
 	SignUp(context.Context, domain.User) error
 	SignIn(context.Context, domain.User) (domain.UserTokens, error)
 	RefreshTokens(context.Context, string) (domain.UserTokens, error)
+	ParseToken(string) (uuid.UUID, error)
 	Logout(context.Context, uuid.UUID) error
 }
 

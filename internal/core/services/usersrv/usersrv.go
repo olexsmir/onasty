@@ -114,7 +114,17 @@ func (s *Service) RefreshTokens(
 }
 
 func (s *Service) Logout(ctx context.Context, userId uuid.UUID) error {
-	panic("not implemented") // TODO: Implement
+	return s.store.RemoveSession(ctx, userId)
+}
+
+func (s *Service) ParseToken(token string) (uuid.UUID, error) {
+	tok, err := s.tokeniser.Parse(token)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	t, err := uuid.Parse(tok)
+	return t, err
 }
 
 func (s *Service) getTokens(userID uuid.UUID) (domain.UserTokens, error) {

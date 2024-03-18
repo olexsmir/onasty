@@ -18,6 +18,7 @@ func (h *Handler) bindV1Auth(r *gin.RouterGroup) {
 		authorized := auth.Group("/")
 		{
 			authorized.Use(h.v1AuthorizedMiddleware)
+
 			authorized.POST("/logout", h.v1Logout)
 		}
 	}
@@ -121,5 +122,11 @@ func (h *Handler) v1RefreshTokens(c *gin.Context) {
 }
 
 func (h *Handler) v1Logout(c *gin.Context) {
-	c.Status(http.StatusInternalServerError)
+	userID := getUserID(c)
+	if err := h.userService.Logout(c.Request.Context(), userID); err != nil {
+		newInternalError(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
