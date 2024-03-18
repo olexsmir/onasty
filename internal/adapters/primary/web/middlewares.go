@@ -20,11 +20,9 @@ func (h *Handler) logger() gin.HandlerFunc {
 			path = path + "?" + raw
 		}
 
-		var lvl slog.Level
+		lvl := slog.LevelInfo
 		if c.Writer.Status() >= 500 {
 			lvl = slog.LevelError
-		} else {
-			lvl = slog.LevelInfo
 		}
 
 		slog.LogAttrs(

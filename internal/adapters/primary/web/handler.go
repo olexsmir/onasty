@@ -10,15 +10,18 @@ import (
 
 type HandlerDeps struct {
 	NoteService ports.NoteServicer
+	UserService ports.UserServicer
 }
 
 type Handler struct {
-	noteServce ports.NoteServicer
+	noteService ports.NoteServicer
+	userService ports.UserServicer
 }
 
 func NewHandler(deps HandlerDeps) *Handler {
 	return &Handler{
-		noteServce: deps.NoteService,
+		noteService: deps.NoteService,
+		userService: deps.UserService,
 	}
 }
 
@@ -29,8 +32,8 @@ func (h *Handler) InitRoutes() http.Handler {
 		h.logger(),
 	)
 
-	r.NoRoute(h.notFoundHandler)
-	r.NoMethod(h.notFoundHandler)
+	r.NoRoute(h.respondWithMsgAndStatus("not found", http.StatusNotFound))
+	r.NoMethod(h.respondWithMsgAndStatus("method not allowed", http.StatusMethodNotAllowed))
 
 	api := r.Group("/api")
 	api.GET("/ping", h.pingHandler)
@@ -41,6 +44,7 @@ func (h *Handler) InitRoutes() http.Handler {
 
 func (h *Handler) bindV1Routes(r *gin.RouterGroup) {
 	h.bindV1Note(r)
+	h.bindV1Auth(r)
 }
 
 func (h *Handler) pingHandler(c *gin.Context) {
@@ -49,7 +53,9 @@ func (h *Handler) pingHandler(c *gin.Context) {
 	})
 }
 
-func (h *Handler) notFoundHandler(c *gin.Context) {
-	slog.Info("not found")
-	c.AbortWithStatus(http.StatusNotFound)
+func (Handler) respondWithMsgAndStatus(msg string, code int) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		slog.Info(msg)
+		c.AbortWithStatus(code)
+	}
 }

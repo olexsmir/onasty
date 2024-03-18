@@ -35,7 +35,7 @@ func (h *Handler) v1CreateNote(c *gin.Context) {
 		return
 	}
 
-	res, err := h.noteServce.Create(c.Request.Context(), domain.Note{
+	res, err := h.noteService.Create(c.Request.Context(), domain.Note{
 		Content:              req.Content,
 		Slug:                 req.Slug,
 		BurnBeforeExpiration: req.BurnBeforeExpiration,
@@ -65,7 +65,7 @@ type v1GetNoteBySlugResponse struct {
 func (h *Handler) v1GetNoteBySlug(c *gin.Context) {
 	slug := c.Param("slug")
 
-	note, err := h.noteServce.GetBySlug(c.Request.Context(), slug)
+	note, err := h.noteService.GetBySlug(c.Request.Context(), slug)
 	if err != nil {
 		if errors.Is(err, domain.ErrNoteNotFound) ||
 			errors.Is(err, domain.ErrNoteExpired) {

@@ -4,6 +4,7 @@ go 1.21.6
 
 require (
 	github.com/gin-gonic/gin v1.9.1
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
 	github.com/google/uuid v1.6.0
 	github.com/henvic/pgq v0.0.2
@@ -11,6 +12,7 @@ require (
 	github.com/stretchr/testify v1.9.0
 	github.com/testcontainers/testcontainers-go v0.29.1
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.29.1
+	github.com/vgarvardt/pgx-google-uuid/v5 v5.0.0
 )
 
 require (

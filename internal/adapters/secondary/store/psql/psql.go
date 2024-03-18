@@ -4,9 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	pgxuuid "github.com/vgarvardt/pgx-google-uuid/v5"
 )
 
 type Credentials struct {
@@ -17,10 +21,12 @@ type Credentials struct {
 	Database string
 }
 
+var _ io.Closer = (*DB)(nil)
+
 type DB struct{ *pgxpool.Pool }
 
 func Connect(ctx context.Context, conn Credentials) (*DB, error) {
-	db, err := pgxpool.New(ctx, fmt.Sprintf( //nolint:nosprintfhostport
+	dbcfg, err := pgxpool.ParseConfig(fmt.Sprintf( //nolint:nosprintfhostport
 		"postgres://%s:%s@%s:%s/%s",
 		conn.Username,
 		conn.Password,
@@ -28,6 +34,16 @@ func Connect(ctx context.Context, conn Credentials) (*DB, error) {
 		conn.Port,
 		conn.Database,
 	))
+	if err != nil {
+		return nil, err
+	}
+
+	dbcfg.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		pgxuuid.Register(conn.TypeMap())
+		return nil
+	}
+
+	db, err := pgxpool.NewWithConfig(ctx, dbcfg)
 	if err != nil {
 		return nil, err
 	}
