@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: onasty-postgres
+    environment:
+      POSTGRES_USER: onasty
+      POSTGRES_PASSWORD: qwerty
+      POSTGRES_DB: onasty
+    volumes:
+      - .docker/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432

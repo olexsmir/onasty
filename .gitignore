@@ -1,0 +1,4 @@
+/.bin/
+/.docker/
+/.env*
+!/.env.example

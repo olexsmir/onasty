@@ -1,0 +1,27 @@
+version: "3"
+
+dotenv:
+  - ".env"
+
+includes:
+  migrate: ./migrations/Taskfile.yml
+
+tasks:
+  build:
+    - go build -o .bin/onasty ./cmd/server/
+
+  run:
+    - task: build
+    - .bin/onasty
+
+  lint:
+    - golangci-lint run
+
+  docker:up:
+    - docker compose up -d
+
+  test:unit:
+    - go test -v --short ./...
+
+  test:e2e:
+    - go test -v ./e2e/
