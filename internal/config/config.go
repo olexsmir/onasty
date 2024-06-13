@@ -5,8 +5,9 @@ import (
 )
 
 type Config struct {
-	AppEnv     string
-	ServerPort string
+	AppEnv       string
+	ServerPort   string
+	PasswordSalt string
 
 	LogLevel  string
 	LogFormat string
@@ -18,6 +19,7 @@ func NewConfig() *Config {
 	return &Config{
 		AppEnv:      getenvOrDefault("APP_ENV", "debug"),
 		ServerPort:  getenvOrDefault("SERVER_PORT", "3000"),
+		PasswordSalt: getenvOrDefault("PASSWORD_SALT", ""),
 		LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
 		LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),
 		PostgresDSN: getenvOrDefault("POSTGRESQL_DSN", ""),

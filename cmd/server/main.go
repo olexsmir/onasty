@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/config"
+	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
@@ -44,8 +45,10 @@ func run(ctx context.Context) error {
 	}
 
 	// app deps
+	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
+
 	userepo := userepo.New(psqlDB)
-	usersrv := usersrv.New(userepo)
+	usersrv := usersrv.New(userepo, sha256Hasher)
 
 	handler := httptransport.NewTransport(usersrv)
 
