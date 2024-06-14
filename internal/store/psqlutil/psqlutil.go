@@ -3,7 +3,6 @@ package psqlutil
 import (
 	"context"
 	"errors"
-	"log/slog"
 
 	"github.com/jackc/pgconn"
 	pgxuuid "github.com/jackc/pgx-gofrs-uuid"

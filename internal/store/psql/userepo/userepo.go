@@ -2,16 +2,19 @@ package userepo
 
 import (
 	"context"
-	"time"
+	"errors"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
+	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
 type UserStorer interface {
-	Create(ctx context.Context, inp CreateInput) (uuid.UUID, error)
+	Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
+	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
 }
 
 type UserRepo struct {
@@ -24,15 +27,7 @@ func New(db *psqlutil.DB) UserStorer {
 	}
 }
 
-type CreateInput struct {
-	Username    string
-	Email       string
-	Password    string
-	CreatedAt   time.Time
-	LastLoginAt time.Time
-}
-
-func (r *UserRepo) Create(ctx context.Context, inp CreateInput) (uuid.UUID, error) {
+func (r *UserRepo) Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error) {
 	query, args, err := pgq.
 		Insert("users").
 		Columns("username", "email", "password", "created_at", "last_login_at").
@@ -56,4 +51,30 @@ func (r *UserRepo) Create(ctx context.Context, inp CreateInput) (uuid.UUID, erro
 	}
 
 	return id, err
+}
+
+func (r *UserRepo) GetUserByCredentials(
+	ctx context.Context,
+	email, password string,
+) (dtos.UserDTO, error) {
+	query, args, err := pgq.
+		Select("id", "username", "email", "password", "created_at", "last_login_at").
+		From("users").
+		Where(pgq.Eq{
+			"email":    email,
+			"password": password,
+		}).
+		SQL()
+	if err != nil {
+		return dtos.UserDTO{}, err
+	}
+
+	var user dtos.UserDTO
+	err = r.db.QueryRow(ctx, query, args...).
+		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt, &user.LastLoginAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return dtos.UserDTO{}, models.ErrUserNotFound
+	}
+
+	return user, err
 }

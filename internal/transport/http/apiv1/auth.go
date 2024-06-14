@@ -1,13 +1,11 @@
 package apiv1
 
 import (
-	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/olexsmir/onasty/internal/models"
-	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/dtos"
 )
 
 type signUpRequest struct {
@@ -23,20 +21,14 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	if _, err := a.userSrv.SignUp(c.Request.Context(), usersrv.SignUpInput{
+	if _, err := a.userSrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
 		Username:    req.Username,
 		Email:       req.Email,
 		Password:    req.Password,
 		CreatedAt:   time.Now(),
 		LastLoginAt: time.Now(),
 	}); err != nil {
-		if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
-			errors.Is(err, models.ErrUsernameIsAlreadyInUse) {
-			newError(c, http.StatusNotFound, err.Error())
-			return
-		}
-
-		newInternalError(c, err)
+		errorHandler(c, err)
 		return
 	}
 

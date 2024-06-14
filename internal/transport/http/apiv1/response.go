@@ -1,14 +1,31 @@
 package apiv1
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/models"
 )
 
 type response struct {
 	Message string `json:"message"`
+}
+
+func errorHandler(c *gin.Context, err error) {
+	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
+		errors.Is(err, models.ErrUsernameIsAlreadyInUse) {
+		newError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if errors.Is(err, models.ErrUserNotFound) {
+		newError(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	newInternalError(c, err)
 }
 
 func newError(c *gin.Context, status int, msg string) {
