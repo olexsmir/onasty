@@ -28,7 +28,7 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		CreatedAt:   time.Now(),
 		LastLoginAt: time.Now(),
 	}); err != nil {
-		errorHandler(c, err)
+		errorResponse(c, err)
 		return
 	}
 
@@ -57,7 +57,7 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 		Password: req.Password,
 	})
 	if err != nil {
-		errorHandler(c, err)
+		errorResponse(c, err)
 		return
 	}
 

@@ -13,7 +13,7 @@ type response struct {
 	Message string `json:"message"`
 }
 
-func errorHandler(c *gin.Context, err error) {
+func errorResponse(c *gin.Context, err error) {
 	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUsernameIsAlreadyInUse) {
 		newError(c, http.StatusBadRequest, err.Error())
