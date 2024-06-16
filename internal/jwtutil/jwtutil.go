@@ -38,7 +38,7 @@ func (j *JWTUtil) AccessToken(pl Payload) (string, error) {
 		Subject:   pl.UserID,
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(j.accessTokenTTL)),
 	})
-	return tok.SignedString(j.signingKey)
+	return tok.SignedString([]byte(j.signingKey))
 }
 
 func (j *JWTUtil) RefreshToken() (string, error) {
