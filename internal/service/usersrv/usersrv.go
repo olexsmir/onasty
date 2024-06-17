@@ -13,6 +13,7 @@ import (
 type UserServicer interface {
 	SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
 	SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error)
+	ParseToken(token string) (jwtutil.Payload, error)
 }
 
 type UserSrv struct {
@@ -73,4 +74,8 @@ func (s *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		Access:  accessToken,
 		Refresh: refreshToken,
 	}, nil
+}
+
+func (s *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
+	return s.jwtTokenizer.Parse(token)
 }

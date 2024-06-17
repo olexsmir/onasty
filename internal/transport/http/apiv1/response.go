@@ -25,12 +25,22 @@ func errorResponse(c *gin.Context, err error) {
 		return
 	}
 
+	if errors.Is(err, ErrUnauthorized) {
+		newErrorStatus(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
 	newInternalError(c, err)
 }
 
 func newError(c *gin.Context, status int, msg string) {
-	slog.With("status", status).Error(msg)
+	slog.Error(msg, "status", status)
 	c.AbortWithStatusJSON(status, response{msg})
+}
+
+func newErrorStatus(c *gin.Context, status int, msg string) {
+	slog.Error(msg, "status", status)
+	c.AbortWithStatus(status)
 }
 
 func newInternalError(c *gin.Context, err error, msg ...string) {
