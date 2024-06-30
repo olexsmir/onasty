@@ -17,11 +17,13 @@ type UserStorer interface {
 	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
 }
 
+var _ UserStorer = (*UserRepo)(nil)
+
 type UserRepo struct {
 	db *psqlutil.DB
 }
 
-func New(db *psqlutil.DB) UserStorer {
+func New(db *psqlutil.DB) *UserRepo {
 	return &UserRepo{
 		db: db,
 	}
