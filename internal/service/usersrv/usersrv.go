@@ -15,7 +15,7 @@ import (
 type UserServicer interface {
 	SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
 	SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error)
-	Logout(ctx context.Context, token uuid.UUID) error
+	Logout(ctx context.Context, userID uuid.UUID) error
 	ParseToken(token string) (jwtutil.Payload, error)
 }
 
