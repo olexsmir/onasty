@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
 
@@ -69,4 +70,14 @@ func saveUserIDToCtx(c *gin.Context, us usersrv.UserServicer, token string) erro
 	c.Set(userIDCtxKey, pl.UserID)
 
 	return nil
+}
+
+// getUserId returns userId from the context
+// getting user id is only possible if user is authorized
+func getUserID(c *gin.Context) uuid.UUID {
+	userID, exists := c.Get(userIDCtxKey)
+	if !exists {
+		return uuid.Nil
+	}
+	return userID.(uuid.UUID)
 }

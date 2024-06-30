@@ -69,4 +69,11 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 
 func (a *APIV1) refreshTokensHandler(_ *gin.Context) {}
 
-func (a *APIV1) logOutHandler(_ *gin.Context) {}
+func (a *APIV1) logOutHandler(c *gin.Context) {
+	if err := a.userSrv.Logout(c.Request.Context(), getUserID(c)); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
