@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/olexsmir/onasty/internal/hasher"
+	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
@@ -69,8 +73,13 @@ func (s *AppTestSuite) TearDownSuite() {
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
 func (s *AppTestSuite) initDeps() {
+	sha256Hasher := hasher.NewSHA256Hasher("pass_salt")
+	jwtTokenizer := jwtutil.NewJWTUtil("jwt", time.Hour)
+
+	sessionrepo := sessionrepo.New(s.postgresDB)
+
 	userepo := userepo.New(s.postgresDB)
-	usersrv := usersrv.New(userepo)
+	usersrv := usersrv.New(userepo, sessionrepo, sha256Hasher, jwtTokenizer)
 
 	handler := httptransport.NewTransport(usersrv)
 	s.router = handler.Handler()
