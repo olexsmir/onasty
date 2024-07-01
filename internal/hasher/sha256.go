@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 )
 
-type SHA256Hasher struct { //nolint:revive
+type SHA256Hasher struct {
 	salt string
 }
 
