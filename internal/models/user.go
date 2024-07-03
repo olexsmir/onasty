@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"net/mail"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -24,5 +25,19 @@ type User struct {
 }
 
 func (u User) Validate() error {
+	// NOTE: there's probably a better way to validate emails
+	_, err := mail.ParseAddress(u.Email)
+	if err != nil {
+		return errors.New("user: invalid email")
+	}
+
+	if len(u.Password) < 6 {
+		return errors.New("user: password too short, minimum 6 chars")
+	}
+
+	if len(u.Username) == 0 {
+		return errors.New("user: username is required")
+	}
+
 	return nil
 }
