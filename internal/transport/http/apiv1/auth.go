@@ -81,7 +81,28 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 	})
 }
 
-func (a *APIV1) refreshTokensHandler(_ *gin.Context) {}
+type refreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (a *APIV1) refreshTokensHandler(c *gin.Context) {
+	var req refreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	toks, err := a.userSrv.RefreshTokens(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, signInResponse{
+		AccessToken:  toks.Access,
+		RefreshToken: toks.Refresh,
+	})
+}
 
 func (a *APIV1) logOutHandler(c *gin.Context) {
 	if err := a.userSrv.Logout(c.Request.Context(), getUserID(c)); err != nil {
