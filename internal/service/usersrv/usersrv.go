@@ -15,7 +15,9 @@ import (
 type UserServicer interface {
 	SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
 	SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
+
 	ParseToken(token string) (jwtutil.Payload, error)
 }
 
@@ -70,7 +72,50 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		return dtos.TokensDTO{}, err
 	}
 
-	accessToken, err := u.jwtTokenizer.AccessToken(jwtutil.Payload{UserID: user.ID.String()})
+	tokens, err := u.getTokens(user.ID)
+	if err != nil {
+		return dtos.TokensDTO{}, err
+	}
+
+	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, u.refreshTokenExpiredAt); err != nil {
+		return dtos.TokensDTO{}, err
+	}
+
+	return dtos.TokensDTO{
+		Access:  tokens.Access,
+		Refresh: tokens.Refresh,
+	}, nil
+}
+
+func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID) error {
+	return u.sessionstore.Delete(ctx, userID)
+}
+
+func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.TokensDTO, error) {
+	userID, err := u.sessionstore.GetUserIDByRefreshToken(ctx, rtoken)
+	if err != nil {
+		return dtos.TokensDTO{}, err
+	}
+
+	tokens, err := u.getTokens(userID)
+	if err != nil {
+		return dtos.TokensDTO{}, err
+	}
+
+	err = u.sessionstore.Update(ctx, userID, rtoken, tokens.Refresh)
+
+	return dtos.TokensDTO{
+		Access:  tokens.Access,
+		Refresh: tokens.Refresh,
+	}, err
+}
+
+func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
+	return u.jwtTokenizer.Parse(token)
+}
+
+func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
+	accessToken, err := u.jwtTokenizer.AccessToken(jwtutil.Payload{UserID: userID.String()})
 	if err != nil {
 		return dtos.TokensDTO{}, err
 	}
@@ -80,20 +125,8 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		return dtos.TokensDTO{}, err
 	}
 
-	if err := u.sessionstore.Set(ctx, user.ID, refreshToken, u.refreshTokenExpiredAt); err != nil {
-		return dtos.TokensDTO{}, err
-	}
-
 	return dtos.TokensDTO{
 		Access:  accessToken,
 		Refresh: refreshToken,
-	}, nil
-}
-
-func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
-	return u.jwtTokenizer.Parse(token)
-}
-
-func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID) error {
-	return u.sessionstore.Delete(ctx, userID)
+	}
 }
