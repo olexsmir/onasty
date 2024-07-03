@@ -79,5 +79,5 @@ func getUserID(c *gin.Context) uuid.UUID {
 	if !exists {
 		return uuid.Nil
 	}
-	return userID.(uuid.UUID)
+	return uuid.Must(uuid.FromString(userID.(string)))
 }

@@ -128,5 +128,5 @@ func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
 	return dtos.TokensDTO{
 		Access:  accessToken,
 		Refresh: refreshToken,
-	}
+	}, err
 }
