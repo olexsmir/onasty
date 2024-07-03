@@ -96,14 +96,11 @@ func (s *SessionRepo) GetUserIDByRefreshToken(
 }
 
 func (s *SessionRepo) Delete(ctx context.Context, userID uuid.UUID) error {
-	query, args, err := pgq.
-		Delete("sessions").
-		Where("user_id", userID).
-		SQL()
-	if err != nil {
-		return err
-	}
+	query := `--sql
+DELETE FROM sessions
+WHERE user_id = $1
+`
 
-	_, err = s.db.Exec(ctx, query, args...)
+	_, err := s.db.Exec(ctx, query, userID)
 	return err
 }
