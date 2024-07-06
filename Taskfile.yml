@@ -20,6 +20,11 @@ tasks:
   docker:up:
     - docker compose up -d
 
+  docker:down:
+    aliases: [docker:stop]
+    cmds:
+      - docker compose stop
+
   test:unit:
     - go test -v --short ./...
 
