@@ -117,7 +117,7 @@ func (s *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 			dbCredential,
 			dbCredential,
 			host,
-			port,
+			port.Port(),
 			dbCredential,
 		),
 	)
