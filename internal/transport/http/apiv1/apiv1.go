@@ -6,12 +6,12 @@ import (
 )
 
 type APIV1 struct {
-	userSrv usersrv.UserServicer
+	usersrv usersrv.UserServicer
 }
 
 func NewAPIV1(us usersrv.UserServicer) *APIV1 {
 	return &APIV1{
-		userSrv: us,
+		usersrv: us,
 	}
 }
 

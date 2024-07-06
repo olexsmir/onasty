@@ -35,7 +35,7 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	if _, err := a.userSrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
+	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
 		Username:    user.Username,
 		Email:       user.Email,
 		Password:    user.Password,
@@ -66,7 +66,7 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 		return
 	}
 
-	toks, err := a.userSrv.SignIn(c.Request.Context(), dtos.SignInDTO{
+	toks, err := a.usersrv.SignIn(c.Request.Context(), dtos.SignInDTO{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -92,7 +92,7 @@ func (a *APIV1) refreshTokensHandler(c *gin.Context) {
 		return
 	}
 
-	toks, err := a.userSrv.RefreshTokens(c.Request.Context(), req.RefreshToken)
+	toks, err := a.usersrv.RefreshTokens(c.Request.Context(), req.RefreshToken)
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -105,7 +105,7 @@ func (a *APIV1) refreshTokensHandler(c *gin.Context) {
 }
 
 func (a *APIV1) logOutHandler(c *gin.Context) {
-	if err := a.userSrv.Logout(c.Request.Context(), getUserID(c)); err != nil {
+	if err := a.usersrv.Logout(c.Request.Context(), getUserID(c)); err != nil {
 		errorResponse(c, err)
 		return
 	}

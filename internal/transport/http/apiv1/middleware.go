@@ -23,7 +23,7 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 		return
 	}
 
-	if err := saveUserIDToCtx(c, a.userSrv, token); err != nil {
+	if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
 		errorResponse(c, err)
 		return
 	}
@@ -34,13 +34,17 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
-		if err := saveUserIDToCtx(c, a.userSrv, token); err != nil {
+		if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
 			newInternalError(c, err)
 			return
 		}
 	}
 
 	c.Next()
+}
+
+func (a *APIV1) isUserAuthorized(c *gin.Context) bool {
+	return !getUserID(c).IsNil()
 }
 
 func getTokenFromAuthHeaders(c *gin.Context) (token string, ok bool) { //nolint:nonamedreturns
