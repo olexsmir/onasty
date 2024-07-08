@@ -9,9 +9,9 @@ import (
 )
 
 // jsonify marshalls v into json and returns it as []byte
-func (s *AppTestSuite) jsonify(v any) []byte {
+func (e *AppTestSuite) jsonify(v any) []byte {
 	r, err := json.Marshal(v)
-	s.require.NoError(err)
+	e.require.NoError(err)
 	return r
 }
 
@@ -21,22 +21,22 @@ func (s *AppTestSuite) jsonify(v any) []byte {
 //
 //	var res struct { message string `json:"message"` }
 //	readBodyAndUnjsonify(httpResp.Body, &res)
-func (s *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
+func (e *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
 	respData, err := io.ReadAll(b)
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	err = json.Unmarshal(respData, &res)
-	s.require.NoError(err)
+	e.require.NoError(err)
 }
 
-func (s *AppTestSuite) httpRequest(method, url string, body []byte) *httptest.ResponseRecorder {
+func (e *AppTestSuite) httpRequest(method, url string, body []byte) *httptest.ResponseRecorder {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	req.Header.Set("Content-type", "application/json")
 
 	resp := httptest.NewRecorder()
-	s.router.ServeHTTP(resp, req)
+	e.router.ServeHTTP(resp, req)
 
 	return resp
 }
