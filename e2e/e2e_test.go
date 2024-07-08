@@ -39,6 +39,7 @@ type (
 		stopPostgres stopDBFunc
 
 		router http.Handler
+		hasher hasher.Hasher
 	}
 )
 
@@ -73,13 +74,14 @@ func (s *AppTestSuite) TearDownSuite() {
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
 func (s *AppTestSuite) initDeps() {
-	sha256Hasher := hasher.NewSHA256Hasher("pass_salt")
+	s.hasher = hasher.NewSHA256Hasher("pass_salt")
+
 	jwtTokenizer := jwtutil.NewJWTUtil("jwt", time.Hour)
 
 	sessionrepo := sessionrepo.New(s.postgresDB)
 
 	userepo := userepo.New(s.postgresDB)
-	usersrv := usersrv.New(userepo, sessionrepo, sha256Hasher, jwtTokenizer)
+	usersrv := usersrv.New(userepo, sessionrepo, s.hasher, jwtTokenizer)
 
 	handler := httptransport.NewTransport(usersrv)
 	s.router = handler.Handler()

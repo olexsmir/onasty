@@ -26,7 +26,7 @@ var _ UserServicer = (*UserSrv)(nil)
 type UserSrv struct {
 	userstore    userepo.UserStorer
 	sessionstore sessionrepo.SessionStorer
-	hasher       *hasher.SHA256Hasher
+	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
 
 	refreshTokenExpiredAt time.Time
@@ -35,7 +35,7 @@ type UserSrv struct {
 func New(
 	userstore userepo.UserStorer,
 	sessionstore sessionrepo.SessionStorer,
-	hasher *hasher.SHA256Hasher,
+	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 ) UserServicer {
 	return &UserSrv{
