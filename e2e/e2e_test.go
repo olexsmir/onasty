@@ -67,8 +67,8 @@ func (e *AppTestSuite) SetupSuite() {
 	e.initDeps()
 }
 
-func (s *AppTestSuite) TearDownSuite() {
-	s.stopPostgres()
+func (e *AppTestSuite) TearDownSuite() {
+	e.stopPostgres()
 }
 
 // initDeps initializes the dependencies for the app
