@@ -32,7 +32,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP() {
 	e.Equal(dbUser.Password, hashedPasswd)
 }
 
-func (e *AppTestSuite) TestAuthV1_SignUP_failed() {
+func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 	tests := []struct {
 		name     string
 		username string
