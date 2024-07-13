@@ -23,6 +23,8 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 		return
 	}
 
+	// FIXME: check if users is actually exists
+
 	if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
 		errorResponse(c, err)
 		return
