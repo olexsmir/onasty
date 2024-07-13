@@ -38,8 +38,9 @@ type (
 		postgresDB   *psqlutil.DB
 		stopPostgres stopDBFunc
 
-		router http.Handler
-		hasher hasher.Hasher
+		router       http.Handler
+		hasher       hasher.Hasher
+		jwtTokenizer jwtutil.JWTTokenizer
 	}
 )
 
@@ -75,13 +76,12 @@ func (e *AppTestSuite) TearDownSuite() {
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
 	e.hasher = hasher.NewSHA256Hasher("pass_salt")
-
-	jwtTokenizer := jwtutil.NewJWTUtil("jwt", time.Hour)
+	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
 
 	sessionrepo := sessionrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usersrv := usersrv.New(userepo, sessionrepo, e.hasher, jwtTokenizer)
+	usersrv := usersrv.New(userepo, sessionrepo, e.hasher, e.jwtTokenizer)
 
 	handler := httptransport.NewTransport(usersrv)
 	e.router = handler.Handler()

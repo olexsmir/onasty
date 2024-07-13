@@ -1,6 +1,9 @@
 package e2e
 
 import (
+	"time"
+
+	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
 	"github.com/olexsmir/onasty/internal/models"
 )
@@ -21,4 +24,40 @@ func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
 	e.require.NoError(err)
 
 	return user
+}
+
+func (e *AppTestSuite) insertUserIntoDB(uname, email, passwd string) uuid.UUID {
+	p, err := e.hasher.Hash(passwd)
+	e.require.NoError(err)
+
+	query, args, err := pgq.
+		Insert("users").
+		Columns("username", "email", "password", "activated", "created_at", "last_login_at").
+		Values(uname, email, p, true, time.Now(), time.Now()).
+		Returning("id").
+		SQL()
+	e.require.NoError(err)
+
+	var id uuid.UUID
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).Scan(&id)
+	e.require.NoError(err)
+
+	return id
+}
+
+func (e *AppTestSuite) getLastUserSessionByUserId(uid uuid.UUID) models.Session {
+	query, args, err := pgq.
+		Select("refresh_token", "expires_at").
+		From("sessions").
+		Where(pgq.Eq{"user_id": uid.String()}).
+		OrderBy("expires_at DESC").
+		SQL()
+	e.require.NoError(err)
+
+	var session models.Session
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).
+		Scan(&session.RefreshToken, &session.ExpiresAt)
+	e.require.NoError(err)
+
+	return session
 }

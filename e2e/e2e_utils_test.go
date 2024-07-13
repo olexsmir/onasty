@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 // jsonify marshalls v into json and returns it as []byte
@@ -39,4 +41,10 @@ func (e *AppTestSuite) httpRequest(method, url string, body []byte) *httptest.Re
 	e.router.ServeHTTP(resp, req)
 
 	return resp
+}
+
+func (e *AppTestSuite) uuid() string {
+	u, err := uuid.NewV4()
+	e.require.NoError(err)
+	return u.String()
 }
