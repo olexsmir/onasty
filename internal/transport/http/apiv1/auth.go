@@ -31,7 +31,7 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 	}
 	if err := user.Validate(); err != nil {
 		// TODO: find a way to return all errors at once
-		c.Status(http.StatusBadRequest)
+		newErrorStatus(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
