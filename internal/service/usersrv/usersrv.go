@@ -2,12 +2,14 @@ package usersrv
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 )
@@ -69,6 +71,9 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 
 	user, err := u.userstore.GetUserByCredentials(ctx, inp.Email, hashedPassword)
 	if err != nil {
+		if errors.Is(err, models.ErrUserNotFound) {
+			return dtos.TokensDTO{}, models.ErrUserWrongCredentials
+		}
 		return dtos.TokensDTO{}, err
 	}
 

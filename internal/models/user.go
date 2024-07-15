@@ -12,7 +12,8 @@ var (
 	ErrUserEmailIsAlreadyInUse = errors.New("user: email is already in use")
 	ErrUsernameIsAlreadyInUse  = errors.New("user: username is already in use")
 
-	ErrUserNotFound = errors.New("user: not found")
+	ErrUserNotFound         = errors.New("user: not found")
+	ErrUserWrongCredentials = errors.New("user: wrong credentials")
 )
 
 type User struct {
