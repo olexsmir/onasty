@@ -103,3 +103,39 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 	e.Equal(body.RefreshToken, session.RefreshToken)
 	e.Equal(parsedToken.UserID, uid.String())
 }
+
+func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
+	password := "password"
+	email := e.uuid() + "@test.com"
+	e.insertUserIntoDB(e.uuid(), email, "password")
+
+	tests := []struct {
+		name     string
+		email    string
+		password string
+	}{
+		{
+			name:     "wrong email",
+			email:    "wrong@emai.com",
+			password: password,
+		},
+		{
+			name:     "wrong password",
+			email:    email,
+			password: "wrong-wrong",
+		},
+	}
+
+	for _, t := range tests {
+		httpResp := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/auth/signin",
+			e.jsonify(apiv1AuthSignInRequest{
+				Email:    t.email,
+				Password: t.password,
+			}),
+		)
+
+		e.Equal(http.StatusUnauthorized, httpResp.Code)
+	}
+}
