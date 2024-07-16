@@ -34,11 +34,19 @@ func (e *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
 
 // httpRequest sends http request to the server and returns `httptest.ResponseRecorder`
 // conteny-type always set to application/json
-func (e *AppTestSuite) httpRequest(method, url string, body []byte) *httptest.ResponseRecorder {
+func (e *AppTestSuite) httpRequest(
+	method, url string,
+	body []byte,
+	token ...string,
+) *httptest.ResponseRecorder {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	e.require.NoError(err)
 
 	req.Header.Set("Content-type", "application/json")
+
+	if len(token) == 1 {
+		req.Header.Set("Authorization", "Bearer "+token[0])
+	}
 
 	resp := httptest.NewRecorder()
 	e.router.ServeHTTP(resp, req)
