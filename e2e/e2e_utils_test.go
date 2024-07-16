@@ -37,15 +37,15 @@ func (e *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
 func (e *AppTestSuite) httpRequest(
 	method, url string, //nolint:unparam // TODO: fix me later
 	body []byte,
-	token ...string,
+	accessToken ...string,
 ) *httptest.ResponseRecorder {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	e.require.NoError(err)
 
 	req.Header.Set("Content-type", "application/json")
 
-	if len(token) == 1 {
-		req.Header.Set("Authorization", "Bearer "+token[0])
+	if len(accessToken) == 1 {
+		req.Header.Set("Authorization", "Bearer "+accessToken[0])
 	}
 
 	resp := httptest.NewRecorder()
