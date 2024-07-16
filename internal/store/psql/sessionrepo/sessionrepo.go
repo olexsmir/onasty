@@ -80,7 +80,7 @@ func (s *SessionRepo) GetUserIDByRefreshToken(
 	query, args, err := pgq.
 		Select("user_id").
 		From("sessions").
-		Where("refresh_token", refreshToken).
+		Where(pgq.Eq{"refresh_token": refreshToken}).
 		SQL()
 	if err != nil {
 		return uuid.UUID{}, err

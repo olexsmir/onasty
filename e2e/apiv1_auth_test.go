@@ -138,3 +138,22 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 		e.Equal(http.StatusUnauthorized, httpResp.Code)
 	}
 }
+
+func (e *AppTestSuite) createAndSingIn(
+	email, username, password string,
+) (uuid.UUID, apiv1AuthSignInResponse) {
+	uid := e.insertUserIntoDB(username, email, password)
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/signin",
+		e.jsonify(apiv1AuthSignInRequest{
+			Email:    email,
+			Password: password,
+		}),
+	)
+
+	var body apiv1AuthSignInResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	return uid, body
+}
