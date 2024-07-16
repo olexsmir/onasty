@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/olexsmir/onasty/internal/jwtutil"
 )
 
 // jsonify marshalls v into json and returns it as []byte
@@ -47,4 +48,10 @@ func (e *AppTestSuite) uuid() string {
 	u, err := uuid.NewV4()
 	e.require.NoError(err)
 	return u.String()
+}
+
+func (e *AppTestSuite) parseJwtToken(t string) jwtutil.Payload {
+	r, err := e.jwtTokenizer.Parse(t)
+	e.require.NoError(err)
+	return r
 }

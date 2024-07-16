@@ -96,8 +96,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
 	session := e.getLastUserSessionByUserId(uid)
-	parsedToken, err := e.jwtTokenizer.Parse(body.AccessToken)
-	e.require.NoError(err)
+	parsedToken := e.parseJwtToken(body.AccessToken)
 
 	e.Equal(http.StatusOK, httpResp.Code)
 	e.Equal(body.RefreshToken, session.RefreshToken)
