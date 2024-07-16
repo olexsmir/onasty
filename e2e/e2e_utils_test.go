@@ -32,6 +32,8 @@ func (e *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
 	e.require.NoError(err)
 }
 
+// httpRequest sends http request to the server and returns `httptest.ResponseRecorder`
+// conteny-type always set to application/json
 func (e *AppTestSuite) httpRequest(method, url string, body []byte) *httptest.ResponseRecorder {
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(body))
 	e.require.NoError(err)
@@ -44,12 +46,14 @@ func (e *AppTestSuite) httpRequest(method, url string, body []byte) *httptest.Re
 	return resp
 }
 
+// uuid generates a new UUID and returns it as a string
 func (e *AppTestSuite) uuid() string {
 	u, err := uuid.NewV4()
 	e.require.NoError(err)
 	return u.String()
 }
 
+// parseJwtToken util func that parses jwt token and returns payload
 func (e *AppTestSuite) parseJwtToken(t string) jwtutil.Payload {
 	r, err := e.jwtTokenizer.Parse(t)
 	e.require.NoError(err)
