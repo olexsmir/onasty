@@ -47,7 +47,7 @@ func (e *AppTestSuite) insertUserIntoDB(uname, email, passwd string) uuid.UUID {
 	return id
 }
 
-func (e *AppTestSuite) getLastUserSessionByUserId(uid uuid.UUID) models.Session {
+func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session {
 	query, args, err := pgq.
 		Select("refresh_token", "expires_at").
 		From("sessions").

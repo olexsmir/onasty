@@ -99,7 +99,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 	var body apiv1AuthSignInResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-	session := e.getLastUserSessionByUserId(uid)
+	session := e.getLastUserSessionByUserID(uid)
 	parsedToken := e.parseJwtToken(body.AccessToken)
 
 	e.Equal(http.StatusOK, httpResp.Code)
@@ -160,7 +160,7 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 	var body apiv1AuthSignInResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-	session := e.getLastUserSessionByUserId(uid)
+	session := e.getLastUserSessionByUserID(uid)
 	parsedToken := e.parseJwtToken(body.AccessToken)
 	e.Equal(parsedToken.UserID, uid.String())
 
@@ -172,14 +172,14 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 func (e *AppTestSuite) TestAuthV1_Logout() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
 
-	session := e.getLastUserSessionByUserId(uid)
+	session := e.getLastUserSessionByUserID(uid)
 	e.NotEmpty(session.RefreshToken)
 
 	httpResp := e.httpRequest(http.MethodPost, "/api/v1/auth/logout", nil, toks.AccessToken)
 
 	e.Equal(httpResp.Code, http.StatusNoContent)
 
-	session = e.getLastUserSessionByUserId(uid)
+	session = e.getLastUserSessionByUserID(uid)
 	e.Empty(session.RefreshToken)
 }
 
