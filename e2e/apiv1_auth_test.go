@@ -169,7 +169,19 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 	e.Equal(body.RefreshToken, session.RefreshToken)
 }
 
-func (e *AppTestSuite) TestAuthV1_Logout() {}
+func (e *AppTestSuite) TestAuthV1_Logout() {
+	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
+
+	session := e.getLastUserSessionByUserId(uid)
+	e.NotEmpty(session.RefreshToken)
+
+	httpResp := e.httpRequest(http.MethodPost, "/api/v1/auth/logout", nil, toks.AccessToken)
+
+	e.Equal(httpResp.Code, http.StatusNoContent)
+
+	session = e.getLastUserSessionByUserId(uid)
+	e.Empty(session.RefreshToken)
+}
 
 func (e *AppTestSuite) createAndSingIn(
 	email, username, password string,

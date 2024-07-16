@@ -1,10 +1,12 @@
 package e2e
 
 import (
+	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/models"
 )
 
@@ -57,7 +59,10 @@ func (e *AppTestSuite) getLastUserSessionByUserId(uid uuid.UUID) models.Session 
 	var session models.Session
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
 		Scan(&session.RefreshToken, &session.ExpiresAt)
-	e.require.NoError(err)
+	if errors.Is(pgx.ErrNoRows, err) {
+		return models.Session{}
+	}
 
+	e.require.NoError(err)
 	return session
 }
