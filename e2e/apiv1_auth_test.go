@@ -169,6 +169,18 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 	e.Equal(body.RefreshToken, session.RefreshToken)
 }
 
+func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/refresh-tokens",
+		e.jsonify(apiv1AuthRefreshTokensRequest{
+			RefreshToken: e.uuid(),
+		}),
+	)
+
+	e.Equal(httpResp.Code, http.StatusBadRequest)
+}
+
 func (e *AppTestSuite) TestAuthV1_Logout() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
 
