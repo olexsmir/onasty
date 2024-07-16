@@ -25,6 +25,10 @@ tasks:
     cmds:
       - docker compose stop
 
+  test:
+    - task: test:unit
+    - task: test:e2e
+
   test:unit:
     - go test -v --short ./...
 
