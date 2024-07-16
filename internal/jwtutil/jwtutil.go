@@ -10,8 +10,13 @@ import (
 )
 
 type JWTTokenizer interface {
+	// AccessToken generates a new access token with the given payload
 	AccessToken(pl Payload) (string, error)
+
+	// RefreshToken generates a new refresh token
 	RefreshToken() (string, error)
+
+	// Parse parses the token and returns the payload
 	Parse(token string) (Payload, error)
 }
 
