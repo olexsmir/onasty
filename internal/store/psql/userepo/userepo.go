@@ -15,6 +15,8 @@ import (
 type UserStorer interface {
 	Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
 	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
+
+	CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 var _ UserStorer = (*UserRepo)(nil)
@@ -79,4 +81,18 @@ func (r *UserRepo) GetUserByCredentials(
 	}
 
 	return user, err
+}
+
+func (r *UserRepo) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(
+		ctx,
+		`SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)`,
+		id.String(),
+	).Scan(&exists)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, models.ErrUserNotFound
+	}
+
+	return exists, err
 }

@@ -1,6 +1,7 @@
 package apiv1
 
 import (
+	"context"
 	"errors"
 	"strings"
 
@@ -9,10 +10,7 @@ import (
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
 
-var (
-	ErrAuthorizationHeaderIsNotValid = errors.New("authorization header is not valid")
-	ErrUnauthorized                  = errors.New("unauthorized")
-)
+var ErrUnauthorized = errors.New("unauthorized")
 
 const userIDCtxKey = "userID"
 
@@ -23,7 +21,16 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 		return
 	}
 
-	// FIXME: check if users is actually exists
+	ok, err := checkIfUserIsReal(c.Request.Context(), token, a.usersrv)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	if !ok {
+		errorResponse(c, ErrUnauthorized)
+		return
+	}
 
 	if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
 		errorResponse(c, err)
@@ -37,6 +44,17 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
+		ok, err := checkIfUserIsReal(c.Request.Context(), token, a.usersrv)
+		if err != nil {
+			errorResponse(c, err)
+			return
+		}
+
+		if !ok {
+			errorResponse(c, ErrUnauthorized)
+			return
+		}
+
 		if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
 			newInternalError(c, err)
 			return
@@ -88,4 +106,20 @@ func getUserID(c *gin.Context) uuid.UUID {
 		return uuid.Nil
 	}
 	return uuid.Must(uuid.FromString(userID.(string)))
+}
+
+func checkIfUserIsReal(
+	ctx context.Context,
+	accessToken string,
+	us usersrv.UserServicer,
+) (bool, error) {
+	parsedToken, err := us.ParseToken(accessToken)
+	if err != nil {
+		return false, err
+	}
+
+	return us.CheckIfUserExists(
+		ctx,
+		uuid.Must(uuid.FromString(parsedToken.UserID)),
+	)
 }

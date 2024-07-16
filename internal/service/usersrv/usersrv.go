@@ -21,6 +21,7 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ParseToken(token string) (jwtutil.Payload, error)
+	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 var _ UserServicer = (*UserSrv)(nil)
@@ -117,6 +118,10 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 
 func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
 	return u.jwtTokenizer.Parse(token)
+}
+
+func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	return u.userstore.CheckIfUserExists(ctx, id)
 }
 
 func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
