@@ -33,6 +33,7 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 	c.Next()
 }
 
+//nolint:unused // TODO: remove me later
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
@@ -45,6 +46,7 @@ func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	c.Next()
 }
 
+//nolint:unused // TODO: remove me later
 func (a *APIV1) isUserAuthorized(c *gin.Context) bool {
 	return !getUserID(c).IsNil()
 }

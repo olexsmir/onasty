@@ -35,7 +35,7 @@ func (e *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
 // httpRequest sends http request to the server and returns `httptest.ResponseRecorder`
 // conteny-type always set to application/json
 func (e *AppTestSuite) httpRequest(
-	method, url string,
+	method, url string, //nolint:unparam // TODO: fix me later
 	body []byte,
 	token ...string,
 ) *httptest.ResponseRecorder {
