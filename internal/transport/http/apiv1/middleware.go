@@ -40,7 +40,6 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 	c.Next()
 }
 
-//nolint:unused // TODO: remove me later
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
