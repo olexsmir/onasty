@@ -21,7 +21,7 @@ func errorResponse(c *gin.Context, err error) {
 	}
 
 	if errors.Is(err, models.ErrUserNotFound) {
-		newError(c, http.StatusNotFound, err.Error())
+		newErrorStatus(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
