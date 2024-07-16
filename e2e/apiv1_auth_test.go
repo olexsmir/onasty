@@ -1,6 +1,10 @@
 package e2e
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/gofrs/uuid/v5"
+)
 
 type apiv1AuthSignUpRequest struct {
 	Username string `json:"username"`
@@ -139,6 +143,34 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 	}
 }
 
+type apiv1AuthRefreshTokensRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
+	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/refresh-tokens",
+		e.jsonify(apiv1AuthRefreshTokensRequest{
+			RefreshToken: toks.RefreshToken,
+		}),
+	)
+
+	var body apiv1AuthSignInResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	session := e.getLastUserSessionByUserId(uid)
+	parsedToken := e.parseJwtToken(body.AccessToken)
+	e.Equal(parsedToken.UserID, uid.String())
+
+	e.Equal(httpResp.Code, http.StatusOK)
+	e.NotEqual(toks.RefreshToken, body.RefreshToken)
+	e.Equal(body.RefreshToken, session.RefreshToken)
+}
+
+func (e *AppTestSuite) TestAuthV1_Logout() {}
+
 func (e *AppTestSuite) createAndSingIn(
 	email, username, password string,
 ) (uuid.UUID, apiv1AuthSignInResponse) {
@@ -151,6 +183,8 @@ func (e *AppTestSuite) createAndSingIn(
 			Password: password,
 		}),
 	)
+
+	e.Equal(httpResp.Code, http.StatusOK)
 
 	var body apiv1AuthSignInResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
