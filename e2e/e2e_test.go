@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/olexsmir/onasty/internal/hasher"
+	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
@@ -34,7 +38,9 @@ type (
 		postgresDB   *psqlutil.DB
 		stopPostgres stopDBFunc
 
-		router http.Handler
+		router       http.Handler
+		hasher       hasher.Hasher
+		jwtTokenizer jwtutil.JWTTokenizer
 	}
 )
 
@@ -49,37 +55,42 @@ func TestAppSuite(t *testing.T) {
 	suite.Run(t, new(AppTestSuite))
 }
 
-func (s *AppTestSuite) SetupSuite() {
-	s.ctx = context.Background()
-	s.require = s.Require()
+func (e *AppTestSuite) SetupSuite() {
+	e.ctx = context.Background()
+	e.require = e.Require()
 
-	db, stop, err := s.prepPostgres()
-	s.Require().NoError(err)
+	db, stop, err := e.prepPostgres()
+	e.Require().NoError(err)
 
-	s.postgresDB = db
-	s.stopPostgres = stop
+	e.postgresDB = db
+	e.stopPostgres = stop
 
-	s.initDeps()
+	e.initDeps()
 }
 
-func (s *AppTestSuite) TearDownSuite() {
-	s.stopPostgres()
+func (e *AppTestSuite) TearDownSuite() {
+	e.stopPostgres()
 }
 
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
-func (s *AppTestSuite) initDeps() {
-	userepo := userepo.New(s.postgresDB)
-	usersrv := usersrv.New(userepo)
+func (e *AppTestSuite) initDeps() {
+	e.hasher = hasher.NewSHA256Hasher("pass_salt")
+	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
+
+	sessionrepo := sessionrepo.New(e.postgresDB)
+
+	userepo := userepo.New(e.postgresDB)
+	usersrv := usersrv.New(userepo, sessionrepo, e.hasher, e.jwtTokenizer)
 
 	handler := httptransport.NewTransport(usersrv)
-	s.router = handler.Handler()
+	e.router = handler.Handler()
 }
 
-func (s *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
+func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	dbCredential := "testing"
 	postgresContainer, err := postgres.RunContainer(
-		s.ctx,
+		e.ctx,
 		testcontainers.WithImage("postgres:16-alpine"),
 		postgres.WithUsername(dbCredential),
 		postgres.WithPassword(dbCredential),
@@ -87,46 +98,46 @@ func (s *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 		testcontainers.WithWaitStrategy(
 			wait.ForListeningPort("5432/tcp")),
 	)
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	stop := func() {
-		err = postgresContainer.Terminate(s.ctx)
-		s.require.NoError(err)
+		err = postgresContainer.Terminate(e.ctx)
+		e.require.NoError(err)
 	}
 
 	// connect to the db
-	host, err := postgresContainer.Host(s.ctx)
-	s.require.NoError(err)
+	host, err := postgresContainer.Host(e.ctx)
+	e.require.NoError(err)
 
-	port, err := postgresContainer.MappedPort(s.ctx, "5432/tcp")
-	s.require.NoError(err)
+	port, err := postgresContainer.MappedPort(e.ctx, "5432/tcp")
+	e.require.NoError(err)
 
 	db, err := psqlutil.Connect(
-		s.ctx,
+		e.ctx,
 		fmt.Sprintf( //nolint:nosprintfhostport
 			"postgres://%s:%s@%s:%s/%s",
 			dbCredential,
 			dbCredential,
 			host,
-			port,
+			port.Port(),
 			dbCredential,
 		),
 	)
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	// run migrations
 	sdb := stdlib.OpenDBFromPool(db.Pool)
 	driver, err := pgx.WithInstance(sdb, &pgx.Config{})
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://../migrations/",
 		"pgxv5", driver,
 	)
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	err = m.Up()
-	s.require.NoError(err)
+	e.require.NoError(err)
 
 	return db, stop, driver.Close()
 }

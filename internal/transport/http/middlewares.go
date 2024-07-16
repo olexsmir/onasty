@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// TODO: include requiest id
 func (t *Transport) logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()

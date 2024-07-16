@@ -1,19 +1,47 @@
 package apiv1
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/models"
 )
 
 type response struct {
 	Message string `json:"message"`
 }
 
-func newError(c *gin.Context, status int, msg string) {
-	slog.With("status", status).Error(msg)
+func errorResponse(c *gin.Context, err error) {
+	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
+		errors.Is(err, models.ErrUsernameIsAlreadyInUse) {
+		newError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if errors.Is(err, models.ErrUserNotFound) {
+		newErrorStatus(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if errors.Is(err, ErrUnauthorized) ||
+		errors.Is(err, models.ErrUserWrongCredentials) {
+		newErrorStatus(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	newInternalError(c, err)
+}
+
+func newError(c *gin.Context, status int, msg string) { //nolint:unparam // TODO: remove me later
+	slog.Error(msg, "status", status)
 	c.AbortWithStatusJSON(status, response{msg})
+}
+
+func newErrorStatus(c *gin.Context, status int, msg string) {
+	slog.Error(msg, "status", status)
+	c.AbortWithStatus(status)
 }
 
 func newInternalError(c *gin.Context, err error, msg ...string) {
