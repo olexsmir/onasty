@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/olexsmir/onasty/internal/dtos"
+	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 )
 
@@ -35,5 +36,21 @@ func (n *NoteSrv) Create(ctx context.Context, inp dtos.CreateNoteDTO) (dtos.Note
 }
 
 func (n *NoteSrv) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error) {
-	return dtos.NoteDTO{}, nil
+	note, err := n.noterepo.GetBySlug(ctx, slug)
+	if err != nil {
+		return dtos.NoteDTO{}, err
+	}
+
+	// TODO: there should be a better way to do it
+	isExpired := (models.Note{ExpiresAt: note.ExpiresAt}).IsExpired()
+
+	if isExpired {
+		return dtos.NoteDTO{}, models.ErrNoteExpired
+	}
+
+	if !note.BurnBeforeExpiration {
+		return note, nil
+	}
+
+	return note, n.noterepo.DeleteBySlug(ctx, dtos.NoteSlugDTO(note.Slug))
 }

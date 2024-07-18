@@ -55,6 +55,23 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, createNoteResponse{slug.String()})
 }
 
+type getNoteBySlugResponse struct {
+	Content   string    `json:"content"`
+	CratedAt  time.Time `json:"crated_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
-	_ = c.Param("slug")
+	slug := c.Param("slug")
+	note, err := a.notesrv.GetBySlug(c.Request.Context(), dtos.NoteSlugDTO(slug))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, getNoteBySlugResponse{
+		Content:   note.Content,
+		CratedAt:  note.CreatedAt,
+		ExpiresAt: note.ExpiresAt,
+	})
 }

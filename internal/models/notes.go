@@ -11,6 +11,7 @@ var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
 	ErrNoteExpired            = errors.New("note: expired")
+	ErrNoteNotFound           = errors.New("note: not found")
 )
 
 type Note struct {
