@@ -63,7 +63,7 @@ type getNoteBySlugResponse struct {
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	slug := c.Param("slug")
-	note, err := a.notesrv.GetBySlug(c.Request.Context(), dtos.NoteSlugDTO(slug))
+	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(c.Request.Context(), dtos.NoteSlugDTO(slug))
 	if err != nil {
 		errorResponse(c, err)
 		return

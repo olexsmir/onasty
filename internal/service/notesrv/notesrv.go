@@ -11,7 +11,7 @@ import (
 
 type NoteServicer interface {
 	Create(ctx context.Context, note dtos.CreateNoteDTO) (dtos.NoteSlugDTO, error)
-	GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
+	GetBySlugAndRemoveIfNeeded(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -35,7 +35,10 @@ func (n *NoteSrv) Create(ctx context.Context, inp dtos.CreateNoteDTO) (dtos.Note
 	return dtos.NoteSlugDTO(inp.Slug), err
 }
 
-func (n *NoteSrv) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error) {
+func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
+	ctx context.Context,
+	slug dtos.NoteSlugDTO,
+) (dtos.NoteDTO, error) {
 	note, err := n.noterepo.GetBySlug(ctx, slug)
 	if err != nil {
 		return dtos.NoteDTO{}, err
