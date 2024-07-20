@@ -37,6 +37,6 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 	note := r.Group("/note", a.couldBeAuthorizedMiddleware)
 	{
 		note.GET("/:slug", a.getNoteBySlugHandler)
-		note.POST("/", a.createNoteHandler)
+		note.POST("", a.createNoteHandler)
 	}
 }
