@@ -72,3 +72,42 @@ func TestNote_IsExpired(t *testing.T) {
 		})
 	}
 }
+
+func TestNote_ShouldBeBurnt(t *testing.T) {
+	tests := []struct {
+		name     string
+		note     Note
+		expected bool
+	}{
+		{
+			name: "should be burnt",
+			note: Note{
+				BurnBeforeExpiration: true,
+				ExpiresAt:            time.Now().Add(time.Hour),
+			},
+			expected: true,
+		},
+		{
+			name: "could not be burnt, no expiration time",
+			note: Note{
+				BurnBeforeExpiration: true,
+				ExpiresAt:            time.Time{},
+			},
+			expected: false,
+		},
+		{
+			name: "could not be burnt, burn when expiration and burn is false",
+			note: Note{
+				BurnBeforeExpiration: false,
+				ExpiresAt:            time.Time{},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.expected, tt.note.ShouldBeBurnt())
+		})
+	}
+}

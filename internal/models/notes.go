@@ -39,3 +39,8 @@ func (n Note) IsExpired() bool {
 	return !n.ExpiresAt.IsZero() &&
 		n.ExpiresAt.Before(time.Now())
 }
+
+func (n Note) ShouldBeBurnt() bool {
+	return !n.ExpiresAt.IsZero() &&
+		n.BurnBeforeExpiration
+}

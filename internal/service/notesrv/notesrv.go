@@ -45,15 +45,22 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	// TODO: there should be a better way to do it
-	isExpired := (models.Note{ExpiresAt: note.ExpiresAt}).IsExpired()
+	m := models.Note{
+		ExpiresAt:            note.ExpiresAt,
+		BurnBeforeExpiration: note.BurnBeforeExpiration,
+	}
 
-	if isExpired {
+	if m.IsExpired() {
 		return dtos.NoteDTO{}, models.ErrNoteExpired
 	}
 
-	if !note.BurnBeforeExpiration {
+	// since not every note should be burn before expiration
+	// we return early if it's not
+	if m.ShouldBeBurnt() {
 		return note, nil
 	}
 
+	// TODO: in future not remove, leave some metadata
+	// to shot user that note was alreasy seen
 	return note, n.noterepo.DeleteBySlug(ctx, dtos.NoteSlugDTO(note.Slug))
 }
