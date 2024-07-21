@@ -66,3 +66,22 @@ func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session 
 	e.require.NoError(err)
 	return session
 }
+
+func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
+	query, args, err := pgq.
+		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		From("notes").
+		Where("slug = ?", slug).
+		SQL()
+	e.require.NoError(err)
+
+	var note models.Note
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.Note{}
+	}
+
+	e.require.NoError(err)
+	return note
+}
