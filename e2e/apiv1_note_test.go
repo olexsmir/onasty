@@ -27,14 +27,14 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 		{
 			name: "empty request",
 			inp:  apiv1NoteCreateRequest{},
-			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
 				e.Equal(r.Code, http.StatusBadRequest)
 			},
 		},
 		{
 			name: "content only",
 			inp:  apiv1NoteCreateRequest{Content: e.uuid()},
-			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
 				e.Equal(r.Code, http.StatusCreated)
 
 				var body apiv1NoteCreateResponse
@@ -59,7 +59,7 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
 
-				dbNote := e.getNoteFromDBbySlug(body.Slug)
+				dbNote := e.getNoteFromDBbySlug(inp.Slug)
 				e.NotEmpty(dbNote)
 			},
 		},
@@ -97,7 +97,7 @@ func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 		"i can't be used, please implement this freaking logic")
 }
 
-type apiv1NoteGetResponse struct{}
+type apiv1NoteGetResponse struct{} //nolint:unused
 
 func (e *AppTestSuite) TestNoteV1_Get() {
 	e.T().Skip()
