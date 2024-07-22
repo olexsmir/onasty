@@ -1,6 +1,10 @@
 package dtos
 
-import "time"
+import (
+	"time"
+
+	"github.com/gofrs/uuid/v5"
+)
 
 type NoteSlugDTO string
 
@@ -8,6 +12,7 @@ func (n NoteSlugDTO) String() string { return string(n) }
 
 type NoteDTO struct {
 	Content              string
+	UserID               uuid.UUID
 	Slug                 string
 	BurnBeforeExpiration bool
 	CreatedAt            time.Time
@@ -16,6 +21,7 @@ type NoteDTO struct {
 
 type CreateNoteDTO struct {
 	Content              string
+	UserID               uuid.UUID
 	Slug                 string
 	BurnBeforeExpiration bool
 	CreatedAt            time.Time
