@@ -1,6 +1,7 @@
 package apiv1
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -38,7 +39,10 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 	if err := note.Validate(); err != nil {
 		newErrorStatus(c, http.StatusBadRequest, err.Error())
 		return
+
 	}
+
+	slog.Debug("userid", "a", a.getUserID(c))
 
 	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNoteDTO{
 		Content:              note.Content,
@@ -47,7 +51,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		BurnBeforeExpiration: note.BurnBeforeExpiration,
 		CreatedAt:            note.CreatedAt,
 		ExpiresAt:            note.ExpiresAt,
-	})
+	}, a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
 		return

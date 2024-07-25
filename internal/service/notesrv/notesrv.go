@@ -3,14 +3,17 @@ package notesrv
 import (
 	"context"
 
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 )
 
 type NoteServicer interface {
-	Create(ctx context.Context, note dtos.CreateNoteDTO) (dtos.NoteSlugDTO, error)
+	// Create create note
+	// if slug is empty it will be generated, otherwise used as is
+	// if userID is empty it means user isn't authorized so it will be used
+	Create(ctx context.Context, note dtos.CreateNoteDTO, userID uuid.UUID) (dtos.NoteSlugDTO, error)
 	GetBySlugAndRemoveIfNeeded(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
 }
 
@@ -26,13 +29,27 @@ func New(noterepo noterepo.NoteStorer) NoteServicer {
 	}
 }
 
-func (n *NoteSrv) Create(ctx context.Context, inp dtos.CreateNoteDTO) (dtos.NoteSlugDTO, error) {
+func (n *NoteSrv) Create(
+	ctx context.Context,
+	inp dtos.CreateNoteDTO,
+	userID uuid.UUID,
+) (dtos.NoteSlugDTO, error) {
 	if inp.Slug == "" {
-		inp.Slug = uuid.New().String()
+		inp.Slug = uuid.Must(uuid.NewV4()).String()
 	}
 
 	err := n.noterepo.Create(ctx, inp)
-	return dtos.NoteSlugDTO(inp.Slug), err
+	if err != nil {
+		return "", err
+	}
+
+	if !userID.IsNil() {
+		if err := n.noterepo.SetAuthorIDBySlug(ctx, dtos.NoteSlugDTO(inp.Slug), userID); err != nil {
+			return "", err
+		}
+	}
+
+	return dtos.NoteSlugDTO(inp.Slug), nil
 }
 
 func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(

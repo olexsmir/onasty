@@ -12,7 +12,6 @@ func (n NoteSlugDTO) String() string { return string(n) }
 
 type NoteDTO struct {
 	Content              string
-	UserID               uuid.UUID
 	Slug                 string
 	BurnBeforeExpiration bool
 	CreatedAt            time.Time

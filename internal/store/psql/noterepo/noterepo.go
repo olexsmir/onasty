@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
 	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
@@ -15,6 +16,8 @@ type NoteStorer interface {
 	Create(ctx context.Context, inp dtos.CreateNoteDTO) error
 	GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
 	DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
+
+	SetAuthorIDBySlug(ctx context.Context, slug dtos.NoteSlugDTO, authorID uuid.UUID) error
 }
 
 var _ NoteStorer = (*NoteRepo)(nil)
@@ -30,8 +33,8 @@ func New(db *psqlutil.DB) NoteStorer {
 func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNoteDTO) error {
 	query, args, err := pgq.
 		Insert("notes").
-		Columns("content", "user_id", "slug", "burn_before_expiration ", "created_at", "expires_at").
-		Values(inp.Content, inp.UserID, inp.Slug, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
+		Columns("content", "slug", "burn_before_expiration ", "created_at", "expires_at").
+		Values(inp.Content, inp.Slug, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
 		SQL()
 	if err != nil {
 		return err
@@ -81,4 +84,36 @@ func (s *NoteRepo) DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) erro
 	}
 
 	return err
+}
+
+func (s *NoteRepo) SetAuthorIDBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlugDTO,
+	authorID uuid.UUID,
+) error {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	var noteID uuid.UUID
+	err = tx.QueryRow(ctx, "select id from notes where slug = $1", slug.String()).Scan(&noteID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.ErrNoteNotFound
+		}
+		return err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		"insert into notes_authors (note_id, user_id) values ($1, $2)",
+		noteID, authorID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
