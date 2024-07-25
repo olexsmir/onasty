@@ -69,7 +69,7 @@ func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session 
 
 func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
 	query, args, err := pgq.
-		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		Select("id", "content", "slug", "burn_before_expiration", "created_at", "expires_at").
 		From("notes").
 		Where("slug = ?", slug).
 		SQL()
@@ -77,11 +77,36 @@ func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
 
 	var note models.Note
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{}
 	}
 
 	e.require.NoError(err)
 	return note
+}
+
+type noteAuthorModel struct {
+	noteID uuid.UUID
+	userID uuid.UUID
+}
+
+func (e *AppTestSuite) getLastRecordInNotesAuthorWithAuthor(uid uuid.UUID) noteAuthorModel {
+	qeuery, args, err := pgq.
+		Select("note_id", "user_id").
+		From("notes_authors").
+		Where(pgq.Eq{"user_id": uid.String()}).
+		OrderBy("id DESC").
+		Limit(1).
+		SQL()
+	e.require.NoError(err)
+
+	var na noteAuthorModel
+	err = e.postgresDB.QueryRow(e.ctx, qeuery, args...).Scan(&na.noteID, &na.userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return noteAuthorModel{}
+	}
+
+	e.require.NoError(err)
+	return na
 }
