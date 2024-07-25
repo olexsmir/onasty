@@ -39,7 +39,6 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 	if err := note.Validate(); err != nil {
 		newErrorStatus(c, http.StatusBadRequest, err.Error())
 		return
-
 	}
 
 	slog.Debug("userid", "a", a.getUserID(c))
