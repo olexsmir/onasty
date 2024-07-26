@@ -108,8 +108,30 @@ func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 	e.Equal(dbNote.ID.String(), dbNoteAuthor.noteID.String())
 }
 
-type apiv1NoteGetResponse struct{} //nolint:unused
+type apiv1NoteGetResponse struct {
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
 
 func (e *AppTestSuite) TestNoteV1_Get() {
-	e.T().Skip()
+	content := e.uuid()
+	httpResp := e.httpRequest(http.MethodPost, "/api/v1/note", e.jsonify(apiv1NoteCreateRequest{
+		Content: content,
+	}))
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
+
+	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	var body apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	e.Equal(content, body.Content)
+
+	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
+	e.Empty(dbNote)
 }
