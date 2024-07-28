@@ -4,17 +4,23 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/transport/http/apiv1"
 )
 
 type Transport struct {
 	usersrv usersrv.UserServicer
+	notesrv notesrv.NoteServicer
 }
 
-func NewTransport(us usersrv.UserServicer) *Transport {
+func NewTransport(
+	us usersrv.UserServicer,
+	ns notesrv.NoteServicer,
+) *Transport {
 	return &Transport{
 		usersrv: us,
+		notesrv: ns,
 	}
 }
 
@@ -27,7 +33,7 @@ func (t *Transport) Handler() http.Handler {
 
 	api := r.Group("/api")
 	api.GET("/ping", t.pingHandler)
-	apiv1.NewAPIV1(t.usersrv).Routes(api.Group("/v1"))
+	apiv1.NewAPIV1(t.usersrv, t.notesrv).Routes(api.Group("/v1"))
 
 	return r.Handler()
 }

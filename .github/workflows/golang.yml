@@ -1,0 +1,27 @@
+name: golang
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.mod
+
+      - name: Build API
+        run: go build -o .bin/onasty ./cmd/server/
+
+      - name: Unit tests
+        run: go test -v --short ./...
+
+      - name: e2e tests
+        run: go test -v ./e2e/

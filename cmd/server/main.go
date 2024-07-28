@@ -11,7 +11,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/config"
+	"github.com/olexsmir/onasty/internal/hasher"
+	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
+	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
@@ -44,10 +49,18 @@ func run(ctx context.Context) error {
 	}
 
 	// app deps
-	userepo := userepo.New(psqlDB)
-	usersrv := usersrv.New(userepo)
+	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
+	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 
-	handler := httptransport.NewTransport(usersrv)
+	sessionrepo := sessionrepo.New(psqlDB)
+
+	userepo := userepo.New(psqlDB)
+	usersrv := usersrv.New(userepo, sessionrepo, sha256Hasher, jwtTokenizer)
+
+	noterepo := noterepo.New(psqlDB)
+	notesrv := notesrv.New(noterepo)
+
+	handler := httptransport.NewTransport(usersrv, notesrv)
 
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())

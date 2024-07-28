@@ -17,3 +17,6 @@ tasks:
 
   drop:
     - migrate -database $POSTGRESQL_DSN -path {{.MIGRATIONS_DIR}} drop
+
+  current-version:
+    - migrate -database $POSTGRESQL_DSN -path {{.MIGRATIONS_DIR}} version
