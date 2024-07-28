@@ -94,15 +94,12 @@ func (e *AppTestSuite) initDeps() {
 
 func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	dbCredential := "testing"
-	postgresContainer, err := postgres.RunContainer(
-		e.ctx,
-		testcontainers.WithImage("postgres:16-alpine"),
+	postgresContainer, err := postgres.Run(e.ctx,
+		"postgres:16-alpine",
 		postgres.WithUsername(dbCredential),
 		postgres.WithPassword(dbCredential),
 		postgres.WithDatabase(dbCredential),
-		testcontainers.WithWaitStrategy(
-			wait.ForListeningPort("5432/tcp")),
-	)
+		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")))
 	e.require.NoError(err)
 
 	stop := func() {
