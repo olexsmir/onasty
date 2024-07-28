@@ -8,15 +8,17 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
-type apiv1NoteCreateRequest struct {
-	Content              string    `json:"content"`
-	Slug                 string    `json:"slug"`
-	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
-	ExpiresAt            time.Time `json:"expires_at"`
-}
-type apiv1NoteCreateResponse struct {
-	Slug string `json:"slug"`
-}
+type (
+	apiv1NoteCreateRequest struct {
+		Content              string    `json:"content"`
+		Slug                 string    `json:"slug"`
+		BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+		ExpiresAt            time.Time `json:"expires_at"`
+	}
+	apiv1NoteCreateResponse struct {
+		Slug string `json:"slug"`
+	}
+)
 
 func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 	tests := []struct {
