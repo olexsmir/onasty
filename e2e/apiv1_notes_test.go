@@ -102,7 +102,7 @@ func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
 	dbNote := e.getNoteFromDBbySlug(body.Slug)
-	dbNoteAuthor := e.getLastRecordInNotesAuthorWithAuthor(uid)
+	dbNoteAuthor := e.getLastNoteAuthorsRecordByAuthorID(uid)
 
 	e.Equal(http.StatusCreated, httpResp.Code)
 	e.Equal(dbNote.ID.String(), dbNoteAuthor.noteID.String())

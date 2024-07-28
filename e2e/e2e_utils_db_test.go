@@ -91,12 +91,12 @@ type noteAuthorModel struct {
 	userID uuid.UUID
 }
 
-func (e *AppTestSuite) getLastRecordInNotesAuthorWithAuthor(uid uuid.UUID) noteAuthorModel {
+func (e *AppTestSuite) getLastNoteAuthorsRecordByAuthorID(uid uuid.UUID) noteAuthorModel {
 	qeuery, args, err := pgq.
 		Select("note_id", "user_id").
 		From("notes_authors").
 		Where(pgq.Eq{"user_id": uid.String()}).
-		OrderBy("id DESC").
+		OrderBy("created_at DESC").
 		Limit(1).
 		SQL()
 	e.require.NoError(err)
