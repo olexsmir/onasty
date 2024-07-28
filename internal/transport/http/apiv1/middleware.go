@@ -40,7 +40,6 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 	c.Next()
 }
 
-//nolint:unused // TODO: remove me later
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
@@ -66,7 +65,7 @@ func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 
 //nolint:unused // TODO: remove me later
 func (a *APIV1) isUserAuthorized(c *gin.Context) bool {
-	return !getUserID(c).IsNil()
+	return !a.getUserID(c).IsNil()
 }
 
 func getTokenFromAuthHeaders(c *gin.Context) (token string, ok bool) { //nolint:nonamedreturns
@@ -100,7 +99,7 @@ func saveUserIDToCtx(c *gin.Context, us usersrv.UserServicer, token string) erro
 
 // getUserId returns userId from the context
 // getting user id is only possible if user is authorized
-func getUserID(c *gin.Context) uuid.UUID {
+func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 	userID, exists := c.Get(userIDCtxKey)
 	if !exists {
 		return uuid.Nil

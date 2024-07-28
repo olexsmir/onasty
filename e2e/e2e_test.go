@@ -13,7 +13,9 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
@@ -83,7 +85,10 @@ func (e *AppTestSuite) initDeps() {
 	userepo := userepo.New(e.postgresDB)
 	usersrv := usersrv.New(userepo, sessionrepo, e.hasher, e.jwtTokenizer)
 
-	handler := httptransport.NewTransport(usersrv)
+	noterepo := noterepo.New(e.postgresDB)
+	notesrv := notesrv.New(noterepo)
+
+	handler := httptransport.NewTransport(usersrv, notesrv)
 	e.router = handler.Handler()
 }
 

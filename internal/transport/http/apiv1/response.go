@@ -15,8 +15,20 @@ type response struct {
 
 func errorResponse(c *gin.Context, err error) {
 	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
-		errors.Is(err, models.ErrUsernameIsAlreadyInUse) {
+		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
+		errors.Is(err, models.ErrNoteContentIsEmpty) ||
+		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {
 		newError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if errors.Is(err, models.ErrNoteExpired) {
+		newError(c, http.StatusGone, err.Error())
+		return
+	}
+
+	if errors.Is(err, models.ErrNoteNotFound) {
+		newErrorStatus(c, http.StatusNotFound, err.Error())
 		return
 	}
 
@@ -34,7 +46,7 @@ func errorResponse(c *gin.Context, err error) {
 	newInternalError(c, err)
 }
 
-func newError(c *gin.Context, status int, msg string) { //nolint:unparam // TODO: remove me later
+func newError(c *gin.Context, status int, msg string) {
 	slog.Error(msg, "status", status)
 	c.AbortWithStatusJSON(status, response{msg})
 }

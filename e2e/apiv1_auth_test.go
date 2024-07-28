@@ -71,15 +71,16 @@ func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 	}
 }
 
-type apiv1AuthSignInRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type apiv1AuthSignInResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-}
+type (
+	apiv1AuthSignInRequest struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	apiv1AuthSignInResponse struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}
+)
 
 func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"

@@ -13,7 +13,9 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
@@ -55,7 +57,10 @@ func run(ctx context.Context) error {
 	userepo := userepo.New(psqlDB)
 	usersrv := usersrv.New(userepo, sessionrepo, sha256Hasher, jwtTokenizer)
 
-	handler := httptransport.NewTransport(usersrv)
+	noterepo := noterepo.New(psqlDB)
+	notesrv := notesrv.New(noterepo)
+
+	handler := httptransport.NewTransport(usersrv, notesrv)
 
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
