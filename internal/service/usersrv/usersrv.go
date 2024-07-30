@@ -23,6 +23,7 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	VerifyEmail(ctx context.Context, verificationKey string) error
+	// TODO: add resent verification email
 
 	ParseToken(token string) (jwtutil.Payload, error)
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
@@ -38,8 +39,8 @@ type UserSrv struct {
 	jwtTokenizer jwtutil.JWTTokenizer
 	mailer       mailer.Mailer
 
-	refreshTokenExpiredAt time.Time
-	verificationTokenTTL  time.Duration
+	refreshTokenTTL      time.Duration
+	verificationTokenTTL time.Duration
 }
 
 func New(
@@ -49,14 +50,17 @@ func New(
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailer mailer.Mailer,
+	refreshTokenTTL, verificationTokenTTL time.Duration,
 ) UserServicer {
 	return &UserSrv{
-		userstore:    userstore,
-		sessionstore: sessionstore,
-		vertokrepo:   vertokrepo,
-		hasher:       hasher,
-		jwtTokenizer: jwtTokenizer,
-		mailer:       mailer,
+		userstore:            userstore,
+		sessionstore:         sessionstore,
+		vertokrepo:           vertokrepo,
+		hasher:               hasher,
+		jwtTokenizer:         jwtTokenizer,
+		mailer:               mailer,
+		refreshTokenTTL:      refreshTokenTTL,
+		verificationTokenTTL: verificationTokenTTL,
 	}
 }
 
@@ -107,7 +111,7 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		return dtos.TokensDTO{}, err
 	}
 
-	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, u.refreshTokenExpiredAt); err != nil {
+	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, u.refreshTokenTTL); err != nil {
 		return dtos.TokensDTO{}, err
 	}
 

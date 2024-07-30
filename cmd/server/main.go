@@ -66,6 +66,8 @@ func run(ctx context.Context) error {
 		sha256Hasher,
 		jwtTokenizer,
 		mailGunMailer,
+		cfg.JwtRefreshTokenTTL,
+		cfg.VerficationTokenTTL,
 	)
 
 	noterepo := noterepo.New(psqlDB)
