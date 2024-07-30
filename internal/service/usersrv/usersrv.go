@@ -111,7 +111,7 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		return dtos.TokensDTO{}, err
 	}
 
-	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, u.refreshTokenTTL); err != nil {
+	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, time.Now().Add(u.refreshTokenTTL)); err != nil {
 		return dtos.TokensDTO{}, err
 	}
 
