@@ -85,7 +85,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usersrv := usersrv.New(userepo, sessionrepo, vertokrepo, e.hasher, e.jwtTokenizer)
+	usersrv := usersrv.New(userepo, sessionrepo, vertokrepo, e.hasher, e.jwtTokenizer, nil) // TODO: add mailer
 
 	noterepo := noterepo.New(e.postgresDB)
 	notesrv := notesrv.New(noterepo)

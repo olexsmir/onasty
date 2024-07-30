@@ -9,6 +9,7 @@ import (
 	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
@@ -35,6 +36,7 @@ type UserSrv struct {
 	vertokrepo   vertokrepo.VerificationTokenStorer
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
+	mailer       mailer.Mailer
 
 	refreshTokenExpiredAt time.Time
 }
@@ -45,6 +47,7 @@ func New(
 	vertokrepo vertokrepo.VerificationTokenStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
+	mailer mailer.Mailer,
 ) UserServicer {
 	return &UserSrv{
 		userstore:    userstore,
@@ -52,6 +55,7 @@ func New(
 		vertokrepo:   vertokrepo,
 		hasher:       hasher,
 		jwtTokenizer: jwtTokenizer,
+		mailer:       mailer,
 	}
 }
 

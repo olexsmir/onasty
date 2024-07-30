@@ -14,6 +14,10 @@ type Config struct {
 	JwtAccessTokenTTL  time.Duration
 	JwtRefreshTokenTTL time.Duration
 
+	MailgunFrom   string
+	MailgunDomain string
+	MailgunAPIKey string
+
 	LogLevel  string
 	LogFormat string
 
@@ -28,6 +32,9 @@ func NewConfig() *Config {
 		JwtSigningKey:      getenvOrDefault("JWT_SIGNING_KEY", ""),
 		JwtAccessTokenTTL:  mustParseDuration(getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m")),
 		JwtRefreshTokenTTL: mustParseDuration(getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "15d")),
+		MailgunFrom:        getenvOrDefault("MAILGUN_FROM", ""),
+		MailgunDomain:      getenvOrDefault("MAILGUN_DOMAIN", ""),
+		MailgunAPIKey:      getenvOrDefault("MAILGUN_API_KEY", ""),
 		LogLevel:           getenvOrDefault("LOG_LEVEL", "debug"),
 		LogFormat:          getenvOrDefault("LOG_FORMAT", "json"),
 		PostgresDSN:        getenvOrDefault("POSTGRESQL_DSN", ""),

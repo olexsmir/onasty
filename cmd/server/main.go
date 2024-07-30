@@ -13,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -52,12 +53,20 @@ func run(ctx context.Context) error {
 	// app deps
 	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
+	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
 
 	sessionrepo := sessionrepo.New(psqlDB)
 	vertokrepo := vertokrepo.New(psqlDB)
 
 	userepo := userepo.New(psqlDB)
-	usersrv := usersrv.New(userepo, sessionrepo, vertokrepo, sha256Hasher, jwtTokenizer)
+	usersrv := usersrv.New(
+		userepo,
+		sessionrepo,
+		vertokrepo,
+		sha256Hasher,
+		jwtTokenizer,
+		mailGunMailer,
+	)
 
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
