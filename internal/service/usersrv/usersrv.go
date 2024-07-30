@@ -12,6 +12,7 @@ import (
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
+	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 )
 
 type UserServicer interface {
@@ -19,6 +20,8 @@ type UserServicer interface {
 	SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
+
+	VerifyEmail(ctx context.Context, verificationKey string) error
 
 	ParseToken(token string) (jwtutil.Payload, error)
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
@@ -29,6 +32,7 @@ var _ UserServicer = (*UserSrv)(nil)
 type UserSrv struct {
 	userstore    userepo.UserStorer
 	sessionstore sessionrepo.SessionStorer
+	vertokrepo   vertokrepo.VerificationTokenStorer
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
 
@@ -38,12 +42,14 @@ type UserSrv struct {
 func New(
 	userstore userepo.UserStorer,
 	sessionstore sessionrepo.SessionStorer,
+	vertokrepo vertokrepo.VerificationTokenStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 ) UserServicer {
 	return &UserSrv{
 		userstore:    userstore,
 		sessionstore: sessionstore,
+		vertokrepo:   vertokrepo,
 		hasher:       hasher,
 		jwtTokenizer: jwtTokenizer,
 	}
@@ -114,6 +120,10 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 		Access:  tokens.Access,
 		Refresh: tokens.Refresh,
 	}, err
+}
+
+func (u *UserSrv) VerifyEmail(ctx context.Context, verificationKey string) error {
+	return errors.New("not implemented")
 }
 
 func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {

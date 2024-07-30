@@ -18,6 +18,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
+	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
@@ -53,9 +54,10 @@ func run(ctx context.Context) error {
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 
 	sessionrepo := sessionrepo.New(psqlDB)
+	vertokrepo := vertokrepo.New(psqlDB)
 
 	userepo := userepo.New(psqlDB)
-	usersrv := usersrv.New(userepo, sessionrepo, sha256Hasher, jwtTokenizer)
+	usersrv := usersrv.New(userepo, sessionrepo, vertokrepo, sha256Hasher, jwtTokenizer)
 
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)

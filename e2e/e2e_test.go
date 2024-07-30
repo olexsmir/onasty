@@ -18,6 +18,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
+	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/stretchr/testify/require"
@@ -81,9 +82,10 @@ func (e *AppTestSuite) initDeps() {
 	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
 
 	sessionrepo := sessionrepo.New(e.postgresDB)
+	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usersrv := usersrv.New(userepo, sessionrepo, e.hasher, e.jwtTokenizer)
+	usersrv := usersrv.New(userepo, sessionrepo, vertokrepo, e.hasher, e.jwtTokenizer)
 
 	noterepo := noterepo.New(e.postgresDB)
 	notesrv := notesrv.New(noterepo)
