@@ -16,6 +16,7 @@ type Mailgun struct {
 
 func NewMailgun(from, domain, apiKey string) *Mailgun {
 	mg := mailgun.NewMailgun(domain, apiKey)
+	mg.SetAPIBase(mailgun.APIBaseEU)
 	return &Mailgun{
 		from: from,
 		mg:   mg,
