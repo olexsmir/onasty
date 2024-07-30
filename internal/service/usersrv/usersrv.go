@@ -39,6 +39,7 @@ type UserSrv struct {
 	mailer       mailer.Mailer
 
 	refreshTokenExpiredAt time.Time
+	verificationTokenTTL  time.Duration
 }
 
 func New(
@@ -65,13 +66,26 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 		return uuid.UUID{}, err
 	}
 
-	return u.userstore.Create(ctx, dtos.CreateUserDTO{
+	uid, err := u.userstore.Create(ctx, dtos.CreateUserDTO{
 		Username:    inp.Username,
 		Email:       inp.Email,
 		Password:    hashedPassword,
 		CreatedAt:   inp.CreatedAt,
 		LastLoginAt: inp.LastLoginAt,
 	})
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	// TODO: create and save verification token +
+	vtok := uuid.Must(uuid.NewV4()).String()
+	if err := u.vertokrepo.Create(ctx, vtok, uid, time.Now(), time.Now().Add(u.verificationTokenTTL)); err != nil {
+		return uuid.Nil, err
+	}
+
+	// TODO: send verification email
+
+	return uid, nil
 }
 
 func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error) {
