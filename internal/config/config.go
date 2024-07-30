@@ -14,9 +14,10 @@ type Config struct {
 	JwtAccessTokenTTL  time.Duration
 	JwtRefreshTokenTTL time.Duration
 
-	MailgunFrom   string
-	MailgunDomain string
-	MailgunAPIKey string
+	MailgunFrom         string
+	MailgunDomain       string
+	MailgunAPIKey       string
+	VerficationTokenTTL time.Duration
 
 	LogLevel  string
 	LogFormat string
@@ -26,18 +27,19 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		AppEnv:             getenvOrDefault("APP_ENV", "debug"),
-		ServerPort:         getenvOrDefault("SERVER_PORT", "3000"),
-		PasswordSalt:       getenvOrDefault("PASSWORD_SALT", ""),
-		JwtSigningKey:      getenvOrDefault("JWT_SIGNING_KEY", ""),
-		JwtAccessTokenTTL:  mustParseDuration(getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m")),
-		JwtRefreshTokenTTL: mustParseDuration(getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "15d")),
-		MailgunFrom:        getenvOrDefault("MAILGUN_FROM", ""),
-		MailgunDomain:      getenvOrDefault("MAILGUN_DOMAIN", ""),
-		MailgunAPIKey:      getenvOrDefault("MAILGUN_API_KEY", ""),
-		LogLevel:           getenvOrDefault("LOG_LEVEL", "debug"),
-		LogFormat:          getenvOrDefault("LOG_FORMAT", "json"),
-		PostgresDSN:        getenvOrDefault("POSTGRESQL_DSN", ""),
+		AppEnv:              getenvOrDefault("APP_ENV", "debug"),
+		ServerPort:          getenvOrDefault("SERVER_PORT", "3000"),
+		PasswordSalt:        getenvOrDefault("PASSWORD_SALT", ""),
+		JwtSigningKey:       getenvOrDefault("JWT_SIGNING_KEY", ""),
+		JwtAccessTokenTTL:   mustParseDuration(getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m")),
+		JwtRefreshTokenTTL:  mustParseDuration(getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "15d")),
+		MailgunFrom:         getenvOrDefault("MAILGUN_FROM", ""),
+		MailgunDomain:       getenvOrDefault("MAILGUN_DOMAIN", ""),
+		MailgunAPIKey:       getenvOrDefault("MAILGUN_API_KEY", ""),
+		VerficationTokenTTL: mustParseDuration(getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h")),
+		LogLevel:            getenvOrDefault("LOG_LEVEL", "debug"),
+		LogFormat:           getenvOrDefault("LOG_FORMAT", "json"),
+		PostgresDSN:         getenvOrDefault("POSTGRESQL_DSN", ""),
 	}
 }
 
