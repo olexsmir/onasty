@@ -88,7 +88,7 @@ func (r *UserRepo) MarkUserAsActivated(ctx context.Context, id uuid.UUID) error 
 	query, args, err := pgq.
 		Update("users").
 		Set("activated ", true).
-		Where(pgq.Eq{"id": id}).
+		Where(pgq.Eq{"id": id.String()}).
 		SQL()
 	if err != nil {
 		return err
