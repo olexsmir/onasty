@@ -17,7 +17,8 @@ func errorResponse(c *gin.Context, err error) {
 	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
-		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {
+		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) ||
+		errors.Is(err, models.ErrUserIsAlreeadyVerified) {
 		newError(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -27,7 +28,8 @@ func errorResponse(c *gin.Context, err error) {
 		return
 	}
 
-	if errors.Is(err, models.ErrNoteNotFound) {
+	if errors.Is(err, models.ErrNoteNotFound) ||
+		errors.Is(err, models.ErrVerificationTokenNotFound) {
 		newErrorStatus(c, http.StatusNotFound, err.Error())
 		return
 	}
