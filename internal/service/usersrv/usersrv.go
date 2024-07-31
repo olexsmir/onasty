@@ -22,7 +22,7 @@ type UserServicer interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
 
-	VerifyEmail(ctx context.Context, verificationKey string) error
+	Verify(ctx context.Context, verificationKey string) error
 	// TODO: add resent verification email
 
 	ParseToken(token string) (jwtutil.Payload, error)
@@ -144,8 +144,13 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 	}, err
 }
 
-func (u *UserSrv) VerifyEmail(ctx context.Context, verificationKey string) error {
-	return errors.New("not implemented")
+func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
+	uid, err := u.vertokrepo.GetUserIDByTokenAndMarkAsUsed(ctx, verificationKey, time.Now())
+	if err != nil {
+		return err
+	}
+
+	return u.userstore.MarkUserAsActivated(ctx, uid)
 }
 
 func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
