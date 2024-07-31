@@ -2,10 +2,13 @@ package vertokrepo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
+	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
@@ -17,7 +20,11 @@ type VerificationTokenStorer interface {
 		createdAt, expiresAt time.Time,
 	) error
 
-	MarkAsVerified(ctx context.Context, token string, verifiedAt time.Time) error
+	GetUserIdByTookenAndMarkAsUsed(
+		ctx context.Context,
+		token string,
+		usedAT time.Time,
+	) (uuid.UUID, error)
 }
 
 var _ VerificationTokenStorer = (*VerificationTokenRepo)(nil)
@@ -50,10 +57,26 @@ func (r *VerificationTokenRepo) Create(
 	return err
 }
 
-func (r *VerificationTokenRepo) MarkAsVerified(
+func (r *VerificationTokenRepo) GetUserIdByTookenAndMarkAsUsed(
 	ctx context.Context,
 	token string,
-	verifiedAt time.Time,
-) error {
-	return nil
+	usedAT time.Time,
+) (uuid.UUID, error) {
+	query, aggs, err := pgq.
+		Update("verification_tokens").
+		Set("used_at", usedAT).
+		Where(pgq.Eq{"token": token}).
+		Returning("user_id").
+		SQL()
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	var userID uuid.UUID
+	err = r.db.QueryRow(ctx, query, aggs...).Scan(&userID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uuid.Nil, models.ErrUserNotFound
+	}
+
+	return userID, err
 }
