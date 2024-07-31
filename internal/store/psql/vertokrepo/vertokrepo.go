@@ -58,7 +58,7 @@ func (r *VerificationTokenRepo) Create(
 func (r *VerificationTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	ctx context.Context,
 	token string,
-	usedAT time.Time,
+	usedAt time.Time,
 ) (uuid.UUID, error) {
 	tx, err := r.db.Begin(ctx)
 	if err != nil {
@@ -77,10 +77,14 @@ func (r *VerificationTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 		return uuid.Nil, models.ErrUserIsAlreeadyVerified
 	}
 
+	query := `--sql
+update verification_tokens
+set used_at = $1
+where token = $2
+returning user_id`
+
 	var userID uuid.UUID
-	err = r.db.QueryRow(ctx, "update verification_tokens set used_at = $1 where token = $2 returning user_id",
-		usedAT, token).
-		Scan(&userID)
+	err = tx.QueryRow(ctx, query, usedAt, token).Scan(&userID)
 
 	return userID, err
 }
