@@ -11,6 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
@@ -78,6 +79,8 @@ func (e *AppTestSuite) TearDownSuite() {
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
+	cfg := config.NewConfig()
+
 	e.hasher = hasher.NewSHA256Hasher("pass_salt")
 	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
 
@@ -85,7 +88,16 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usersrv := usersrv.New(userepo, sessionrepo, vertokrepo, e.hasher, e.jwtTokenizer, nil) // TODO: add mailer
+	usersrv := usersrv.New(
+		userepo,
+		sessionrepo,
+		vertokrepo,
+		e.hasher,
+		e.jwtTokenizer,
+		nil,
+		cfg.JwtRefreshTokenTTL,
+		cfg.VerficationTokenTTL,
+	) // TODO: add mailer
 
 	noterepo := noterepo.New(e.postgresDB)
 	notesrv := notesrv.New(noterepo)
