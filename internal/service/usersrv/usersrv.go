@@ -81,13 +81,13 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 		return uuid.Nil, err
 	}
 
-	// TODO: create and save verification token +
 	vtok := uuid.Must(uuid.NewV4()).String()
 	if err := u.vertokrepo.Create(ctx, vtok, uid, time.Now(), time.Now().Add(u.verificationTokenTTL)); err != nil {
 		return uuid.Nil, err
 	}
 
-	// TODO: send verification email
+	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	go u.sendVerificationEmail(bgCtx, bgCancel, inp.Email, vtok) //nolint:errcheck
 
 	return uid, nil
 }
