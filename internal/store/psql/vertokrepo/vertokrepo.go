@@ -14,7 +14,7 @@ type VerificationTokenStorer interface {
 	Create(
 		ctx context.Context,
 		token string,
-		userId uuid.UUID,
+		userID uuid.UUID,
 		createdAt, expiresAt time.Time,
 	) error
 
@@ -40,12 +40,12 @@ func New(db *psqlutil.DB) *VerificationTokenRepo {
 func (r *VerificationTokenRepo) Create(
 	ctx context.Context,
 	token string,
-	userId uuid.UUID,
+	userID uuid.UUID,
 	createdAt, expiresAt time.Time,
 ) error {
 	query, aggs, err := pgq.Insert("verification_tokens ").
 		Columns("user_id", "token", "created_at", "expires_at").
-		Values(userId, token, createdAt, expiresAt).
+		Values(userID, token, createdAt, expiresAt).
 		SQL()
 	if err != nil {
 		return err
