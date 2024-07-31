@@ -16,7 +16,6 @@ type Mailgun struct {
 
 func NewMailgun(from, domain, apiKey string) *Mailgun {
 	mg := mailgun.NewMailgun(domain, apiKey)
-	mg.SetAPIBase(mailgun.APIBaseEU)
 	return &Mailgun{
 		from: from,
 		mg:   mg,
@@ -29,4 +28,10 @@ func (m *Mailgun) Send(ctx context.Context, to, subject, content string) error {
 
 	_, _, err := m.mg.Send(ctx, msg)
 	return err
+}
+
+// SetAPIBase sets the API base URL.
+// Useful for testing.
+func (m *Mailgun) SetAPIBase(a string) {
+	m.mg.SetAPIBase(a)
 }
