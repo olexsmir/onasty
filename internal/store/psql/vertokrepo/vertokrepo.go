@@ -2,12 +2,10 @@ package vertokrepo
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
-	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
@@ -20,7 +18,7 @@ type VerificationTokenStorer interface {
 		createdAt, expiresAt time.Time,
 	) error
 
-	GetUserIdByTookenAndMarkAsUsed(
+	GetUserIDByTokenAndMarkAsUsed(
 		ctx context.Context,
 		token string,
 		usedAT time.Time,
@@ -57,26 +55,32 @@ func (r *VerificationTokenRepo) Create(
 	return err
 }
 
-func (r *VerificationTokenRepo) GetUserIdByTookenAndMarkAsUsed(
+func (r *VerificationTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	ctx context.Context,
 	token string,
 	usedAT time.Time,
 ) (uuid.UUID, error) {
-	query, aggs, err := pgq.
-		Update("verification_tokens").
-		Set("used_at", usedAT).
-		Where(pgq.Eq{"token": token}).
-		Returning("user_id").
-		SQL()
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	var isUsed bool
+	err = tx.QueryRow(ctx, "select used_at is not null from verification_tokens where token = $1", token).
+		Scan(&isUsed)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	var userID uuid.UUID
-	err = r.db.QueryRow(ctx, query, aggs...).Scan(&userID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return uuid.Nil, models.ErrUserNotFound
+	if isUsed {
+		return uuid.Nil, models.ErrUserIsAlreeadyVerified
 	}
+
+	var userID uuid.UUID
+	err = r.db.QueryRow(ctx, "update verification_tokens set used_at = $1 where token = $2 returning user_id",
+		usedAT, token).
+		Scan(&userID)
 
 	return userID, err
 }

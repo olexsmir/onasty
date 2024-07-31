@@ -15,6 +15,7 @@ import (
 type UserStorer interface {
 	Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
 	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
+	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
 
 	CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error)
 }
@@ -81,6 +82,20 @@ func (r *UserRepo) GetUserByCredentials(
 	}
 
 	return user, err
+}
+
+func (r *UserRepo) MarkUserAsActivated(ctx context.Context, id uuid.UUID) error {
+	query, args, err := pgq.
+		Update("users").
+		Set("activated ", true).
+		Where(pgq.Eq{"id": id}).
+		SQL()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.Exec(ctx, query, args...)
+	return err
 }
 
 func (r *UserRepo) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
