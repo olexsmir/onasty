@@ -1,7 +1,6 @@
 package apiv1
 
 import (
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -40,8 +39,6 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		newErrorStatus(c, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	slog.Debug("userid", "a", a.getUserID(c))
 
 	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNoteDTO{
 		Content:              note.Content,
