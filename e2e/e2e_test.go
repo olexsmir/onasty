@@ -11,9 +11,11 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/mailgun/mailgun-go/v4"
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -45,6 +47,7 @@ type (
 		router       http.Handler
 		hasher       hasher.Hasher
 		jwtTokenizer jwtutil.JWTTokenizer
+		mailgunMock  mailgun.MockServer
 	}
 )
 
@@ -66,6 +69,7 @@ func (e *AppTestSuite) SetupSuite() {
 	db, stop, err := e.prepPostgres()
 	e.Require().NoError(err)
 
+	e.mailgunMock = mailgun.NewMockServer()
 	e.postgresDB = db
 	e.stopPostgres = stop
 
@@ -73,6 +77,7 @@ func (e *AppTestSuite) SetupSuite() {
 }
 
 func (e *AppTestSuite) TearDownSuite() {
+	e.mailgunMock.Stop()
 	e.stopPostgres()
 }
 
@@ -84,6 +89,9 @@ func (e *AppTestSuite) initDeps() {
 	e.hasher = hasher.NewSHA256Hasher("pass_salt")
 	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
 
+	mailgunMailer := mailer.NewMailgun("e2e.tests", "onas.tesy", "fake-api-key")
+	mailgunMailer.SetAPIBase(e.mailgunMock.URL())
+
 	sessionrepo := sessionrepo.New(e.postgresDB)
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
@@ -94,7 +102,7 @@ func (e *AppTestSuite) initDeps() {
 		vertokrepo,
 		e.hasher,
 		e.jwtTokenizer,
-		nil,
+		mailgunMailer,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerficationTokenTTL,
 	) // TODO: add mailer
