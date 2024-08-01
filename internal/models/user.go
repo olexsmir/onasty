@@ -14,6 +14,7 @@ var (
 	ErrUserIsAlreeadyVerified  = errors.New("user: user is already verified")
 
 	ErrVerificationTokenNotFound = errors.New("user: verification token not found")
+	ErrUserIsNotActivated        = errors.New("user: user is not activated")
 
 	ErrUserNotFound         = errors.New("user: not found")
 	ErrUserWrongCredentials = errors.New("user: wrong credentials")

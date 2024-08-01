@@ -18,6 +18,7 @@ type UserStorer interface {
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
 
 	CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error)
+	CheckIfUserIsActivated(ctx context.Context, id uuid.UUID) (bool, error)
 }
 
 var _ UserStorer = (*UserRepo)(nil)
@@ -110,4 +111,14 @@ func (r *UserRepo) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, e
 	}
 
 	return exists, err
+}
+
+func (r *UserRepo) CheckIfUserIsActivated(ctx context.Context, id uuid.UUID) (bool, error) {
+	var activated bool
+	err := r.db.QueryRow(ctx, `SELECT activated FROM users WHERE id = $1`, id.String()).
+		Scan(&activated)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, models.ErrUserNotFound
+	}
+	return activated, err
 }

@@ -27,6 +27,7 @@ type UserServicer interface {
 
 	ParseToken(token string) (jwtutil.Payload, error)
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
+	CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 var _ UserServicer = (*UserSrv)(nil)
@@ -159,6 +160,10 @@ func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
 	return u.userstore.CheckIfUserExists(ctx, id)
+}
+
+func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
+	return u.userstore.CheckIfUserIsActivated(ctx, userID)
 }
 
 func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {

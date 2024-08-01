@@ -40,7 +40,8 @@ func errorResponse(c *gin.Context, err error) {
 	}
 
 	if errors.Is(err, ErrUnauthorized) ||
-		errors.Is(err, models.ErrUserWrongCredentials) {
+		errors.Is(err, models.ErrUserWrongCredentials) ||
+		errors.Is(err, models.ErrUserIsNotActivated) {
 		newErrorStatus(c, http.StatusUnauthorized, err.Error())
 		return
 	}

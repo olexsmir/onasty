@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid/v5"
+	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
 
@@ -32,6 +33,17 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 		return
 	}
 
+	ok, err = checkIfUserIsActivated(c.Request.Context(), token, a.usersrv)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	if !ok {
+		errorResponse(c, models.ErrUserIsNotActivated)
+		return
+	}
+
 	if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
 		errorResponse(c, err)
 		return
@@ -48,9 +60,19 @@ func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 			errorResponse(c, err)
 			return
 		}
-
 		if !ok {
 			errorResponse(c, ErrUnauthorized)
+			return
+		}
+
+		ok, err = checkIfUserIsActivated(c.Request.Context(), token, a.usersrv)
+		if err != nil {
+			errorResponse(c, err)
+			return
+		}
+
+		if !ok {
+			errorResponse(c, models.ErrUserIsNotActivated)
 			return
 		}
 
@@ -118,6 +140,22 @@ func checkIfUserIsReal(
 	}
 
 	return us.CheckIfUserExists(
+		ctx,
+		uuid.Must(uuid.FromString(parsedToken.UserID)),
+	)
+}
+
+func checkIfUserIsActivated(
+	ctx context.Context,
+	accessToken string,
+	us usersrv.UserServicer,
+) (bool, error) {
+	parsedToken, err := us.ParseToken(accessToken)
+	if err != nil {
+		return false, err
+	}
+
+	return us.CheckIfUserIsActivated(
 		ctx,
 		uuid.Must(uuid.FromString(parsedToken.UserID)),
 	)
