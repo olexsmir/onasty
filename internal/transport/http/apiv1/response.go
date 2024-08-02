@@ -9,6 +9,8 @@ import (
 	"github.com/olexsmir/onasty/internal/models"
 )
 
+var ErrUnauthorized = errors.New("unauthorized")
+
 type response struct {
 	Message string `json:"message"`
 }
