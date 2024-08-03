@@ -64,7 +64,7 @@ func (r *UserRepo) GetUserByCredentials(
 	email, password string,
 ) (dtos.UserDTO, error) {
 	query, args, err := pgq.
-		Select("id", "username", "email", "password", "created_at", "last_login_at").
+		Select("id", "username", "email", "password", "activated", "created_at", "last_login_at").
 		From("users").
 		Where(pgq.Eq{
 			"email":    email,
@@ -77,7 +77,7 @@ func (r *UserRepo) GetUserByCredentials(
 
 	var user dtos.UserDTO
 	err = r.db.QueryRow(ctx, query, args...).
-		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt, &user.LastLoginAt)
+		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return dtos.UserDTO{}, models.ErrUserNotFound
 	}

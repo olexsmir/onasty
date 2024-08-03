@@ -107,6 +107,10 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		return dtos.TokensDTO{}, err
 	}
 
+	if !user.Activated {
+		return dtos.TokensDTO{}, models.ErrUserIsNotActivated
+	}
+
 	tokens, err := u.getTokens(user.ID)
 	if err != nil {
 		return dtos.TokensDTO{}, err
