@@ -23,7 +23,7 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	Verify(ctx context.Context, verificationKey string) error
-	// TODO: add resent verification email
+	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
 
 	ParseToken(token string) (jwtutil.Payload, error)
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
@@ -156,6 +156,39 @@ func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
 	}
 
 	return u.userstore.MarkUserAsActivated(ctx, uid)
+}
+
+func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDTO) error {
+	hashedPassword, err := u.hasher.Hash(inp.Password)
+	if err != nil {
+		return err
+	}
+
+	user, err := u.userstore.GetUserByCredentials(ctx, inp.Email, hashedPassword)
+	if err != nil {
+		if errors.Is(err, models.ErrUserNotFound) {
+			return models.ErrUserWrongCredentials
+		}
+		return err
+	}
+
+	if user.Activated {
+		return models.ErrUserIsAlreeadyVerified
+	}
+
+	token, err := u.vertokrepo.GetTokenOrUpdateTokenByUserID(
+		ctx,
+		user.ID,
+		uuid.Must(uuid.NewV4()).String(),
+		time.Now().Add(u.verificationTokenTTL))
+	if err != nil {
+		return err
+	}
+
+	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	go u.sendVerificationEmail(bgCtx, bgCancel, inp.Email, token) //nolint:errcheck
+
+	return nil
 }
 
 func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {

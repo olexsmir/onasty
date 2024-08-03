@@ -23,6 +23,13 @@ type VerificationTokenStorer interface {
 		token string,
 		usedAT time.Time,
 	) (uuid.UUID, error)
+
+	GetTokenOrUpdateTokenByUserID(
+		ctx context.Context,
+		userID uuid.UUID,
+		token string,
+		tokenExpirationTime time.Time,
+	) (string, error)
 }
 
 var _ VerificationTokenStorer = (*VerificationTokenRepo)(nil)
@@ -87,4 +94,24 @@ returning user_id`
 	err = tx.QueryRow(ctx, query, usedAt, token).Scan(&userID)
 
 	return userID, err
+}
+
+func (r *VerificationTokenRepo) GetTokenOrUpdateTokenByUserID(
+	ctx context.Context,
+	userID uuid.UUID,
+	token string,
+	tokenExpirationTime time.Time,
+) (string, error) {
+	query := `--sql
+insert into verification_tokens (user_id, token, expires_at)
+values ($1, $2, $3)
+on conflict (user_id)
+  do update set
+    token = $2,
+    expires_at = $3
+  returning token`
+
+	var res string
+	err := r.db.QueryRow(ctx, query, userID, token, tokenExpirationTime).Scan(&res)
+	return res, err
 }
