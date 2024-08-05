@@ -25,7 +25,8 @@ type UserServicer interface {
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
 
-	ParseToken(token string) (jwtutil.Payload, error)
+	ParseJWTToken(token string) (jwtutil.Payload, error)
+
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
 	CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error)
 }
@@ -191,7 +192,7 @@ func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDT
 	return nil
 }
 
-func (u *UserSrv) ParseToken(token string) (jwtutil.Payload, error) {
+func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 	return u.jwtTokenizer.Parse(token)
 }
 

@@ -86,7 +86,7 @@ func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 }
 
 func (a *APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) (uuid.UUID, error) {
-	tokenPayload, err := a.usersrv.ParseToken(accessToken)
+	tokenPayload, err := a.usersrv.ParseJWTToken(accessToken)
 	if err != nil {
 		return uuid.Nil, err
 	}
