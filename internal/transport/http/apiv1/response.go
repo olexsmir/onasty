@@ -20,6 +20,7 @@ func errorResponse(c *gin.Context, err error) {
 		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
 		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) ||
+		errors.Is(err, models.ErrUserIsNotActivated) ||
 		errors.Is(err, models.ErrUserIsAlreeadyVerified) {
 		newError(c, http.StatusBadRequest, err.Error())
 		return
@@ -42,8 +43,7 @@ func errorResponse(c *gin.Context, err error) {
 	}
 
 	if errors.Is(err, ErrUnauthorized) ||
-		errors.Is(err, models.ErrUserWrongCredentials) ||
-		errors.Is(err, models.ErrUserIsNotActivated) {
+		errors.Is(err, models.ErrUserWrongCredentials) {
 		newErrorStatus(c, http.StatusUnauthorized, err.Error())
 		return
 	}
