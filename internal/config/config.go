@@ -34,17 +34,17 @@ func NewConfig() *Config {
 
 		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
 		JwtAccessTokenTTL: mustParseDurationOrPanic(
-			getenvOrDefault("JWT_ACCESS_TOKEN_TTL", ""),
+			getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m"),
 		),
 		JwtRefreshTokenTTL: mustParseDurationOrPanic(
-			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", ""),
+			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
 		),
 
 		MailgunFrom:   getenvOrDefault("MAILGUN_FROM", ""),
 		MailgunDomain: getenvOrDefault("MAILGUN_DOMAIN", ""),
 		MailgunAPIKey: getenvOrDefault("MAILGUN_API_KEY", ""),
 		VerficationTokenTTL: mustParseDurationOrPanic(
-			getenvOrDefault("VERIFICATION_TOKEN_TTL", ""),
+			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
 		),
 
 		LogLevel:  getenvOrDefault("LOG_LEVEL", "debug"),
