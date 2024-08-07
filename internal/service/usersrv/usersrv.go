@@ -142,12 +142,14 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 		return dtos.TokensDTO{}, err
 	}
 
-	err = u.sessionstore.Update(ctx, userID, rtoken, tokens.Refresh)
+	if err := u.sessionstore.Update(ctx, userID, rtoken, tokens.Refresh); err != nil {
+		return dtos.TokensDTO{}, err
+	}
 
 	return dtos.TokensDTO{
 		Access:  tokens.Access,
 		Refresh: tokens.Refresh,
-	}, err
+	}, nil
 }
 
 func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
