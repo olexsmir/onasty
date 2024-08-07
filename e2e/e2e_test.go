@@ -3,7 +3,9 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -84,6 +86,7 @@ func (e *AppTestSuite) TearDownSuite() {
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
+	e.setupLogger()
 	cfg := config.NewConfig()
 
 	e.hasher = hasher.NewSHA256Hasher("pass_salt")
@@ -164,4 +167,11 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	e.require.NoError(err)
 
 	return db, stop, driver.Close()
+}
+
+func (e *AppTestSuite) setupLogger() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: true,
+	})))
 }
