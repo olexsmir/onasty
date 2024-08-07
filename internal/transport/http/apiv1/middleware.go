@@ -2,18 +2,19 @@ package apiv1
 
 import (
 	"context"
-	"errors"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid/v5"
-	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/models"
 )
-
-var ErrUnauthorized = errors.New("unauthorized")
 
 const userIDCtxKey = "userID"
 
+// authorizedMiddleware is a middleware that checks if user is authorized
+// and if so sets user metadata to context
+//
+// being authorized is required for making the request for specific endpoint
 func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if !ok {
@@ -21,43 +22,31 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 		return
 	}
 
-	ok, err := checkIfUserIsReal(c.Request.Context(), token, a.usersrv)
+	uid, err := a.validateAuthorizedUser(c.Request.Context(), token)
 	if err != nil {
 		errorResponse(c, err)
 		return
 	}
 
-	if !ok {
-		errorResponse(c, ErrUnauthorized)
-		return
-	}
-
-	if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
-		errorResponse(c, err)
-		return
-	}
+	c.Set(userIDCtxKey, uid)
 
 	c.Next()
 }
 
+// couldBeAuthorizedMiddleware is a middleware that checks if user is authorized and
+// if so sets user metadata to context
+//
+// it is NOT required to be authorized for making the request for specific endpoint
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
-		ok, err := checkIfUserIsReal(c.Request.Context(), token, a.usersrv)
+		uid, err := a.validateAuthorizedUser(c.Request.Context(), token)
 		if err != nil {
 			errorResponse(c, err)
 			return
 		}
 
-		if !ok {
-			errorResponse(c, ErrUnauthorized)
-			return
-		}
-
-		if err := saveUserIDToCtx(c, a.usersrv, token); err != nil {
-			newInternalError(c, err)
-			return
-		}
+		c.Set(userIDCtxKey, uid)
 	}
 
 	c.Next()
@@ -86,17 +75,6 @@ func getTokenFromAuthHeaders(c *gin.Context) (token string, ok bool) { //nolint:
 	return headerParts[1], true
 }
 
-func saveUserIDToCtx(c *gin.Context, us usersrv.UserServicer, token string) error {
-	pl, err := us.ParseToken(token)
-	if err != nil {
-		return err
-	}
-
-	c.Set(userIDCtxKey, pl.UserID)
-
-	return nil
-}
-
 // getUserId returns userId from the context
 // getting user id is only possible if user is authorized
 func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
@@ -104,21 +82,34 @@ func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 	if !exists {
 		return uuid.Nil
 	}
-	return uuid.Must(uuid.FromString(userID.(string)))
+	return userID.(uuid.UUID)
 }
 
-func checkIfUserIsReal(
-	ctx context.Context,
-	accessToken string,
-	us usersrv.UserServicer,
-) (bool, error) {
-	parsedToken, err := us.ParseToken(accessToken)
+func (a *APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) (uuid.UUID, error) {
+	tokenPayload, err := a.usersrv.ParseJWTToken(accessToken)
 	if err != nil {
-		return false, err
+		return uuid.Nil, err
 	}
 
-	return us.CheckIfUserExists(
-		ctx,
-		uuid.Must(uuid.FromString(parsedToken.UserID)),
-	)
+	userID := uuid.Must(uuid.FromString(tokenPayload.UserID))
+
+	ok, err := a.usersrv.CheckIfUserExists(ctx, userID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if !ok {
+		return uuid.Nil, ErrUnauthorized
+	}
+
+	ok, err = a.usersrv.CheckIfUserIsActivated(ctx, userID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if !ok {
+		return uuid.Nil, models.ErrUserIsNotActivated
+	}
+
+	return userID, nil
 }

@@ -62,7 +62,7 @@ set refresh_token = $1
 where
   user_id = $2
   and refresh_token = $3
-  and expires_at < now()
+  -- and expires_at < now()
 `
 
 	res, err := s.db.Exec(ctx, query, newRefreshToken, userID, refreshToken)

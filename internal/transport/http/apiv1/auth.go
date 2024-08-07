@@ -104,6 +104,33 @@ func (a *APIV1) refreshTokensHandler(c *gin.Context) {
 	})
 }
 
+func (a *APIV1) verifyHandler(c *gin.Context) {
+	if err := a.usersrv.Verify(c.Request.Context(), c.Param("token")); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
+	var req signInRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.ResendVerificationEmail(c.Request.Context(), dtos.SignInDTO{
+		Email:    req.Email,
+		Password: req.Password,
+	}); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (a *APIV1) logOutHandler(c *gin.Context) {
 	if err := a.usersrv.Logout(c.Request.Context(), a.getUserID(c)); err != nil {
 		errorResponse(c, err)

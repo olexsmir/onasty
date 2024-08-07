@@ -13,11 +13,13 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
+	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
@@ -51,11 +53,22 @@ func run(ctx context.Context) error {
 	// app deps
 	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
+	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
 
 	sessionrepo := sessionrepo.New(psqlDB)
+	vertokrepo := vertokrepo.New(psqlDB)
 
 	userepo := userepo.New(psqlDB)
-	usersrv := usersrv.New(userepo, sessionrepo, sha256Hasher, jwtTokenizer)
+	usersrv := usersrv.New(
+		userepo,
+		sessionrepo,
+		vertokrepo,
+		sha256Hasher,
+		jwtTokenizer,
+		mailGunMailer,
+		cfg.JwtRefreshTokenTTL,
+		cfg.VerficationTokenTTL,
+	)
 
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
@@ -65,7 +78,7 @@ func run(ctx context.Context) error {
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
 	go func() {
-		slog.Info("starting http server", "port", cfg.ServerPort)
+		slog.Debug("starting http server", "port", cfg.ServerPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
@@ -100,12 +113,17 @@ func setupLogger(cfg *config.Config) error {
 		return errors.New("unknown log level")
 	}
 
+	handlerOptions := &slog.HandlerOptions{
+		Level:     logLevel,
+		AddSource: cfg.LogShowLine,
+	}
+
 	var slogHandler slog.Handler
 	switch cfg.LogFormat {
 	case "json":
-		slogHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+		slogHandler = slog.NewJSONHandler(os.Stdout, handlerOptions)
 	case "text":
-		slogHandler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
 	default:
 		return errors.New("unknown log format")
 	}
