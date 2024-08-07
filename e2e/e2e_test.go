@@ -87,7 +87,7 @@ func (e *AppTestSuite) TearDownSuite() {
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
 	e.setupLogger()
-	cfg := config.NewConfig()
+	cfg := e.getConfig()
 
 	e.hasher = hasher.NewSHA256Hasher("pass_salt")
 	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
@@ -174,4 +174,16 @@ func (e *AppTestSuite) setupLogger() {
 		Level:     slog.LevelDebug,
 		AddSource: true,
 	})))
+}
+
+func (e *AppTestSuite) getConfig() *config.Config {
+	return &config.Config{
+		AppEnv:              "testing",
+		ServerPort:          "3000",
+		PasswordSalt:        "pass-saly",
+		JwtSigningKey:       "jwt-key",
+		JwtAccessTokenTTL:   time.Hour,
+		JwtRefreshTokenTTL:  24 * time.Hour,
+		VerficationTokenTTL: 24 * time.Hour,
+	}
 }
