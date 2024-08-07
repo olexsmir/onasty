@@ -78,7 +78,7 @@ func run(ctx context.Context) error {
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
 	go func() {
-		slog.Info("starting http server", "port", cfg.ServerPort)
+		slog.Debug("starting http server", "port", cfg.ServerPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
@@ -113,12 +113,17 @@ func setupLogger(cfg *config.Config) error {
 		return errors.New("unknown log level")
 	}
 
+	handlerOptions := &slog.HandlerOptions{
+		Level:     logLevel,
+		AddSource: cfg.LogShowLine,
+	}
+
 	var slogHandler slog.Handler
 	switch cfg.LogFormat {
 	case "json":
-		slogHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+		slogHandler = slog.NewJSONHandler(os.Stdout, handlerOptions)
 	case "text":
-		slogHandler = slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel})
+		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
 	default:
 		return errors.New("unknown log format")
 	}
