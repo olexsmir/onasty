@@ -82,6 +82,14 @@ type (
 	}
 )
 
+func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
+	e.T().Skip("implement me daddy")
+}
+
+func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
+	e.T().Skip("implement me daddy")
+}
+
 func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"
 	password := "qwerty"
@@ -118,6 +126,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 		email    string
 		password string
 	}{
+		// TODO: unactivated user
 		{
 			name:     "wrong email",
 			email:    "wrong@emai.com",
@@ -161,13 +170,12 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 	var body apiv1AuthSignInResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-	session := e.getLastUserSessionByUserID(uid)
-	parsedToken := e.parseJwtToken(body.AccessToken)
-	e.Equal(parsedToken.UserID, uid.String())
+	sessionDB := e.getLastUserSessionByUserID(uid)
+	e.Equal(e.parseJwtToken(body.AccessToken).UserID, uid.String())
 
 	e.Equal(httpResp.Code, http.StatusOK)
 	e.NotEqual(toks.RefreshToken, body.RefreshToken)
-	e.Equal(body.RefreshToken, session.RefreshToken)
+	e.Equal(body.RefreshToken, sessionDB.RefreshToken)
 }
 
 func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
@@ -185,15 +193,14 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
 func (e *AppTestSuite) TestAuthV1_Logout() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
 
-	session := e.getLastUserSessionByUserID(uid)
-	e.NotEmpty(session.RefreshToken)
+	sessionDB := e.getLastUserSessionByUserID(uid)
+	e.NotEmpty(sessionDB.RefreshToken)
 
 	httpResp := e.httpRequest(http.MethodPost, "/api/v1/auth/logout", nil, toks.AccessToken)
-
 	e.Equal(httpResp.Code, http.StatusNoContent)
 
-	session = e.getLastUserSessionByUserID(uid)
-	e.Empty(session.RefreshToken)
+	sessionDB = e.getLastUserSessionByUserID(uid)
+	e.Empty(sessionDB.RefreshToken)
 }
 
 type apiv1AtuhChangePasswordRequest struct {
@@ -217,6 +224,8 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	)
 
 	e.Equal(httpResp.Code, http.StatusOK)
+
+	// TODO: check if password has been changed in db
 }
 
 func (e *AppTestSuite) createAndSingIn(
