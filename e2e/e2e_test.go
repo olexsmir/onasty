@@ -69,7 +69,7 @@ func (e *AppTestSuite) SetupSuite() {
 	e.require = e.Require()
 
 	db, stop, err := e.prepPostgres()
-	e.Require().NoError(err)
+	e.require.NoError(err)
 
 	e.mailgunMock = mailgun.NewMockServer()
 	e.postgresDB = db
