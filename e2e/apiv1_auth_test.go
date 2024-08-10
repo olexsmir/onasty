@@ -196,6 +196,29 @@ func (e *AppTestSuite) TestAuthV1_Logout() {
 	e.Empty(session.RefreshToken)
 }
 
+type apiv1AtuhChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+func (e *AppTestSuite) TestAuthV1_ChangePassword() {
+	password := e.uuid()
+	newPassword := e.uuid()
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), password)
+
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/change-password",
+		e.jsonify(apiv1AtuhChangePasswordRequest{
+			CurrentPassword: password,
+			NewPassword:     newPassword,
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusOK)
+}
+
 func (e *AppTestSuite) createAndSingIn(
 	email, username, password string,
 ) (uuid.UUID, apiv1AuthSignInResponse) {
