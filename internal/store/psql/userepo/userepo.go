@@ -110,7 +110,7 @@ func (r *UserRepo) ChangePassword(
 		Update("users").
 		Set("password", newPass).
 		Where(pgq.Eq{
-			"id":       userID,
+			"id":       userID.String(),
 			"password": oldPass,
 		}).
 		SQL()
