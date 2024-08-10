@@ -22,6 +22,8 @@ type UserServicer interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
 
+	ChangePassord(ctx context.Context, inp dtos.ResetUserPasswordDTO) error
+
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
 
@@ -152,6 +154,24 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 		Access:  tokens.Access,
 		Refresh: tokens.Refresh,
 	}, nil
+}
+
+func (u *UserSrv) ChangePassord(ctx context.Context, inp dtos.ResetUserPasswordDTO) error {
+	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
+	if err != nil {
+		return err
+	}
+
+	newPass, err := u.hasher.Hash(inp.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	if err := u.userstore.ChangePassword(ctx, inp.UserID, oldPass, newPass); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {

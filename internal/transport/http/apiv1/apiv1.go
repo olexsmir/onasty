@@ -33,6 +33,7 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		authorized := auth.Group("/", a.authorizedMiddleware)
 		{
 			authorized.POST("/logout", a.logOutHandler)
+			authorized.POST("/change-password", a.changePasswordHandler)
 		}
 	}
 

@@ -16,6 +16,13 @@ type UserDTO struct {
 	LastLoginAt time.Time
 }
 
+type ResetUserPasswordDTO struct {
+	// NOTE: probablbe userID shouldn't be here
+	UserID          uuid.UUID
+	CurrentPassword string
+	NewPassword     string
+}
+
 type CreateUserDTO struct {
 	Username    string
 	Email       string

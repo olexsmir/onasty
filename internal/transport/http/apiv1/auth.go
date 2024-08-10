@@ -139,3 +139,29 @@ func (a *APIV1) logOutHandler(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+type changePasswordRequest struct {
+	CurrentPassword string `json:"current_password"`
+	NewPassword     string `json:"new_password"`
+}
+
+func (a *APIV1) changePasswordHandler(c *gin.Context) {
+	var req changePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.ChangePassord(
+		c.Request.Context(),
+		dtos.ResetUserPasswordDTO{
+			UserID:          a.getUserID(c),
+			CurrentPassword: req.CurrentPassword,
+			NewPassword:     req.NewPassword,
+		}); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

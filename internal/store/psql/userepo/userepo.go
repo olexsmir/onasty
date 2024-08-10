@@ -17,6 +17,8 @@ type UserStorer interface {
 	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
 
+	ChangePassword(ctx context.Context, userID uuid.UUID, oldPass, newPass string) error
+
 	CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckIfUserIsActivated(ctx context.Context, id uuid.UUID) (bool, error)
 }
@@ -95,6 +97,26 @@ func (r *UserRepo) MarkUserAsActivated(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 
+	_, err = r.db.Exec(ctx, query, args...)
+	return err
+}
+
+func (r *UserRepo) ChangePassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	oldPass, newPass string,
+) error {
+	query, args, err := pgq.
+		Update("users").
+		Set("password", newPass).
+		Where(pgq.Eq{
+			"id":       userID,
+			"password": oldPass,
+		}).
+		SQL()
+	if err != nil {
+		return err
+	}
 	_, err = r.db.Exec(ctx, query, args...)
 	return err
 }
