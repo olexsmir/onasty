@@ -88,6 +88,8 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 		return uuid.Nil, err
 	}
 
+	// TODO: handle the error that might be returned
+	// i dont think that tehre's need to handle the error, just log it
 	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	go u.sendVerificationEmail(bgCtx, bgCancel, inp.Email, vtok) //nolint:errcheck
 

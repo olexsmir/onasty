@@ -109,7 +109,7 @@ on conflict (user_id)
   do update set
     token = $2,
     expires_at = $3
-  returning token`
+returning token`
 
 	var res string
 	err := r.db.QueryRow(ctx, query, userID, token, tokenExpirationTime).Scan(&res)
