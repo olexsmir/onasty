@@ -108,7 +108,7 @@ func (e *AppTestSuite) initDeps() {
 		mailgunMailer,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerficationTokenTTL,
-	) // TODO: add mailer
+	)
 
 	noterepo := noterepo.New(e.postgresDB)
 	notesrv := notesrv.New(noterepo)
