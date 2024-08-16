@@ -25,6 +25,7 @@ type User struct {
 	Username    string
 	Email       string
 	Password    string
+	Activated   bool
 	CreatedAt   time.Time
 	LastLoginAt time.Time
 }

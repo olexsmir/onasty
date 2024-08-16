@@ -82,14 +82,6 @@ type (
 	}
 )
 
-func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
-	e.T().Skip("implement me daddy")
-}
-
-func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
-	e.T().Skip("implement me daddy")
-}
-
 func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"
 	password := "qwerty"
@@ -114,6 +106,32 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 	e.Equal(http.StatusOK, httpResp.Code)
 	e.Equal(body.RefreshToken, session.RefreshToken)
 	e.Equal(parsedToken.UserID, uid.String())
+}
+
+func (e *AppTestSuite) TestAuthV1_SignIn_unactivated() {
+	email := e.uuid() + "email@email.com"
+	password := "qwerty"
+	uid := e.insertUserIntoDB("test", email, password)
+
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/signin",
+		e.jsonify(apiv1AuthSignInRequest{
+			Email:    email,
+			Password: password,
+		}),
+	)
+
+	_ = uid
+	_ = httpResp
+}
+
+func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
+	e.T().Skip("implement me daddy")
+}
+
+func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
+	e.T().Skip("implement me daddy")
 }
 
 func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
