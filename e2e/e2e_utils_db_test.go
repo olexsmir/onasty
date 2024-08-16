@@ -14,9 +14,7 @@ func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
 	query, args, err := pgq.
 		Select("id", "username", "email", "password", "created_at", "last_login_at").
 		From("users").
-		Where(pgq.Eq{
-			"username": username,
-		}).
+		Where(pgq.Eq{"username": username}).
 		SQL()
 	e.require.NoError(err)
 
@@ -59,7 +57,7 @@ func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session 
 	var session models.Session
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
 		Scan(&session.RefreshToken, &session.ExpiresAt)
-	if errors.Is(pgx.ErrNoRows, err) {
+	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Session{}
 	}
 
@@ -71,7 +69,7 @@ func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
 	query, args, err := pgq.
 		Select("id", "content", "slug", "burn_before_expiration", "created_at", "expires_at").
 		From("notes").
-		Where("slug = ?", slug).
+		Where(pgq.Eq{"slug": slug}).
 		SQL()
 	e.require.NoError(err)
 
