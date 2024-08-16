@@ -12,7 +12,7 @@ import (
 
 func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
 	query, args, err := pgq.
-		Select("id", "username", "email", "password", "activated", "created_at", "last_login_at").
+		Select("id", "username", "email", "password", "created_at", "last_login_at").
 		From("users").
 		Where(pgq.Eq{
 			"username": username,
@@ -22,7 +22,7 @@ func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
 
 	var user models.User
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
-		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
+		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.CreatedAt, &user.LastLoginAt)
 	e.require.NoError(err)
 
 	return user
@@ -109,24 +109,4 @@ func (e *AppTestSuite) getLastNoteAuthorsRecordByAuthorID(uid uuid.UUID) noteAut
 
 	e.require.NoError(err)
 	return na
-}
-
-func (e *AppTestSuite) getLastUserVerificationTokenByID(uid uuid.UUID) string {
-	query, args, err := pgq.
-		Select("token").
-		From("verification_tokens").
-		Where(pgq.Eq{"user_id": uid.String()}).
-		OrderBy("created_at DESC").
-		Limit(1).
-		SQL()
-	e.require.NoError(err)
-
-	var t string
-	err = e.postgresDB.QueryRow(e.ctx, query, args...).Scan(&t)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return ""
-	}
-
-	e.require.NoError(err)
-	return t
 }
