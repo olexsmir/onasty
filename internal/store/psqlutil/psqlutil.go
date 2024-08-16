@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/jackc/pgconn"
 	pgxuuid "github.com/jackc/pgx-gofrs-uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
