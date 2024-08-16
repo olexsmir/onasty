@@ -139,23 +139,16 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	port, err := postgresContainer.MappedPort(e.ctx, "5432/tcp")
 	e.require.NoError(err)
 
-	s, _ := postgresContainer.ConnectionString(e.ctx, "sslmode=disable")
-
-	// postgres://jack:secret@pg.example.com:5432/mydb?sslmode=verify-ca&pool_max_conns=10
-
-	b := fmt.Sprintf( //nolint:nosprintfhostport
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		dbCredential,
-		dbCredential,
-		host,
-		port.Port(),
-		dbCredential,
-	)
-
-	e.require.Equal(b, s)
 	db, err := psqlutil.Connect(
 		e.ctx,
-		b,
+		fmt.Sprintf( //nolint:nosprintfhostport
+			"postgres://%s:%s@%s:%s/%s",
+			dbCredential,
+			dbCredential,
+			host,
+			port.Port(),
+			dbCredential,
+		),
 	)
 	e.require.NoError(err)
 
