@@ -65,6 +65,27 @@ func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session 
 	return session
 }
 
+func (e *AppTestSuite) getLastInsertedUserByEmail(em string) models.User {
+	query, args, err := pgq.
+		Select("id", "username", "activated", "email", "password").
+		From("users").
+		Where(pgq.Eq{"email": em}).
+		OrderBy("created_at DESC").
+		Limit(1).
+		SQL()
+	e.require.NoError(err)
+
+	var u models.User
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).
+		Scan(&u.ID, &u.Username, &u.Activated, &u.Email, &u.Password)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.User{}
+	}
+
+	e.require.NoError(err)
+	return u
+}
+
 func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
 	query, args, err := pgq.
 		Select("id", "content", "slug", "burn_before_expiration", "created_at", "expires_at").
@@ -107,4 +128,22 @@ func (e *AppTestSuite) getLastNoteAuthorsRecordByAuthorID(uid uuid.UUID) noteAut
 
 	e.require.NoError(err)
 	return na
+}
+
+type userVerificationToken struct {
+	Token  string
+	UsedAt *time.Time
+}
+
+func (e *AppTestSuite) getVerificationTokenByUserID(u uuid.UUID) userVerificationToken {
+	query, args, err := pgq.
+		Select("token", "used_at").
+		From("verification_tokens").
+		Where(pgq.Eq{"user_id": u.String()}).
+		SQL()
+	e.require.NoError(err)
+	var r userVerificationToken
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).Scan(&r.Token, &r.UsedAt)
+	e.require.NoError(err)
+	return r
 }

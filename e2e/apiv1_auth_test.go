@@ -83,7 +83,28 @@ type (
 )
 
 func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
-	e.T().Skip("implement me daddy")
+	email := e.uuid() + "email@email.com"
+	password := "qwerty"
+
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/signup",
+		e.jsonify(apiv1AuthSignUpRequest{
+			Username: e.uuid(),
+			Email:    email,
+			Password: password,
+		}),
+	)
+
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	user := e.getLastInsertedUserByEmail(email)
+	token := e.getVerificationTokenByUserID(user.ID)
+	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/verify/"+token.Token, nil)
+	e.Equal(http.StatusOK, httpResp.Code)
+
+	user = e.getLastInsertedUserByEmail(email)
+	e.Equal(user.Activated, true)
 }
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
