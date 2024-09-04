@@ -172,7 +172,7 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 func (e *AppTestSuite) setupLogger() {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		Level:     slog.LevelDebug,
-		AddSource: true,
+		AddSource: os.Getenv("LOG_SHOW_LINE") == "true",
 	})))
 }
 
