@@ -110,7 +110,7 @@ func (a *APIV1) verifyHandler(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusOK)
+	c.String(http.StatusOK, "email verified")
 }
 
 func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
