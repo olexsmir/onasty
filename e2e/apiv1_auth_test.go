@@ -111,7 +111,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	email, password := e.uuid()+"email@email.com", e.uuid()
 
 	// create test user
-	signUpHttpResp := e.httpRequest(
+	signUpHTTPResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/signup",
 		e.jsonify(apiv1AuthSignUpRequest{
@@ -121,7 +121,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 		}),
 	)
 
-	e.Equal(http.StatusCreated, signUpHttpResp.Code)
+	e.Equal(http.StatusCreated, signUpHTTPResp.Code)
 
 	// handle sending of the email
 	httpResp := e.httpRequest(
