@@ -48,7 +48,7 @@ type (
 		router       http.Handler
 		hasher       hasher.Hasher
 		jwtTokenizer jwtutil.JWTTokenizer
-		mailer       mailer.Mailer
+		mailer       *mailer.TestMailer
 	}
 )
 

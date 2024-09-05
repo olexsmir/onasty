@@ -108,7 +108,33 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 }
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
-	e.T().Skip("implement me daddy")
+	email, password := e.uuid()+"email@email.com", e.uuid()
+
+	// create test user
+	signUpHttpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/signup",
+		e.jsonify(apiv1AuthSignUpRequest{
+			Username: e.uuid(),
+			Email:    email,
+			Password: password,
+		}),
+	)
+
+	e.Equal(http.StatusCreated, signUpHttpResp.Code)
+
+	// handle sending of the email
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/resend-verification-email",
+		e.jsonify(apiv1AuthSignInRequest{
+			Email:    email,
+			Password: password,
+		}),
+	)
+
+	e.Equal(http.StatusOK, httpResp.Code)
+	e.NotEmpty(e.mailer.GetLastSentEmailToEmail(email))
 }
 
 func (e *AppTestSuite) TestAuthV1_SignIn() {
