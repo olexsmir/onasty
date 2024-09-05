@@ -2,6 +2,7 @@ package mailer
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/mailgun/mailgun-go/v4"
 )
@@ -27,5 +28,9 @@ func (m *Mailgun) Send(ctx context.Context, to, subject, content string) error {
 	msg.SetHtml(content)
 
 	_, _, err := m.mg.Send(ctx, msg)
+
+	slog.Info("email sent", "to", to)
+	slog.Debug("email sent", "subject", subject, "content", content, "err", err)
+
 	return err
 }
