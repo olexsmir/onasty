@@ -29,7 +29,6 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		auth.POST("/refresh-tokens", a.refreshTokensHandler)
 		auth.GET("/verify/:token", a.verifyHandler)
 		auth.POST("/resend-verification-email", a.resendVerificationEmailHandler)
-		auth.POST("/forgot-password", a.forgotPasswordHandler)
 
 		authorized := auth.Group("/", a.authorizedMiddleware)
 		{
