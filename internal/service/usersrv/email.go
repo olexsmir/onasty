@@ -12,7 +12,7 @@ var ErrFailedToSendVerifcationEmail = errors.New("failed to send verification em
 const (
 	verificationEmailSubject = "Onasty: verifiy your email"
 	verificationEmailBody    = `To verify your email, please follow this link:
-<a href="%[1]s/api/v1auth/verify/%[2]s">%[1]s/api/v1/auth/verify/%[2]s</a>
+<a href="%[1]s/api/v1/auth/verify/%[2]s">%[1]s/api/v1/auth/verify/%[2]s</a>
 <br />
 <br />
 This link will expire after 24 hours.`
