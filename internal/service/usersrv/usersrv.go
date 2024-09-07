@@ -25,7 +25,7 @@ type UserServicer interface {
 	// ForgotPassword returns a new random password for the user
 	ForgotPassword(ctx context.Context, userEmail string) (string, error)
 
-	ChangePassord(ctx context.Context, inp dtos.ResetUserPasswordDTO) error
+	ChangePassword(ctx context.Context, inp dtos.ResetUserPasswordDTO) error
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
@@ -159,7 +159,7 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 	}, nil
 }
 
-func (u *UserSrv) ChangePassord(ctx context.Context, inp dtos.ResetUserPasswordDTO) error {
+func (u *UserSrv) ChangePassword(ctx context.Context, inp dtos.ResetUserPasswordDTO) error {
 	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
 	if err != nil {
 		return err

@@ -178,7 +178,7 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 		return
 	}
 
-	if err := a.usersrv.ChangePassord(
+	if err := a.usersrv.ChangePassword(
 		c.Request.Context(),
 		dtos.ResetUserPasswordDTO{
 			UserID:          a.getUserID(c),
