@@ -22,9 +22,6 @@ type UserServicer interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
 
-	// ForgotPassword returns a new random password for the user
-	ForgotPassword(ctx context.Context, userEmail string) (string, error)
-
 	ChangePassword(ctx context.Context, inp dtos.ResetUserPasswordDTO) error
 
 	Verify(ctx context.Context, verificationKey string) error
@@ -217,34 +214,6 @@ func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDT
 	go u.sendVerificationEmail(bgCtx, bgCancel, inp.Email, token) //nolint:errcheck
 
 	return nil
-}
-
-func (u *UserSrv) ForgotPassword(ctx context.Context, userEmail string) (string, error) {
-	randomPassword := uuid.Must(uuid.NewV4()).String()
-	hashedPassword, err := u.hasher.Hash(randomPassword)
-	if err != nil {
-		return "", err
-	}
-
-	userID, err := u.userstore.GetUserIDByEmail(ctx, userEmail)
-	if err != nil {
-		return "", err
-	}
-
-	isActivated, err := u.userstore.CheckIfUserIsActivated(ctx, userID)
-	if err != nil {
-		return "", err
-	}
-
-	if !isActivated {
-		return "", models.ErrUserIsNotActivated
-	}
-
-	if err := u.userstore.SetPassword(ctx, userID, hashedPassword); err != nil {
-		return "", err
-	}
-
-	return randomPassword, nil
 }
 
 func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {

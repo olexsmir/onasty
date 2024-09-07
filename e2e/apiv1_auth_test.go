@@ -147,13 +147,6 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 	// TODO: with actiavated account
 }
 
-func (e *AppTestSuite) TestAuthV1_ForgotPassword() {
-	e.T().Skip("implement me")
-
-	// TODO: check if password changes
-	// TODO: with wrong email
-}
-
 func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"
 	password := "qwerty"
