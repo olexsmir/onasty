@@ -14,10 +14,21 @@ import (
 
 type UserStorer interface {
 	Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
+
+	// GetUserByCredentials returns user by email and password
+	// password should be hashed
 	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
+
+	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
 
-	ChangePassword(ctx context.Context, userID uuid.UUID, oldPass, newPass string) error
+	// ChangePassword changes user password from oldPassword to newPassword
+	// and oldPassword and newPassword should be hashed
+	ChangePassword(ctx context.Context, userID uuid.UUID, oldPassword, newPassword string) error
+
+	// SetPassword sets new password for user by their id
+	// password should be hashed
+	SetPassword(ctx context.Context, userID uuid.UUID, password string) error
 
 	CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error)
 	CheckIfUserIsActivated(ctx context.Context, id uuid.UUID) (bool, error)
@@ -87,6 +98,25 @@ func (r *UserRepo) GetUserByCredentials(
 	return user, err
 }
 
+func (r *UserRepo) GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error) {
+	query, args, err := pgq.
+		Select("id").
+		From("users").
+		Where(pgq.Eq{"email": email}).
+		SQL()
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	var id uuid.UUID
+	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return uuid.Nil, models.ErrUserNotFound
+	}
+
+	return id, err
+}
+
 func (r *UserRepo) MarkUserAsActivated(ctx context.Context, id uuid.UUID) error {
 	query, args, err := pgq.
 		Update("users").
@@ -117,6 +147,20 @@ func (r *UserRepo) ChangePassword(
 	if err != nil {
 		return err
 	}
+	_, err = r.db.Exec(ctx, query, args...)
+	return err
+}
+
+func (r *UserRepo) SetPassword(ctx context.Context, userID uuid.UUID, password string) error {
+	query, args, err := pgq.
+		Update("users").
+		Set("password", password).
+		Where(pgq.Eq{"id": userID.String()}).
+		SQL()
+	if err != nil {
+		return err
+	}
+
 	_, err = r.db.Exec(ctx, query, args...)
 	return err
 }
