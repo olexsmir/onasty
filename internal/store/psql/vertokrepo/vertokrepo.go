@@ -50,7 +50,8 @@ func (r *VerificationTokenRepo) Create(
 	userID uuid.UUID,
 	createdAt, expiresAt time.Time,
 ) error {
-	query, aggs, err := pgq.Insert("verification_tokens ").
+	query, aggs, err := pgq.
+		Insert("verification_tokens").
 		Columns("user_id", "token", "created_at", "expires_at").
 		Values(userID, token, createdAt, expiresAt).
 		SQL()
