@@ -50,6 +50,9 @@ type (
 		jwtTokenizer jwtutil.JWTTokenizer
 		mailer       *mailer.TestMailer
 	}
+	errorResponse struct {
+		Message string `json:"message"`
+	}
 )
 
 func TestAppSuite(t *testing.T) {

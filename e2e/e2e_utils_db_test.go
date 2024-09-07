@@ -26,14 +26,19 @@ func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
 	return user
 }
 
-func (e *AppTestSuite) insertUserIntoDB(uname, email, passwd string) uuid.UUID {
+func (e *AppTestSuite) insertUserIntoDB(uname, email, passwd string, activated ...bool) uuid.UUID {
 	p, err := e.hasher.Hash(passwd)
 	e.require.NoError(err)
+
+	var a bool
+	if len(activated) == 1 {
+		a = activated[0]
+	}
 
 	query, args, err := pgq.
 		Insert("users").
 		Columns("username", "email", "password", "activated", "created_at", "last_login_at").
-		Values(uname, email, p, true, time.Now(), time.Now()).
+		Values(uname, email, p, a, time.Now(), time.Now()).
 		Returning("id").
 		SQL()
 	e.require.NoError(err)

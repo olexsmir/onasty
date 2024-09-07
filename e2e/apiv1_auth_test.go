@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/olexsmir/onasty/internal/models"
 )
 
 type apiv1AuthSignUpRequest struct {
@@ -98,6 +99,8 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 
 	e.Equal(http.StatusCreated, httpResp.Code)
 
+	// TODO: probably should get the token from the email
+
 	user := e.getLastInsertedUserByEmail(email)
 	token := e.getVerificationTokenByUserID(user.ID)
 	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/verify/"+token.Token, nil)
@@ -137,11 +140,25 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	e.NotEmpty(e.mailer.GetLastSentEmailToEmail(email))
 }
 
+func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
+	e.T().Skip("implement me")
+
+	// TODO: with wrong email and password
+	// TODO: with actiavated account
+}
+
+func (e *AppTestSuite) TestAuthV1_ForgotPassword() {
+	e.T().Skip("implement me")
+
+	// TODO: check if password changes
+	// TODO: with wrong email
+}
+
 func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"
 	password := "qwerty"
 
-	uid := e.insertUserIntoDB("test", email, password)
+	uid := e.insertUserIntoDB("test", email, password, true)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -166,23 +183,39 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 	password := "password"
 	email := e.uuid() + "@test.com"
-	e.insertUserIntoDB(e.uuid(), email, "password")
+	e.insertUserIntoDB(e.uuid(), email, "password", true)
+
+	unactivatedEmail := e.uuid() + "@test.com"
+	e.insertUserIntoDB(e.uuid(), unactivatedEmail, password, false)
 
 	tests := []struct {
-		name     string
-		email    string
-		password string
+		name       string
+		email      string
+		password   string
+		wantStatus int
+
+		wantMsg   bool
+		wantedMsg string
 	}{
-		// TODO: unactivated user
 		{
-			name:     "wrong email",
-			email:    "wrong@emai.com",
-			password: password,
+			name:       "unactivated user",
+			email:      unactivatedEmail,
+			password:   password,
+			wantStatus: http.StatusBadRequest,
+			wantMsg:    true,
+			wantedMsg:  models.ErrUserIsNotActivated.Error(),
 		},
 		{
-			name:     "wrong password",
-			email:    email,
-			password: "wrong-wrong",
+			name:       "wrong email",
+			email:      "wrong@emai.com",
+			password:   password,
+			wantStatus: http.StatusUnauthorized,
+		},
+		{
+			name:       "wrong password",
+			email:      email,
+			password:   "wrong-wrong",
+			wantStatus: http.StatusUnauthorized,
 		},
 	}
 
@@ -196,7 +229,14 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 			}),
 		)
 
-		e.Equal(http.StatusUnauthorized, httpResp.Code)
+		if t.wantMsg {
+			var body errorResponse
+			e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+			e.Equal(body.Message, t.wantedMsg)
+		}
+
+		e.Equal(t.wantStatus, httpResp.Code)
 	}
 }
 
@@ -278,7 +318,7 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 func (e *AppTestSuite) createAndSingIn(
 	email, username, password string,
 ) (uuid.UUID, apiv1AuthSignInResponse) {
-	uid := e.insertUserIntoDB(username, email, password)
+	uid := e.insertUserIntoDB(username, email, password, true)
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/signin",
