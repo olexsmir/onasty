@@ -92,8 +92,11 @@ returning user_id`
 
 	var userID uuid.UUID
 	err = tx.QueryRow(ctx, query, usedAt, token).Scan(&userID)
+	if err != nil {
+		return uuid.Nil, err
+	}
 
-	return userID, err
+	return userID, tx.Commit(ctx)
 }
 
 func (r *VerificationTokenRepo) GetTokenOrUpdateTokenByUserID(
