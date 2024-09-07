@@ -28,10 +28,10 @@ type UserStorer interface {
 
 	// SetPassword sets new password for user by their id
 	// password should be hashed
-	SetPassword(ctx context.Context, userID uuid.UUID, password string) error
+	SetPassword(ctx context.Context, userID uuid.UUID, newPassword string) error
 
-	CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error)
-	CheckIfUserIsActivated(ctx context.Context, id uuid.UUID) (bool, error)
+	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
+	CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
 var _ UserStorer = (*UserRepo)(nil)
