@@ -215,33 +215,33 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 	e.insertUserIntoDB(e.uuid(), unactivatedEmail, password, false)
 
 	tests := []struct {
-		name       string
-		email      string
-		password   string
-		wantStatus int
+		name         string
+		email        string
+		password     string
+		expectedCode int
 
-		wantMsg   bool
-		wantedMsg string
+		expectMsg   bool
+		expectedMsg string
 	}{
 		{
-			name:       "unactivated user",
-			email:      unactivatedEmail,
-			password:   password,
-			wantStatus: http.StatusBadRequest,
-			wantMsg:    true,
-			wantedMsg:  models.ErrUserIsNotActivated.Error(),
+			name:         "unactivated user",
+			email:        unactivatedEmail,
+			password:     password,
+			expectedCode: http.StatusBadRequest,
+			expectMsg:    true,
+			expectedMsg:  models.ErrUserIsNotActivated.Error(),
 		},
 		{
-			name:       "wrong email",
-			email:      "wrong@emai.com",
-			password:   password,
-			wantStatus: http.StatusUnauthorized,
+			name:         "wrong email",
+			email:        "wrong@emai.com",
+			password:     password,
+			expectedCode: http.StatusUnauthorized,
 		},
 		{
-			name:       "wrong password",
-			email:      email,
-			password:   "wrong-wrong",
-			wantStatus: http.StatusUnauthorized,
+			name:         "wrong password",
+			email:        email,
+			password:     "wrong-wrong",
+			expectedCode: http.StatusUnauthorized,
 		},
 	}
 
@@ -255,14 +255,14 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 			}),
 		)
 
-		if t.wantMsg {
+		if t.expectMsg {
 			var body errorResponse
 			e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-			e.Equal(body.Message, t.wantedMsg)
+			e.Equal(body.Message, t.expectedMsg)
 		}
 
-		e.Equal(t.wantStatus, httpResp.Code)
+		e.Equal(t.expectedCode, httpResp.Code)
 	}
 }
 
