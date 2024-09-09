@@ -141,10 +141,43 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 }
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
-	e.T().Skip("implement me")
+	email, password := e.uuid()+"@"+e.uuid()+".com", "password"
+	e.insertUserIntoDB(e.uuid(), email, password, true)
 
-	// TODO: with wrong email and password
-	// TODO: with actiavated account
+	tests := []struct {
+		name         string
+		email        string
+		password     string
+		expectedCode int
+	}{
+		{
+			name:         "activated account",
+			email:        email,
+			password:     password,
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name:         "wrong credintials",
+			email:        email,
+			password:     e.uuid(),
+			expectedCode: http.StatusUnauthorized,
+		},
+	}
+
+	for _, t := range tests {
+		httpResp := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/auth/resend-verification-email",
+			e.jsonify(apiv1AuthSignInRequest{
+				Email:    t.email,
+				Password: t.password,
+			}))
+
+		e.Equal(httpResp.Code, t.expectedCode)
+
+		// no email should be sent
+		e.Empty(e.mailer.GetLastSentEmailToEmail(t.email))
+	}
 }
 
 func (e *AppTestSuite) TestAuthV1_SignIn() {
@@ -259,6 +292,8 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 }
 
 func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
+	// requests a new token pair with a wrong refresh token
+
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/refresh-tokens",
