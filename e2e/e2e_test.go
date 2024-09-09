@@ -76,6 +76,7 @@ func (e *AppTestSuite) SetupSuite() {
 	e.postgresDB = db
 	e.stopPostgres = stop
 
+	e.setupLogger()
 	e.initDeps()
 }
 
@@ -86,11 +87,10 @@ func (e *AppTestSuite) TearDownSuite() {
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
-	e.setupLogger()
 	cfg := e.getConfig()
 
-	e.hasher = hasher.NewSHA256Hasher("pass_salt")
-	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
+	e.hasher = hasher.NewSHA256Hasher(cfg.PasswordSalt)
+	e.jwtTokenizer = jwtutil.NewJWTUtil(cfg.JwtSigningKey, time.Hour)
 	e.mailer = mailer.NewTestMailer()
 
 	sessionrepo := sessionrepo.New(e.postgresDB)
@@ -178,7 +178,7 @@ func (e *AppTestSuite) getConfig() *config.Config {
 	return &config.Config{
 		AppEnv:              "testing",
 		ServerPort:          "3000",
-		PasswordSalt:        "pass-saly",
+		PasswordSalt:        "salty-password",
 		JwtSigningKey:       "jwt-key",
 		JwtAccessTokenTTL:   time.Hour,
 		JwtRefreshTokenTTL:  24 * time.Hour,
