@@ -3,7 +3,9 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -11,13 +13,16 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
+	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/stretchr/testify/require"
@@ -43,6 +48,10 @@ type (
 		router       http.Handler
 		hasher       hasher.Hasher
 		jwtTokenizer jwtutil.JWTTokenizer
+		mailer       *mailer.TestMailer
+	}
+	errorResponse struct {
+		Message string `json:"message"`
 	}
 )
 
@@ -62,11 +71,12 @@ func (e *AppTestSuite) SetupSuite() {
 	e.require = e.Require()
 
 	db, stop, err := e.prepPostgres()
-	e.Require().NoError(err)
+	e.require.NoError(err)
 
 	e.postgresDB = db
 	e.stopPostgres = stop
 
+	e.setupLogger()
 	e.initDeps()
 }
 
@@ -77,13 +87,26 @@ func (e *AppTestSuite) TearDownSuite() {
 // initDeps initializes the dependencies for the app
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
-	e.hasher = hasher.NewSHA256Hasher("pass_salt")
-	e.jwtTokenizer = jwtutil.NewJWTUtil("jwt", time.Hour)
+	cfg := e.getConfig()
+
+	e.hasher = hasher.NewSHA256Hasher(cfg.PasswordSalt)
+	e.jwtTokenizer = jwtutil.NewJWTUtil(cfg.JwtSigningKey, time.Hour)
+	e.mailer = mailer.NewTestMailer()
 
 	sessionrepo := sessionrepo.New(e.postgresDB)
+	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usersrv := usersrv.New(userepo, sessionrepo, e.hasher, e.jwtTokenizer)
+	usersrv := usersrv.New(
+		userepo,
+		sessionrepo,
+		vertokrepo,
+		e.hasher,
+		e.jwtTokenizer,
+		e.mailer,
+		cfg.JwtRefreshTokenTTL,
+		cfg.VerficationTokenTTL,
+	)
 
 	noterepo := noterepo.New(e.postgresDB)
 	notesrv := notesrv.New(noterepo)
@@ -142,4 +165,23 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	e.require.NoError(err)
 
 	return db, stop, driver.Close()
+}
+
+func (e *AppTestSuite) setupLogger() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: os.Getenv("LOG_SHOW_LINE") == "true",
+	})))
+}
+
+func (e *AppTestSuite) getConfig() *config.Config {
+	return &config.Config{
+		AppEnv:              "testing",
+		ServerPort:          "3000",
+		PasswordSalt:        "salty-password",
+		JwtSigningKey:       "jwt-key",
+		JwtAccessTokenTTL:   time.Hour,
+		JwtRefreshTokenTTL:  24 * time.Hour,
+		VerficationTokenTTL: 24 * time.Hour,
+	}
 }

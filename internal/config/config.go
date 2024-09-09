@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"time"
 )
@@ -8,29 +9,48 @@ import (
 type Config struct {
 	AppEnv       string
 	ServerPort   string
+	PostgresDSN  string
 	PasswordSalt string
 
 	JwtSigningKey      string
 	JwtAccessTokenTTL  time.Duration
 	JwtRefreshTokenTTL time.Duration
 
-	LogLevel  string
-	LogFormat string
+	MailgunFrom         string
+	MailgunDomain       string
+	MailgunAPIKey       string
+	VerficationTokenTTL time.Duration
 
-	PostgresDSN string
+	LogLevel    string
+	LogFormat   string
+	LogShowLine bool
 }
 
 func NewConfig() *Config {
 	return &Config{
-		AppEnv:             getenvOrDefault("APP_ENV", "debug"),
-		ServerPort:         getenvOrDefault("SERVER_PORT", "3000"),
-		PasswordSalt:       getenvOrDefault("PASSWORD_SALT", ""),
-		JwtSigningKey:      getenvOrDefault("JWT_SIGNING_KEY", ""),
-		JwtAccessTokenTTL:  mustParseDuration(getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m")),
-		JwtRefreshTokenTTL: mustParseDuration(getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "15d")),
-		LogLevel:           getenvOrDefault("LOG_LEVEL", "debug"),
-		LogFormat:          getenvOrDefault("LOG_FORMAT", "json"),
-		PostgresDSN:        getenvOrDefault("POSTGRESQL_DSN", ""),
+		AppEnv:       getenvOrDefault("APP_ENV", "debug"),
+		ServerPort:   getenvOrDefault("SERVER_PORT", "3000"),
+		PostgresDSN:  getenvOrDefault("POSTGRESQL_DSN", ""),
+		PasswordSalt: getenvOrDefault("PASSWORD_SALT", ""),
+
+		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
+		JwtAccessTokenTTL: mustParseDurationOrPanic(
+			getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m"),
+		),
+		JwtRefreshTokenTTL: mustParseDurationOrPanic(
+			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
+		),
+
+		MailgunFrom:   getenvOrDefault("MAILGUN_FROM", ""),
+		MailgunDomain: getenvOrDefault("MAILGUN_DOMAIN", ""),
+		MailgunAPIKey: getenvOrDefault("MAILGUN_API_KEY", ""),
+		VerficationTokenTTL: mustParseDurationOrPanic(
+			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
+		),
+
+		LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
+		LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),
+		LogShowLine: getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
 	}
 }
 
@@ -45,7 +65,11 @@ func getenvOrDefault(key, def string) string {
 	return def
 }
 
-func mustParseDuration(dur string) time.Duration {
-	d, _ := time.ParseDuration(dur)
+func mustParseDurationOrPanic(dur string) time.Duration {
+	d, err := time.ParseDuration(dur)
+	if err != nil {
+		panic(errors.Join(errors.New("cannot time.ParseDuration"), err))
+	}
+
 	return d
 }
