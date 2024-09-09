@@ -326,7 +326,8 @@ type apiv1AtuhChangePasswordRequest struct {
 func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	password := e.uuid()
 	newPassword := e.uuid()
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), password)
+	username := e.uuid()
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", username, password)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -340,7 +341,11 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 
 	e.Equal(httpResp.Code, http.StatusOK)
 
-	// TODO: check if password has been changed in db
+	userDB := e.getUserFromDBByUsername(username)
+	hashedNewPassword, err := e.hasher.Hash(newPassword)
+	e.require.NoError(err)
+
+	e.Equal(userDB.Password, hashedNewPassword)
 }
 
 func (e *AppTestSuite) createAndSingIn(
