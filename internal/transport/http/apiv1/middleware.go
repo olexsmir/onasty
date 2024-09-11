@@ -82,7 +82,13 @@ func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 	if !exists {
 		return uuid.Nil
 	}
-	return userID.(uuid.UUID)
+
+	uid, ok := userID.(uuid.UUID)
+	if !ok {
+		return uuid.Nil
+	}
+
+	return uid
 }
 
 func (a *APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) (uuid.UUID, error) {
