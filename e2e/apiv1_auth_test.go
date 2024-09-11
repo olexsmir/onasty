@@ -47,6 +47,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 		{name: "all fiels empty", email: "", password: "", username: ""},
 		{
 			name:     "non valid email",
+			username: "testing",
 			email:    "email",
 			password: "password",
 		},
@@ -214,6 +215,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 	unactivatedEmail := e.uuid() + "@test.com"
 	e.insertUserIntoDB(e.uuid(), unactivatedEmail, password, false)
 
+	//exhaustruct:ignore
 	tests := []struct {
 		name         string
 		email        string

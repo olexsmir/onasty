@@ -17,15 +17,16 @@ func TestNote_Validate(t *testing.T) {
 		// NOTE: there no need to test if note is expired since it tested in IsExpired test
 		{
 			name: "ok",
-			note: Note{
+			note: Note{ //nolint:exhaustruct
 				Content:   "some wired ass content",
 				ExpiresAt: time.Now().Add(time.Hour),
 			},
 			willError: false,
+			error:     nil,
 		},
 		{
 			name:      "content missing",
-			note:      Note{Content: ""},
+			note:      Note{Content: ""}, //nolint:exhaustruct
 			willError: true,
 			error:     ErrNoteContentIsEmpty,
 		},
@@ -51,17 +52,17 @@ func TestNote_IsExpired(t *testing.T) {
 	}{
 		{
 			name:     "expired",
-			note:     Note{ExpiresAt: time.Now().Add(-time.Hour)},
+			note:     Note{ExpiresAt: time.Now().Add(-time.Hour)}, //nolint:exhaustruct
 			expected: true,
 		},
 		{
 			name:     "not expired",
-			note:     Note{ExpiresAt: time.Now().Add(time.Hour)},
+			note:     Note{ExpiresAt: time.Now().Add(time.Hour)}, //nolint:exhaustruct
 			expected: false,
 		},
 		{
 			name:     "zero expiration",
-			note:     Note{ExpiresAt: time.Time{}},
+			note:     Note{ExpiresAt: time.Time{}}, //nolint:exhaustruct
 			expected: false,
 		},
 	}
@@ -81,7 +82,7 @@ func TestNote_ShouldBeBurnt(t *testing.T) {
 	}{
 		{
 			name: "should be burnt",
-			note: Note{
+			note: Note{ //nolint:exhaustruct
 				BurnBeforeExpiration: true,
 				ExpiresAt:            time.Now().Add(time.Hour),
 			},
@@ -89,7 +90,7 @@ func TestNote_ShouldBeBurnt(t *testing.T) {
 		},
 		{
 			name: "could not be burnt, no expiration time",
-			note: Note{
+			note: Note{ //nolint:exhaustruct
 				BurnBeforeExpiration: true,
 				ExpiresAt:            time.Time{},
 			},
@@ -97,7 +98,7 @@ func TestNote_ShouldBeBurnt(t *testing.T) {
 		},
 		{
 			name: "could not be burnt, burn when expiration and burn is false",
-			note: Note{
+			note: Note{ //nolint:exhaustruct
 				BurnBeforeExpiration: false,
 				ExpiresAt:            time.Time{},
 			},

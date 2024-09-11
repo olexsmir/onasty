@@ -22,7 +22,7 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	user := models.User{
+	user := models.User{ //nolint:exhaustruct
 		Username:    req.Username,
 		Email:       req.Email,
 		Password:    req.Password,

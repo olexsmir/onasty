@@ -129,6 +129,13 @@ linters-settings:
     # the gods will judge me but I just don't like naked returns at all
     max-func-lines: 0
 
+  exhaustruct:
+    exclude:
+      - 'log/slog\.HandlerOptions'
+      - 'net/http\.Server'
+
+      - 'github.com/golang-jwt/jwt/v5\.RegisteredClaims'
+
 issues:
   # Maximum count of issues with the same text.
   # Set to 0 to disable.

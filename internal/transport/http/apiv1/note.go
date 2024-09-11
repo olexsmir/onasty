@@ -27,7 +27,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
-	note := models.Note{
+	note := models.Note{ //nolint:exhaustruct
 		Content:              req.Content,
 		Slug:                 req.Slug,
 		BurnBeforeExpiration: req.BurnBeforeExpiration,

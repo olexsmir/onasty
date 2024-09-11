@@ -54,7 +54,7 @@ func TestUser_Validate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := User{
+			err := User{ //nolint:exhaustruct
 				Username: tt.username,
 				Email:    tt.email,
 				Password: tt.password,

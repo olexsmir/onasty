@@ -62,7 +62,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	// TODO: there should be a better way to do it
-	m := models.Note{
+	m := models.Note{ //nolint:exhaustruct
 		ExpiresAt:            note.ExpiresAt,
 		BurnBeforeExpiration: note.BurnBeforeExpiration,
 	}

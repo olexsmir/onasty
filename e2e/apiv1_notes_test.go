@@ -28,14 +28,14 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 	}{
 		{
 			name: "empty request",
-			inp:  apiv1NoteCreateRequest{},
+			inp:  apiv1NoteCreateRequest{}, //nolint:exhaustruct
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
 				e.Equal(r.Code, http.StatusBadRequest)
 			},
 		},
 		{
 			name: "content only",
-			inp:  apiv1NoteCreateRequest{Content: e.uuid()},
+			inp:  apiv1NoteCreateRequest{Content: e.uuid()}, //nolint:exhaustruct
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
 				e.Equal(r.Code, http.StatusCreated)
 
@@ -51,7 +51,7 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 		},
 		{
 			name: "set slug",
-			inp: apiv1NoteCreateRequest{
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Slug:    e.uuid() + "fuker",
 				Content: e.uuid(),
 			},
@@ -67,7 +67,7 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 		},
 		{
 			name: "all possible fields",
-			inp: apiv1NoteCreateRequest{
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Content:              e.uuid(),
 				BurnBeforeExpiration: true,
 				ExpiresAt:            time.Now().Add(time.Hour),
@@ -96,9 +96,14 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 
 func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
-	httpResp := e.httpRequest(http.MethodPost, "/api/v1/note", e.jsonify(apiv1NoteCreateRequest{
-		Content: "some random ass content for the test",
-	}), toks.AccessToken)
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content: "some random ass content for the test",
+		}),
+		toks.AccessToken,
+	)
 
 	var body apiv1NoteCreateResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
@@ -118,9 +123,13 @@ type apiv1NoteGetResponse struct {
 
 func (e *AppTestSuite) TestNoteV1_Get() {
 	content := e.uuid()
-	httpResp := e.httpRequest(http.MethodPost, "/api/v1/note", e.jsonify(apiv1NoteCreateRequest{
-		Content: content,
-	}))
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content: content,
+		}),
+	)
 	e.Equal(http.StatusCreated, httpResp.Code)
 
 	var bodyCreated apiv1NoteCreateResponse
