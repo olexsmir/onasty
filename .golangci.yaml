@@ -76,7 +76,6 @@ linters:
     - err113 # forbids usage of dynamic errors
     - contextcheck # check whether the function uses a non-inherited context
     - ireturn # accept interfaces, return concrete types
-    - gci # controls imports order and makes it always deterministic
 
 linters-settings:
   cyclop:
