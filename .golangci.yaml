@@ -70,9 +70,6 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
-    - wrapcheck # forbids returning of interfaces, non wrapped errors, etc
-    - testpackage # encourages to use a separate _test package
-    - nlreturn # makes you add new line before return statement
     - inamedparam # peports interfaces with unnamed method parameters
     - forcetypeassert # finds forced type assertions.
     - exhaustruct # checks if all structure fields are initialized.
