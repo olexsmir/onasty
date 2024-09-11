@@ -23,7 +23,7 @@ type NoteSrv struct {
 	noterepo noterepo.NoteStorer
 }
 
-func New(noterepo noterepo.NoteStorer) NoteServicer {
+func New(noterepo noterepo.NoteStorer) *NoteSrv {
 	return &NoteSrv{
 		noterepo: noterepo,
 	}

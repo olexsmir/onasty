@@ -25,7 +25,7 @@ type SessionRepo struct {
 	db *psqlutil.DB
 }
 
-func New(db *psqlutil.DB) SessionStorer {
+func New(db *psqlutil.DB) *SessionRepo {
 	return &SessionRepo{
 		db: db,
 	}

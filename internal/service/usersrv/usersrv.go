@@ -55,7 +55,7 @@ func New(
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailer mailer.Mailer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
-) UserServicer {
+) *UserSrv {
 	return &UserSrv{
 		userstore:            userstore,
 		sessionstore:         sessionstore,
