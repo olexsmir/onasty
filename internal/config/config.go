@@ -68,7 +68,7 @@ func getenvOrDefault(key, def string) string {
 func mustParseDurationOrPanic(dur string) time.Duration {
 	d, err := time.ParseDuration(dur)
 	if err != nil {
-		panic(errors.Join(errors.New("cannot time.ParseDuration"), err))
+		panic(errors.Join(errors.New("cannot time.ParseDuration"), err)) //nolint:err113
 	}
 
 	return d

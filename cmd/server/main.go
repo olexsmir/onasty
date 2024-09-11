@@ -1,3 +1,4 @@
+//nolint:err113 // all errors are shown to the use so it's ok for them to be dynamic
 package main
 
 import (

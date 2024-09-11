@@ -34,15 +34,15 @@ func (u User) Validate() error {
 	// NOTE: there's probably a better way to validate emails
 	_, err := mail.ParseAddress(u.Email)
 	if err != nil {
-		return errors.New("user: invalid email")
+		return errors.New("user: invalid email") //nolint:err113
 	}
 
 	if len(u.Password) < 6 {
-		return errors.New("user: password too short, minimum 6 chars")
+		return errors.New("user: password too short, minimum 6 chars") //nolint:err113
 	}
 
 	if len(u.Username) == 0 {
-		return errors.New("user: username is required")
+		return errors.New("user: username is required") //nolint:err113
 	}
 
 	return nil

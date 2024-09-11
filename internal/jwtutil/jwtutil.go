@@ -54,11 +54,13 @@ func (j *JWTUtil) RefreshToken() (string, error) {
 	return hex.EncodeToString(b), nil
 }
 
+var ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+
 func (j *JWTUtil) Parse(token string) (Payload, error) {
 	var claims jwt.RegisteredClaims
 	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("unexpected signing method")
+			return nil, ErrUnexpectedSigningMethod
 		}
 		return []byte(j.signingKey), nil
 	})
