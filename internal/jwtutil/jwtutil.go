@@ -9,6 +9,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+var ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+
 type JWTTokenizer interface {
 	// AccessToken generates a new access token with the given payload
 	AccessToken(pl Payload) (string, error)
@@ -53,8 +55,6 @@ func (j *JWTUtil) RefreshToken() (string, error) {
 	}
 	return hex.EncodeToString(b), nil
 }
-
-var ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
 
 func (j *JWTUtil) Parse(token string) (Payload, error) {
 	var claims jwt.RegisteredClaims
