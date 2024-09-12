@@ -1,4 +1,4 @@
-package e2e
+package e2e_test
 
 import (
 	"context"
@@ -152,7 +152,7 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 
 	// run migrations
 	sdb := stdlib.OpenDBFromPool(db.Pool)
-	driver, err := pgx.WithInstance(sdb, &pgx.Config{})
+	driver, err := pgx.WithInstance(sdb, &pgx.Config{}) //nolint:exhaustruct
 	e.require.NoError(err)
 
 	m, err := migrate.NewWithDatabaseInstance(
@@ -175,7 +175,7 @@ func (e *AppTestSuite) setupLogger() {
 }
 
 func (e *AppTestSuite) getConfig() *config.Config {
-	return &config.Config{
+	return &config.Config{ //nolint:exhaustruct
 		AppEnv:              "testing",
 		ServerPort:          "3000",
 		PasswordSalt:        "salty-password",

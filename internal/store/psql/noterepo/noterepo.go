@@ -26,7 +26,7 @@ type NoteRepo struct {
 	db *psqlutil.DB
 }
 
-func New(db *psqlutil.DB) NoteStorer {
+func New(db *psqlutil.DB) *NoteRepo {
 	return &NoteRepo{db}
 }
 

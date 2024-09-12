@@ -70,6 +70,12 @@ linters:
     - usestdlibvars # detects the possibility to use variables/constants from the Go standard library
     - wastedassign # finds wasted assignment statements
     - whitespace # detects leading and trailing whitespace
+    - inamedparam # peports interfaces with unnamed method parameters
+    - forcetypeassert # finds forced type assertions.
+    - exhaustruct # checks if all structure fields are initialized.
+    - err113 # forbids usage of dynamic errors
+    - contextcheck # check whether the function uses a non-inherited context
+    - ireturn # accept interfaces, return concrete types
 
 linters-settings:
   cyclop:
@@ -122,6 +128,13 @@ linters-settings:
   nakedret:
     # the gods will judge me but I just don't like naked returns at all
     max-func-lines: 0
+
+  exhaustruct:
+    exclude:
+      - 'log/slog\.HandlerOptions'
+      - 'net/http\.Server'
+
+      - 'github.com/golang-jwt/jwt/v5\.RegisteredClaims'
 
 issues:
   # Maximum count of issues with the same text.

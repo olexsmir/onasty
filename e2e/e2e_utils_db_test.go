@@ -1,4 +1,4 @@
-package e2e
+package e2e_test
 
 import (
 	"errors"
@@ -63,7 +63,7 @@ func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session 
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
 		Scan(&session.RefreshToken, &session.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return models.Session{}
+		return models.Session{} //nolint:exhaustruct
 	}
 
 	e.require.NoError(err)
@@ -84,7 +84,7 @@ func (e *AppTestSuite) getLastInsertedUserByEmail(em string) models.User {
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
 		Scan(&u.ID, &u.Username, &u.Activated, &u.Email, &u.Password)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return models.User{}
+		return models.User{} //nolint:exhaustruct
 	}
 
 	e.require.NoError(err)
@@ -103,7 +103,7 @@ func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
 		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return models.Note{}
+		return models.Note{} //nolint:exhaustruct
 	}
 
 	e.require.NoError(err)
@@ -128,7 +128,7 @@ func (e *AppTestSuite) getLastNoteAuthorsRecordByAuthorID(uid uuid.UUID) noteAut
 	var na noteAuthorModel
 	err = e.postgresDB.QueryRow(e.ctx, qeuery, args...).Scan(&na.noteID, &na.userID)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return noteAuthorModel{}
+		return noteAuthorModel{} //nolint:exhaustruct
 	}
 
 	e.require.NoError(err)

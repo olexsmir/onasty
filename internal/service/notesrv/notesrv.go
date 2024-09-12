@@ -23,7 +23,7 @@ type NoteSrv struct {
 	noterepo noterepo.NoteStorer
 }
 
-func New(noterepo noterepo.NoteStorer) NoteServicer {
+func New(noterepo noterepo.NoteStorer) *NoteSrv {
 	return &NoteSrv{
 		noterepo: noterepo,
 	}
@@ -62,7 +62,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	// TODO: there should be a better way to do it
-	m := models.Note{
+	m := models.Note{ //nolint:exhaustruct
 		ExpiresAt:            note.ExpiresAt,
 		BurnBeforeExpiration: note.BurnBeforeExpiration,
 	}

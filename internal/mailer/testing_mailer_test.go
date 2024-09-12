@@ -20,13 +20,13 @@ func TestMailer_Send(t *testing.T) {
 }
 
 func TestMailer_GetLastSentEmailToEmail(t *testing.T) {
+	email := "test@mail.com"
+	content := "content"
+
 	m := NewTestMailer()
 	assert.Empty(t, m.emails)
 
-	email := "test@mail.com"
-	content := "content"
-	err := m.Send(context.TODO(), email, "", content)
-	require.NoError(t, err)
+	m.emails[email] = content
 
 	c := m.GetLastSentEmailToEmail(email)
 	assert.Equal(t, content, c)
