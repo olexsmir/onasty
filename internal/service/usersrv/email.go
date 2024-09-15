@@ -23,6 +23,7 @@ func (u *UserSrv) sendVerificationEmail(
 	cancel context.CancelFunc,
 	userEmail string,
 	token string,
+	url string,
 ) error {
 	select {
 	case <-ctx.Done():
@@ -33,8 +34,7 @@ func (u *UserSrv) sendVerificationEmail(
 			ctx,
 			userEmail,
 			verificationEmailSubject,
-			// TODO: set proper url
-			fmt.Sprintf(verificationEmailBody, "http://localhost:3000", token),
+			fmt.Sprintf(verificationEmailBody, url, token),
 		); err != nil {
 			return errors.Join(ErrFailedToSendVerifcationEmail, err)
 		}

@@ -45,6 +45,7 @@ type UserSrv struct {
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
+	appURL               string
 }
 
 func New(
@@ -55,6 +56,7 @@ func New(
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailer mailer.Mailer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
+	appURL string,
 ) *UserSrv {
 	return &UserSrv{
 		userstore:            userstore,
@@ -65,6 +67,7 @@ func New(
 		mailer:               mailer,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
+		appURL:               appURL,
 	}
 }
 
