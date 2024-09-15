@@ -45,6 +45,7 @@ type UserSrv struct {
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
+	appURL               string
 }
 
 func New(
@@ -55,6 +56,7 @@ func New(
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailer mailer.Mailer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
+	appURL string,
 ) *UserSrv {
 	return &UserSrv{
 		userstore:            userstore,
@@ -65,6 +67,7 @@ func New(
 		mailer:               mailer,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
+		appURL:               appURL,
 	}
 }
 
@@ -93,7 +96,13 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 	// TODO: handle the error that might be returned
 	// i dont think that tehre's need to handle the error, just log it
 	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	go u.sendVerificationEmail(bgCtx, bgCancel, inp.Email, vtok) //nolint:errcheck,contextcheck
+	go u.sendVerificationEmail( //nolint:errcheck,contextcheck
+		bgCtx,
+		bgCancel,
+		inp.Email,
+		vtok,
+		u.appURL,
+	)
 
 	return uid, nil
 }
@@ -211,7 +220,13 @@ func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDT
 	}
 
 	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	go u.sendVerificationEmail(bgCtx, bgCancel, inp.Email, token) //nolint:errcheck,contextcheck
+	go u.sendVerificationEmail( //nolint:errcheck,contextcheck
+		bgCtx,
+		bgCancel,
+		inp.Email,
+		token,
+		u.appURL,
+	)
 
 	return nil
 }

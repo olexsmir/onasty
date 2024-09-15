@@ -69,6 +69,7 @@ func run(ctx context.Context) error {
 		mailGunMailer,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerficationTokenTTL,
+		cfg.AppURL,
 	)
 
 	noterepo := noterepo.New(psqlDB)
