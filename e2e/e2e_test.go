@@ -106,6 +106,7 @@ func (e *AppTestSuite) initDeps() {
 		e.mailer,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerficationTokenTTL,
+		cfg.AppURL,
 	)
 
 	noterepo := noterepo.New(e.postgresDB)
@@ -177,6 +178,7 @@ func (e *AppTestSuite) setupLogger() {
 func (e *AppTestSuite) getConfig() *config.Config {
 	return &config.Config{ //nolint:exhaustruct
 		AppEnv:              "testing",
+		AppURL:              "",
 		ServerPort:          "3000",
 		PasswordSalt:        "salty-password",
 		JwtSigningKey:       "jwt-key",
