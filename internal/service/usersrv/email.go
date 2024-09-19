@@ -27,7 +27,7 @@ func (u *UserSrv) sendVerificationEmail(
 ) error {
 	select {
 	case <-ctx.Done():
-		slog.Error("failed to send verfication email", "err", ctx.Err())
+		slog.ErrorContext(ctx, "failed to send verfication email", "err", ctx.Err())
 		return ErrFailedToSendVerifcationEmail
 	default:
 		if err := u.mailer.Send(
@@ -39,8 +39,6 @@ func (u *UserSrv) sendVerificationEmail(
 			return errors.Join(ErrFailedToSendVerifcationEmail, err)
 		}
 		cancel()
-
-		slog.Debug("email sent")
 	}
 
 	return nil

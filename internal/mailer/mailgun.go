@@ -29,8 +29,8 @@ func (m *Mailgun) Send(ctx context.Context, to, subject, content string) error {
 
 	_, _, err := m.mg.Send(ctx, msg)
 
-	slog.Info("email sent", "to", to)
-	slog.Debug("email sent", "subject", subject, "content", content, "err", err)
+	slog.InfoContext(ctx, "email sent", "to", to)
+	slog.DebugContext(ctx, "email sent", "subject", subject, "content", content, "err", err)
 
 	return err
 }
