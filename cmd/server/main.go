@@ -24,6 +24,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
+	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 func main() {
@@ -38,20 +39,26 @@ func run(ctx context.Context) error {
 	defer cancel()
 
 	cfg := config.NewConfig()
-	if err := setupLogger(cfg); err != nil {
+
+	// logger
+	baseLoger, err := setupBasicLoggerHandler(cfg)
+	if err != nil {
 		return err
 	}
 
+	slog.SetDefault(slog.New(&CustomLogger{Handler: baseLoger}))
+
+	// semi dev mode
 	if !cfg.IsDevMode() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// app deps
 	psqlDB, err := psqlutil.Connect(ctx, cfg.PostgresDSN)
 	if err != nil {
 		return err
 	}
 
-	// app deps
 	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
@@ -80,7 +87,7 @@ func run(ctx context.Context) error {
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
 	go func() {
-		slog.Debug("starting http server", "port", cfg.ServerPort)
+		slog.DebugContext(ctx, "starting http server", "port", cfg.ServerPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
@@ -102,7 +109,19 @@ func run(ctx context.Context) error {
 	return nil
 }
 
-func setupLogger(cfg *config.Config) error {
+type CustomLogger struct {
+	slog.Handler
+}
+
+func (l *CustomLogger) Handle(ctx context.Context, r slog.Record) error {
+	if requestID := reqid.GetFromContext(ctx); requestID != "" {
+		r.AddAttrs(slog.String("request_id", requestID))
+	}
+
+	return l.Handler.Handle(ctx, r)
+}
+
+func setupBasicLoggerHandler(cfg *config.Config) (slog.Handler, error) {
 	loggerLevels := map[string]slog.Level{
 		"info":  slog.LevelInfo,
 		"debug": slog.LevelDebug,
@@ -112,7 +131,7 @@ func setupLogger(cfg *config.Config) error {
 
 	logLevel, ok := loggerLevels[cfg.LogLevel]
 	if !ok {
-		return errors.New("unknown log level")
+		return nil, errors.New("unknown log level")
 	}
 
 	handlerOptions := &slog.HandlerOptions{
@@ -127,10 +146,8 @@ func setupLogger(cfg *config.Config) error {
 	case "text":
 		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
 	default:
-		return errors.New("unknown log format")
+		return nil, errors.New("unknown log format")
 	}
 
-	slog.SetDefault(slog.New(slogHandler))
-
-	return nil
+	return slogHandler, nil
 }
