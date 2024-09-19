@@ -87,9 +87,9 @@ func run(ctx context.Context) error {
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
 	go func() {
-		slog.DebugContext(ctx, "starting http server", "port", cfg.ServerPort)
+		slog.Debug("starting http server", "port", cfg.ServerPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
-			slog.ErrorContext(ctx, "failed to start http server", "error", err)
+			slog.Error("failed to start http server", "error", err)
 		}
 	}()
 
