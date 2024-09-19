@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	"github.com/gofrs/uuid/v5"
 )
 
 type requestIDKey string
@@ -21,7 +21,7 @@ func Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rid := c.GetHeader(headerRequestID)
 		if rid == "" {
-			rid = uuid.New().String()
+			rid = uuid.Must(uuid.NewV4()).String()
 			c.Request.Header.Add(headerRequestID, rid)
 		}
 
