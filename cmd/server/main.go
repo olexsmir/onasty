@@ -1,4 +1,3 @@
-//nolint:err113 // all errors are shown to the user so it's ok for them to be dynamic
 package main
 
 import (
@@ -14,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
@@ -24,7 +24,6 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
-	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 func main() {
@@ -41,12 +40,12 @@ func run(ctx context.Context) error {
 	cfg := config.NewConfig()
 
 	// logger
-	baseLoger, err := setupBasicLoggerHandler(cfg)
+	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
 	if err != nil {
 		return err
 	}
 
-	slog.SetDefault(slog.New(&CustomLogger{Handler: baseLoger}))
+	slog.SetDefault(logger)
 
 	// semi dev mode
 	if !cfg.IsDevMode() {
@@ -89,7 +88,7 @@ func run(ctx context.Context) error {
 	go func() {
 		slog.DebugContext(ctx, "starting http server", "port", cfg.ServerPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
-			slog.Error("failed to start http server", "error", err)
+			slog.ErrorContext(ctx, "failed to start http server", "error", err)
 		}
 	}()
 
@@ -107,47 +106,4 @@ func run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-type CustomLogger struct {
-	slog.Handler
-}
-
-func (l *CustomLogger) Handle(ctx context.Context, r slog.Record) error {
-	if requestID := reqid.GetFromContext(ctx); requestID != "" {
-		r.AddAttrs(slog.String("request_id", requestID))
-	}
-
-	return l.Handler.Handle(ctx, r)
-}
-
-func setupBasicLoggerHandler(cfg *config.Config) (slog.Handler, error) {
-	loggerLevels := map[string]slog.Level{
-		"info":  slog.LevelInfo,
-		"debug": slog.LevelDebug,
-		"error": slog.LevelError,
-		"warn":  slog.LevelWarn,
-	}
-
-	logLevel, ok := loggerLevels[cfg.LogLevel]
-	if !ok {
-		return nil, errors.New("unknown log level")
-	}
-
-	handlerOptions := &slog.HandlerOptions{
-		Level:     logLevel,
-		AddSource: cfg.LogShowLine,
-	}
-
-	var slogHandler slog.Handler
-	switch cfg.LogFormat {
-	case "json":
-		slogHandler = slog.NewJSONHandler(os.Stdout, handlerOptions)
-	case "text":
-		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
-	default:
-		return nil, errors.New("unknown log format")
-	}
-
-	return slogHandler, nil
 }

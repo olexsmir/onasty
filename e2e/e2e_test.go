@@ -16,6 +16,7 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
@@ -76,7 +77,6 @@ func (e *AppTestSuite) SetupSuite() {
 	e.postgresDB = db
 	e.stopPostgres = stop
 
-	e.setupLogger()
 	e.initDeps()
 }
 
@@ -88,6 +88,11 @@ func (e *AppTestSuite) TearDownSuite() {
 // and sets up the router for tests
 func (e *AppTestSuite) initDeps() {
 	cfg := e.getConfig()
+
+	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
+	e.require.NoError(err)
+
+	slog.SetDefault(logger)
 
 	e.hasher = hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	e.jwtTokenizer = jwtutil.NewJWTUtil(cfg.JwtSigningKey, time.Hour)
@@ -168,13 +173,6 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	return db, stop, driver.Close()
 }
 
-func (e *AppTestSuite) setupLogger() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level:     slog.LevelDebug,
-		AddSource: os.Getenv("LOG_SHOW_LINE") == "true",
-	})))
-}
-
 func (e *AppTestSuite) getConfig() *config.Config {
 	return &config.Config{ //nolint:exhaustruct
 		AppEnv:              "testing",
@@ -185,5 +183,8 @@ func (e *AppTestSuite) getConfig() *config.Config {
 		JwtAccessTokenTTL:   time.Hour,
 		JwtRefreshTokenTTL:  24 * time.Hour,
 		VerficationTokenTTL: 24 * time.Hour,
+		LogShowLine:         os.Getenv("LOG_SHOW_LINE") == "true",
+		LogFormat:           "text",
+		LogLevel:            "debug",
 	}
 }
