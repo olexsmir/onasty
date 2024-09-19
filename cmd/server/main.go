@@ -33,6 +33,7 @@ func main() {
 	}
 }
 
+//nolint:err113
 func run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
