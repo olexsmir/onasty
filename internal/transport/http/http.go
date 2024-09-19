@@ -7,6 +7,7 @@ import (
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/transport/http/apiv1"
+	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 type Transport struct {
@@ -28,6 +29,7 @@ func (t *Transport) Handler() http.Handler {
 	r := gin.New()
 	r.Use(
 		gin.Recovery(),
+		reqid.Middleware(),
 		t.logger(),
 	)
 

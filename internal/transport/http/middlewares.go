@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
-// TODO: include requiest id
 func (t *Transport) logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -30,6 +30,7 @@ func (t *Transport) logger() gin.HandlerFunc {
 			c.Request.Context(),
 			lvl,
 			c.Errors.ByType(gin.ErrorTypePrivate).String(),
+			slog.String("request_id", reqid.Get(c)),
 			slog.String("latency", latency.String()),
 			slog.String("method", c.Request.Method),
 			slog.Int("status_code", c.Writer.Status()),
