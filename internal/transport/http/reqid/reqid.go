@@ -8,10 +8,10 @@ import (
 	"github.com/google/uuid"
 )
 
-type RequestIDKey string
+type requestIDKey string
 
 const (
-	RequestID RequestIDKey = "request_id"
+	RequestID requestIDKey = "request_id"
 
 	headerRequestID = "X-Request-ID"
 )
@@ -40,7 +40,8 @@ func Get(c *gin.Context) string {
 	return c.GetHeader(headerRequestID)
 }
 
-func GetFromContext(ctx context.Context) string {
+// GetContext returns the request ID from context
+func GetContext(ctx context.Context) string {
 	rid, ok := ctx.Value(RequestID).(string)
 	if !ok {
 		return ""

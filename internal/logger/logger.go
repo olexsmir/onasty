@@ -9,9 +9,7 @@ import (
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
-type CustomLogger struct {
-	slog.Handler
-}
+type CustomLogger struct{ slog.Handler }
 
 //nolint:err113
 func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
@@ -46,7 +44,7 @@ func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
 }
 
 func (l *CustomLogger) Handle(ctx context.Context, r slog.Record) error {
-	if requestID := reqid.GetFromContext(ctx); requestID != "" {
+	if requestID := reqid.GetContext(ctx); requestID != "" {
 		r.AddAttrs(slog.String("request_id", requestID))
 	}
 
