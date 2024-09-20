@@ -1,4 +1,3 @@
-//nolint:err113 // all errors are shown to the user so it's ok for them to be dynamic
 package main
 
 import (
@@ -14,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
+	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
@@ -33,25 +33,32 @@ func main() {
 	}
 }
 
+//nolint:err113
 func run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	cfg := config.NewConfig()
-	if err := setupLogger(cfg); err != nil {
+
+	// logger
+	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
+	if err != nil {
 		return err
 	}
 
+	slog.SetDefault(logger)
+
+	// semi dev mode
 	if !cfg.IsDevMode() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// app deps
 	psqlDB, err := psqlutil.Connect(ctx, cfg.PostgresDSN)
 	if err != nil {
 		return err
 	}
 
-	// app deps
 	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
@@ -98,39 +105,6 @@ func run(ctx context.Context) error {
 	if err := psqlDB.Close(); err != nil {
 		return errors.Join(errors.New("failed to close postgres connection"), err)
 	}
-
-	return nil
-}
-
-func setupLogger(cfg *config.Config) error {
-	loggerLevels := map[string]slog.Level{
-		"info":  slog.LevelInfo,
-		"debug": slog.LevelDebug,
-		"error": slog.LevelError,
-		"warn":  slog.LevelWarn,
-	}
-
-	logLevel, ok := loggerLevels[cfg.LogLevel]
-	if !ok {
-		return errors.New("unknown log level")
-	}
-
-	handlerOptions := &slog.HandlerOptions{
-		Level:     logLevel,
-		AddSource: cfg.LogShowLine,
-	}
-
-	var slogHandler slog.Handler
-	switch cfg.LogFormat {
-	case "json":
-		slogHandler = slog.NewJSONHandler(os.Stdout, handlerOptions)
-	case "text":
-		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
-	default:
-		return errors.New("unknown log format")
-	}
-
-	slog.SetDefault(slog.New(slogHandler))
 
 	return nil
 }
