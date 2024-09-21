@@ -53,7 +53,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, createNoteResponse{slug.String()})
+	c.JSON(http.StatusCreated, createNoteResponse{slug})
 }
 
 type getNoteBySlugResponse struct {
@@ -64,7 +64,7 @@ type getNoteBySlugResponse struct {
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	slug := c.Param("slug")
-	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(c.Request.Context(), dtos.NoteSlugDTO(slug))
+	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(c.Request.Context(), slug)
 	if err != nil {
 		errorResponse(c, err)
 		return

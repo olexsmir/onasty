@@ -6,9 +6,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
-type NoteSlugDTO string
-
-func (n NoteSlugDTO) String() string { return string(n) }
+type NoteSlugDTO = string
 
 type NoteDTO struct {
 	Content              string

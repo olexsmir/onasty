@@ -44,12 +44,12 @@ func (n *NoteSrv) Create(
 	}
 
 	if !userID.IsNil() {
-		if err := n.noterepo.SetAuthorIDBySlug(ctx, dtos.NoteSlugDTO(inp.Slug), userID); err != nil {
+		if err := n.noterepo.SetAuthorIDBySlug(ctx, inp.Slug, userID); err != nil {
 			return "", err
 		}
 	}
 
-	return dtos.NoteSlugDTO(inp.Slug), nil
+	return inp.Slug, nil
 }
 
 func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
@@ -79,5 +79,5 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 
 	// TODO: in future not remove, leave some metadata
 	// to shot user that note was alreasy seen
-	return note, n.noterepo.DeleteBySlug(ctx, dtos.NoteSlugDTO(note.Slug))
+	return note, n.noterepo.DeleteBySlug(ctx, note.Slug)
 }

@@ -98,7 +98,7 @@ func (s *NoteRepo) SetAuthorIDBySlug(
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	var noteID uuid.UUID
-	err = tx.QueryRow(ctx, "select id from notes where slug = $1", slug.String()).Scan(&noteID)
+	err = tx.QueryRow(ctx, "select id from notes where slug = $1", slug).Scan(&noteID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return models.ErrNoteNotFound
