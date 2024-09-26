@@ -22,6 +22,9 @@ type Config struct {
 	MailgunAPIKey        string
 	VerificationTokenTTL time.Duration
 
+	MetricsEnabled bool
+	MetricsPort    string
+
 	LogLevel    string
 	LogFormat   string
 	LogShowLine bool
@@ -49,6 +52,9 @@ func NewConfig() *Config {
 		VerificationTokenTTL: mustParseDurationOrPanic(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
 		),
+
+		MetricsPort:    getenvOrDefault("METRICS_PORT", "3001"),
+		MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",
 
 		LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
 		LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),

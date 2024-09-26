@@ -15,6 +15,7 @@ import (
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/mailer"
+	"github.com/olexsmir/onasty/internal/metrics"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -87,11 +88,22 @@ func run(ctx context.Context) error {
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
 	go func() {
-		slog.Debug("starting http server", "port", cfg.ServerPort)
+		slog.Info("starting http server", "port", cfg.ServerPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
 	}()
+
+	// metrics
+	if cfg.MetricsEnabled {
+		mSrv := httpserver.NewServer(cfg.MetricsPort, metrics.Handler())
+		go func() {
+			slog.Info("starting metrics server", "port", cfg.MetricsPort)
+			if err := mSrv.Start(); !errors.Is(err, http.ErrServerClosed) {
+				slog.Error("failed to start metrics server", "error", err)
+			}
+		}()
+	}
 
 	// graceful shutdown
 	quit := make(chan os.Signal, 1)
