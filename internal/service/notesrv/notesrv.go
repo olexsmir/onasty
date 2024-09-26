@@ -10,7 +10,7 @@ import (
 )
 
 type NoteServicer interface {
-	// Create create note
+	// Create creates note
 	// if slug is empty it will be generated, otherwise used as is
 	// if userID is empty it means user isn't authorized so it will be used
 	Create(ctx context.Context, note dtos.CreateNoteDTO, userID uuid.UUID) (dtos.NoteSlugDTO, error)

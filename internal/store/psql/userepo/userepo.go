@@ -16,7 +16,7 @@ type UserStorer interface {
 	Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
 
 	// GetUserByCredentials returns user by email and password
-	// password should be hashed
+	// the password should be hashed
 	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
 
 	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)

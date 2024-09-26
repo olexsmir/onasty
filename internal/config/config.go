@@ -17,10 +17,10 @@ type Config struct {
 	JwtAccessTokenTTL  time.Duration
 	JwtRefreshTokenTTL time.Duration
 
-	MailgunFrom         string
-	MailgunDomain       string
-	MailgunAPIKey       string
-	VerficationTokenTTL time.Duration
+	MailgunFrom          string
+	MailgunDomain        string
+	MailgunAPIKey        string
+	VerificationTokenTTL time.Duration
 
 	LogLevel    string
 	LogFormat   string
@@ -46,7 +46,7 @@ func NewConfig() *Config {
 		MailgunFrom:   getenvOrDefault("MAILGUN_FROM", ""),
 		MailgunDomain: getenvOrDefault("MAILGUN_DOMAIN", ""),
 		MailgunAPIKey: getenvOrDefault("MAILGUN_API_KEY", ""),
-		VerficationTokenTTL: mustParseDurationOrPanic(
+		VerificationTokenTTL: mustParseDurationOrPanic(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
 		),
 

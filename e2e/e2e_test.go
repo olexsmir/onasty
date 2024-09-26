@@ -110,7 +110,7 @@ func (e *AppTestSuite) initDeps() {
 		e.jwtTokenizer,
 		e.mailer,
 		cfg.JwtRefreshTokenTTL,
-		cfg.VerficationTokenTTL,
+		cfg.VerificationTokenTTL,
 		cfg.AppURL,
 	)
 
@@ -175,16 +175,16 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 
 func (e *AppTestSuite) getConfig() *config.Config {
 	return &config.Config{ //nolint:exhaustruct
-		AppEnv:              "testing",
-		AppURL:              "",
-		ServerPort:          "3000",
-		PasswordSalt:        "salty-password",
-		JwtSigningKey:       "jwt-key",
-		JwtAccessTokenTTL:   time.Hour,
-		JwtRefreshTokenTTL:  24 * time.Hour,
-		VerficationTokenTTL: 24 * time.Hour,
-		LogShowLine:         os.Getenv("LOG_SHOW_LINE") == "true",
-		LogFormat:           "text",
-		LogLevel:            "debug",
+		AppEnv:               "testing",
+		AppURL:               "",
+		ServerPort:           "3000",
+		PasswordSalt:         "salty-password",
+		JwtSigningKey:        "jwt-key",
+		JwtAccessTokenTTL:    time.Hour,
+		JwtRefreshTokenTTL:   24 * time.Hour,
+		VerificationTokenTTL: 24 * time.Hour,
+		LogShowLine:          os.Getenv("LOG_SHOW_LINE") == "true",
+		LogFormat:            "text",
+		LogLevel:             "debug",
 	}
 }
