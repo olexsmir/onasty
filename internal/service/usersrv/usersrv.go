@@ -22,7 +22,7 @@ type UserServicer interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
 
-	ChangePassword(ctx context.Context, inp dtos.ResetUserPasswordDTO) error
+	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ResetUserPasswordDTO) error
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
@@ -165,7 +165,11 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 	}, nil
 }
 
-func (u *UserSrv) ChangePassword(ctx context.Context, inp dtos.ResetUserPasswordDTO) error {
+func (u *UserSrv) ChangePassword(
+	ctx context.Context,
+	userID uuid.UUID,
+	inp dtos.ResetUserPasswordDTO,
+) error {
 	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
 	if err != nil {
 		return err
@@ -176,7 +180,7 @@ func (u *UserSrv) ChangePassword(ctx context.Context, inp dtos.ResetUserPassword
 		return err
 	}
 
-	if err := u.userstore.ChangePassword(ctx, inp.UserID, oldPass, newPass); err != nil {
+	if err := u.userstore.ChangePassword(ctx, userID, oldPass, newPass); err != nil {
 		return err
 	}
 
