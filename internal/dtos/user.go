@@ -17,8 +17,6 @@ type UserDTO struct {
 }
 
 type ResetUserPasswordDTO struct {
-	// NOTE: probably userID shouldn't be here
-	UserID          uuid.UUID
 	CurrentPassword string
 	NewPassword     string
 }
