@@ -75,7 +75,7 @@ func run(ctx context.Context) error {
 		jwtTokenizer,
 		mailGunMailer,
 		cfg.JwtRefreshTokenTTL,
-		cfg.VerficationTokenTTL,
+		cfg.VerificationTokenTTL,
 		cfg.AppURL,
 	)
 

@@ -25,7 +25,7 @@ func Middleware() gin.HandlerFunc {
 			c.Request.Header.Add(headerRequestID, rid)
 		}
 
-		// set reqeust ID request context
+		// set request ID request context
 		ctx := context.WithValue(c.Request.Context(), RequestID, rid)
 		c.Request = c.Request.WithContext(ctx)
 
