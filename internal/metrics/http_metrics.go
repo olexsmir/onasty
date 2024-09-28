@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -17,12 +19,31 @@ var (
 		Help:        "the total number of failed http requests",
 		ConstLabels: map[string]string{"status": "failure"},
 	}, []string{"method", "uri"})
+
+	latencyHTTPRequest = promauto.NewHistogramVec(prometheus.HistogramOpts{ //nolint:exhaustruct
+		Name:    "http_request_latency_seconds",
+		Help:    "the latency of http requests in seconds",
+		Buckets: prometheus.DefBuckets,
+	}, []string{"method", "uri"})
 )
 
 func RecordSuccessfulRequestMetric(method, uri string) {
-	successfulHTTPRequest.With(prometheus.Labels{"method": method, "uri": uri}).Inc()
+	go successfulHTTPRequest.With(prometheus.Labels{
+		"method": method,
+		"uri":    uri,
+	}).Inc()
 }
 
 func RecordFailedRequestMetric(method, uri string) {
-	failedHTTPRequest.With(prometheus.Labels{"method": method, "uri": uri}).Inc()
+	go failedHTTPRequest.With(prometheus.Labels{
+		"method": method,
+		"uri":    uri,
+	}).Inc()
+}
+
+func RecordLatencyRequestMetric(method, uri string, latency time.Duration) {
+	go latencyHTTPRequest.With(prometheus.Labels{
+		"method": method,
+		"uri":    uri,
+	}).Observe(latency.Seconds())
 }

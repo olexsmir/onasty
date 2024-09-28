@@ -3,6 +3,7 @@ package apiv1
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid/v5"
@@ -54,15 +55,19 @@ func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 }
 
 func (a *APIV1) metricsMiddleware(c *gin.Context) {
+	start := time.Now()
 	c.Next()
+	latency := time.Since(start)
 
 	if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
-		go metrics.RecordSuccessfulRequestMetric(c.Request.Method, c.Request.RequestURI)
+		metrics.RecordSuccessfulRequestMetric(c.Request.Method, c.Request.RequestURI)
 	}
 
 	if c.Writer.Status() >= 400 {
-		go metrics.RecordFailedRequestMetric(c.Request.Method, c.Request.RequestURI)
+		metrics.RecordFailedRequestMetric(c.Request.Method, c.Request.RequestURI)
 	}
+
+	metrics.RecordLatencyRequestMetric(c.Request.Method, c.Request.RequestURI, latency)
 }
 
 //nolint:unused // TODO: remove me later
