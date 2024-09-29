@@ -21,3 +21,17 @@ services:
       - ./infra/prometheus:/etc/prometheus
     ports:
       - 9090:9090
+
+  grafana:
+    image: grafana/grafana:11.1.6
+    container_name: onasty-grafana
+    network_mode: host # TODO: remove
+    user: root
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./.docker/grafana:/var/lib/grafana
+      - ./infra/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    ports:
+      - 3069:3000
