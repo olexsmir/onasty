@@ -89,7 +89,12 @@ func (e *AppTestSuite) TearDownSuite() {
 func (e *AppTestSuite) initDeps() {
 	cfg := e.getConfig()
 
-	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
+	logger, err := logger.NewCustomLogger(logger.CustomLoggerOpts{
+		Level:    cfg.LogLevel,
+		Format:   cfg.LogFormat,
+		ShowLine: cfg.LogShowLine,
+		Output:   os.Stdout,
+	})
 	e.require.NoError(err)
 
 	slog.SetDefault(logger)
