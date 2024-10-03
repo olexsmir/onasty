@@ -42,12 +42,7 @@ func run(ctx context.Context) error {
 	cfg := config.NewConfig()
 
 	// logger
-	logger, err := logger.NewCustomLogger(logger.CustomLoggerOpts{
-		Level:    cfg.LogLevel,
-		Format:   cfg.LogFormat,
-		ShowLine: cfg.LogShowLine,
-		Output:   os.Stdout,
-	})
+	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
 	if err != nil {
 		return err
 	}

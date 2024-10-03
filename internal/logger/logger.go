@@ -3,34 +3,16 @@ package logger
 import (
 	"context"
 	"errors"
-	"io"
 	"log/slog"
 	"os"
 
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
-var _ slog.Handler = (*CustomLogger)(nil)
-
 type CustomLogger struct{ slog.Handler }
 
-type CustomLoggerOpts struct {
-	// Level is the log level. Can be "info", "debug", "error", "warn".
-	Level string
-
-	// Format is the log format. Can be "json" or "text".
-	Format string
-
-	// ShowLine enables or disables the line number in the log output.
-	ShowLine bool
-
-	// Output is the writer to write logs to.
-	// If not set, os.Stdout is used.
-	Output io.Writer
-}
-
 //nolint:err113
-func NewCustomLogger(opts CustomLoggerOpts) (*slog.Logger, error) {
+func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
 	loggerLevels := map[string]slog.Level{
 		"info":  slog.LevelInfo,
 		"debug": slog.LevelDebug,
@@ -38,26 +20,22 @@ func NewCustomLogger(opts CustomLoggerOpts) (*slog.Logger, error) {
 		"warn":  slog.LevelWarn,
 	}
 
-	logLevel, ok := loggerLevels[opts.Level]
+	logLevel, ok := loggerLevels[lvl]
 	if !ok {
 		return nil, errors.New("unknown log level")
 	}
 
 	handlerOptions := &slog.HandlerOptions{
 		Level:     logLevel,
-		AddSource: opts.ShowLine,
-	}
-
-	if opts.Output == nil {
-		opts.Output = os.Stdout
+		AddSource: showLine,
 	}
 
 	var slogHandler slog.Handler
-	switch opts.Format {
+	switch format {
 	case "json":
-		slogHandler = slog.NewJSONHandler(opts.Output, handlerOptions)
+		slogHandler = slog.NewJSONHandler(os.Stdout, handlerOptions)
 	case "text":
-		slogHandler = slog.NewTextHandler(opts.Output, handlerOptions)
+		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
 	default:
 		return nil, errors.New("unknown log format")
 	}
