@@ -1,10 +1,15 @@
 package mailer
 
-import "context"
+import (
+	"context"
+	"sync"
+)
 
 var _ Mailer = (*TestMailer)(nil)
 
 type TestMailer struct {
+	mu sync.Mutex
+
 	emails map[string]string
 }
 
@@ -12,17 +17,26 @@ type TestMailer struct {
 // that implementation of Mailer stores all sent email in memory
 // to get the last email sent to a specific email use GetLastSentEmailToEmail
 func NewTestMailer() *TestMailer {
-	return &TestMailer{
+	return &TestMailer{ //nolint:exhaustruct
 		emails: make(map[string]string),
 	}
 }
 
 func (t *TestMailer) Send(_ context.Context, to, _, content string) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
 	t.emails[to] = content
+
 	return nil
 }
 
 // GetLastSentEmailToEmail returns the last email sent to a specific email
 func (t *TestMailer) GetLastSentEmailToEmail(email string) string {
-	return t.emails[email]
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	e := t.emails[email]
+
+	return e
 }
