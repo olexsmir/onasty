@@ -57,6 +57,5 @@ services:
     image: grafana/promtail:3.0.0
     command: -config.file=/etc/promtail/config.yaml
     volumes:
-      # - /var/lib/docker/containers:/var/lib/docker/containers
       - /var/run/docker.sock:/var/run/docker.sock
       - ./infra/promtail/config.yaml:/etc/promtail/config.yaml
