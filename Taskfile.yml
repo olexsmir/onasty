@@ -18,7 +18,7 @@ tasks:
     - golangci-lint run
 
   docker:up:
-    - docker compose up -d --remove-orphans
+    - docker compose up -d --build --remove-orphans
 
   docker:down:
     aliases: [docker:stop]
