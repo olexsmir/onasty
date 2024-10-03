@@ -10,4 +10,4 @@ scrape_configs:
     honor_timestamps: true
     static_configs:
     - targets:
-      - onasty:3001
+      - core:3001
