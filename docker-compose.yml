@@ -1,4 +1,15 @@
 services:
+  core:
+    image: onasty:code
+    container_name: onasty-core
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - 8000:8000
+      - 3001:3001
+
   postgres:
     image: postgres:16-alpine
     container_name: onasty-postgres
@@ -15,7 +26,6 @@ services:
     image: prom/prometheus
     container_name: onasty-prometheus
     user: root
-    network_mode: host # TODO: remove
     volumes:
       - ./.docker/prometheus:/prometheus
       - ./infra/prometheus:/etc/prometheus
@@ -25,7 +35,6 @@ services:
   grafana:
     image: grafana/grafana:11.1.6
     container_name: onasty-grafana
-    network_mode: host # TODO: remove
     user: root
     environment:
       - GF_SECURITY_ADMIN_USER=admin
