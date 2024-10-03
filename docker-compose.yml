@@ -44,3 +44,19 @@ services:
       - ./infra/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
     ports:
       - 3069:3000
+
+  loki:
+    image: grafana/loki:3.2.0
+    command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/config.yaml"]
+    ports:
+      - 3100:3100
+    volumes:
+      - ./infra/loki/config.yaml:/etc/loki/config.yaml
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    command: -config.file=/etc/promtail/config.yaml
+    volumes:
+      # - /var/lib/docker/containers:/var/lib/docker/containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./infra/promtail/config.yaml:/etc/promtail/config.yaml
