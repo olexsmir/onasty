@@ -19,9 +19,3 @@ scrape_configs:
         replacement: '$1'
       - source_labels: [__meta_docker_container_id]
         target_label: container_id
-    pipeline_stages:
-      - json:
-          expressions:
-            level: level
-      - labels:
-          level:
