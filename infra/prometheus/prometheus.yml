@@ -10,4 +10,4 @@ scrape_configs:
     follow_redirects: true
     honor_timestamps: true
     static_configs:
-    - targets: [core:3001]
+    - targets: [core:9001]
