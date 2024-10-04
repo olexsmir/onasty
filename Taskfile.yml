@@ -11,8 +11,7 @@ tasks:
     - go build -o .bin/onasty ./cmd/server/
 
   run:
-    - task: build
-    - .bin/onasty
+    - docker compose up -d --build core
 
   lint:
     - golangci-lint run
