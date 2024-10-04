@@ -10,13 +10,13 @@ tasks:
       - migrate create -ext sql -dir {{.MIGRATIONS_DIR}} {{ .CLI_ARGS }}
 
   up:
-    - migrate -database $POSTGRESQL_DSN  -path {{.MIGRATIONS_DIR}} up
+    - migrate -database $MIGRATION_DSN -path {{.MIGRATIONS_DIR}} up
 
   down:
-    - migrate -database $POSTGRESQL_DSN -path {{.MIGRATIONS_DIR}} down 1
+    - migrate -database $MIGRATION_DSN -path {{.MIGRATIONS_DIR}} down 1
 
   drop:
-    - migrate -database $POSTGRESQL_DSN -path {{.MIGRATIONS_DIR}} drop
+    - migrate -database $MIGRATION_DSN -path {{.MIGRATIONS_DIR}} drop
 
   current-version:
-    - migrate -database $POSTGRESQL_DSN -path {{.MIGRATIONS_DIR}} version
+    - migrate -database $MIGRATION_DSN -path {{.MIGRATIONS_DIR}} version
