@@ -1,6 +1,6 @@
 services:
   core:
-    image: onasty:code
+    image: onasty:core
     container_name: onasty-core
     build:
       context: .
