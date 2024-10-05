@@ -3,9 +3,11 @@ package apiv1
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gofrs/uuid/v5"
+	"github.com/olexsmir/onasty/internal/metrics"
 	"github.com/olexsmir/onasty/internal/models"
 )
 
@@ -50,6 +52,22 @@ func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	}
 
 	c.Next()
+}
+
+func (a *APIV1) metricsMiddleware(c *gin.Context) {
+	start := time.Now()
+	c.Next()
+	latency := time.Since(start)
+
+	metrics.RecordLatencyRequestMetric(c.Request.Method, c.Request.RequestURI, latency)
+
+	if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
+		metrics.RecordSuccessfulRequestMetric(c.Request.Method, c.Request.RequestURI)
+	}
+
+	if c.Writer.Status() >= 400 {
+		metrics.RecordFailedRequestMetric(c.Request.Method, c.Request.RequestURI)
+	}
 }
 
 //nolint:unused // TODO: remove me later

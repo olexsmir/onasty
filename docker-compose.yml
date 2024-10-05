@@ -1,4 +1,15 @@
 services:
+  core:
+    image: onasty:core
+    container_name: onasty-core
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - 8000:8000
+      - 8001:8001
+
   postgres:
     image: postgres:16-alpine
     container_name: onasty-postgres
@@ -10,3 +21,41 @@ services:
       - .docker/postgres:/var/lib/postgresql/data
     ports:
       - 5432:5432
+
+  prometheus:
+    image: prom/prometheus
+    container_name: onasty-prometheus
+    user: root
+    volumes:
+      - ./.docker/prometheus:/prometheus
+      - ./infra/prometheus:/etc/prometheus
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana:11.1.6
+    container_name: onasty-grafana
+    user: root
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./.docker/grafana:/var/lib/grafana
+      - ./infra/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+    ports:
+      - 3069:3000
+
+  loki:
+    image: grafana/loki:3.2.0
+    command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/config.yaml"]
+    ports:
+      - 3100:3100
+    volumes:
+      - ./infra/loki/config.yaml:/etc/loki/config.yaml
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    command: -config.file=/etc/promtail/config.yaml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./infra/promtail/config.yaml:/etc/promtail/config.yaml

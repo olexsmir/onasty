@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 func (t *Transport) logger() gin.HandlerFunc {
@@ -22,7 +21,7 @@ func (t *Transport) logger() gin.HandlerFunc {
 		}
 
 		lvl := slog.LevelInfo
-		if c.Writer.Status() >= 500 {
+		if c.Writer.Status() >= 400 {
 			lvl = slog.LevelError
 		}
 
@@ -30,7 +29,6 @@ func (t *Transport) logger() gin.HandlerFunc {
 			c.Request.Context(),
 			lvl,
 			c.Errors.ByType(gin.ErrorTypePrivate).String(),
-			slog.String("request_id", reqid.Get(c)),
 			slog.String("latency", latency.String()),
 			slog.String("method", c.Request.Method),
 			slog.Int("status_code", c.Writer.Status()),

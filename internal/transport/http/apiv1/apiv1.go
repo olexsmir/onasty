@@ -22,6 +22,7 @@ func NewAPIV1(
 }
 
 func (a *APIV1) Routes(r *gin.RouterGroup) {
+	r.Use(a.metricsMiddleware)
 	auth := r.Group("/auth")
 	{
 		auth.POST("/signup", a.signUpHandler)

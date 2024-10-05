@@ -11,14 +11,13 @@ tasks:
     - go build -o .bin/onasty ./cmd/server/
 
   run:
-    - task: build
-    - .bin/onasty
+    - docker compose up -d --build core
 
   lint:
     - golangci-lint run
 
   docker:up:
-    - docker compose up -d
+    - docker compose up -d --build --remove-orphans
 
   docker:down:
     aliases: [docker:stop]
