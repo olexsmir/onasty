@@ -59,6 +59,8 @@ func (a *APIV1) metricsMiddleware(c *gin.Context) {
 	c.Next()
 	latency := time.Since(start)
 
+	metrics.RecordLatencyRequestMetric(c.Request.Method, c.Request.RequestURI, latency)
+
 	if c.Writer.Status() >= 200 && c.Writer.Status() < 300 {
 		metrics.RecordSuccessfulRequestMetric(c.Request.Method, c.Request.RequestURI)
 	}
@@ -66,8 +68,6 @@ func (a *APIV1) metricsMiddleware(c *gin.Context) {
 	if c.Writer.Status() >= 400 {
 		metrics.RecordFailedRequestMetric(c.Request.Method, c.Request.RequestURI)
 	}
-
-	metrics.RecordLatencyRequestMetric(c.Request.Method, c.Request.RequestURI, latency)
 }
 
 //nolint:unused // TODO: remove me later
