@@ -1,8 +1,8 @@
 version: 2
 updates:
-  - directory: /
+  - package-ecosystem: gomod
+    directory: /
     open-pull-requests-limit: 3
-    package-ecosystem: gomod
     schedule:
       interval: weekly
 
