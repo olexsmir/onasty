@@ -31,7 +31,6 @@ type User struct {
 }
 
 func (u User) Validate() error {
-	// NOTE: there's probably a better way to validate emails
 	_, err := mail.ParseAddress(u.Email)
 	if err != nil {
 		return errors.New("user: invalid email") //nolint:err113

@@ -100,8 +100,6 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 
 	e.Equal(http.StatusCreated, httpResp.Code)
 
-	// TODO: probably should get the token from the email
-
 	user := e.getLastInsertedUserByEmail(email)
 	token := e.getVerificationTokenByUserID(user.ID)
 	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/verify/"+token.Token, nil)
