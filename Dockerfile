@@ -10,6 +10,7 @@ COPY internal internal
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags='-w -s' -o /onasty ./cmd/server
 
-FROM scratch
+FROM alpine:3.20
 COPY --from=builder /onasty /onasty
+RUN apk --no-cache add ca-certificates
 ENTRYPOINT ["/onasty"]
