@@ -38,6 +38,7 @@ func (m *Mailgun) Send(ctx context.Context, to, subject, content string) error {
 	}
 
 	slog.DebugContext(ctx, "email sent", "subject", subject, "content", content, "err", err)
+	slog.InfoContext(ctx, "email sent", "to", to)
 	metrics.RecordEmailSent()
 
 	return nil
