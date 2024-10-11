@@ -14,6 +14,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
+	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 type UserServicer interface {
@@ -93,16 +94,8 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 		return uuid.Nil, err
 	}
 
-	// TODO: handle the error that might be returned
-	// i dont think that there's need to handle the error, just log it
-	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	go u.sendVerificationEmail( //nolint:errcheck,contextcheck
-		bgCtx,
-		bgCancel,
-		inp.Email,
-		vtok,
-		u.appURL,
-	)
+	sendingCtx, cancel := getContextForEmailSending(ctx)
+	go u.sendVerificationEmail(sendingCtx, cancel, inp.Email, vtok, u.appURL)
 
 	return uid, nil
 }
@@ -223,14 +216,8 @@ func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDT
 		return err
 	}
 
-	bgCtx, bgCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	go u.sendVerificationEmail( //nolint:errcheck,contextcheck
-		bgCtx,
-		bgCancel,
-		inp.Email,
-		token,
-		u.appURL,
-	)
+	sendingCtx, cancel := getContextForEmailSending(ctx)
+	go u.sendVerificationEmail(sendingCtx, cancel, inp.Email, token, u.appURL)
 
 	return nil
 }
@@ -262,4 +249,12 @@ func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
 		Access:  accessToken,
 		Refresh: refreshToken,
 	}, err
+}
+
+func getContextForEmailSending(ctx context.Context) (context.Context, context.CancelFunc) {
+	rid := reqid.GetContext(ctx)
+	resCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	resCtx = reqid.SetContext(resCtx, rid)
+
+	return resCtx, cancel
 }

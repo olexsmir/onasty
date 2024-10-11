@@ -48,3 +48,7 @@ func GetContext(ctx context.Context) string {
 	}
 	return rid
 }
+
+func SetContext(ctx context.Context, rid string) context.Context {
+	return context.WithValue(ctx, RequestID, rid)
+}

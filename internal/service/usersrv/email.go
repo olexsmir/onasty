@@ -10,7 +10,7 @@ import (
 var ErrFailedToSendVerifcationEmail = errors.New("failed to send verification email")
 
 const (
-	verificationEmailSubject = "Onasty: verifiy your email"
+	verificationEmailSubject = "Onasty: verify your email"
 	verificationEmailBody    = `To verify your email, please follow this link:
 <a href="%[1]s/api/v1/auth/verify/%[2]s">%[1]s/api/v1/auth/verify/%[2]s</a>
 <br />
@@ -24,11 +24,10 @@ func (u *UserSrv) sendVerificationEmail(
 	userEmail string,
 	token string,
 	url string,
-) error {
+) {
 	select {
 	case <-ctx.Done():
-		slog.ErrorContext(ctx, "failed to send verfication email", "err", ctx.Err())
-		return ErrFailedToSendVerifcationEmail
+		slog.ErrorContext(ctx, "failed to send verification email", "err", ctx.Err())
 	default:
 		if err := u.mailer.Send(
 			ctx,
@@ -36,10 +35,8 @@ func (u *UserSrv) sendVerificationEmail(
 			verificationEmailSubject,
 			fmt.Sprintf(verificationEmailBody, url, token),
 		); err != nil {
-			return errors.Join(ErrFailedToSendVerifcationEmail, err)
+			slog.ErrorContext(ctx, "failed to send verification email", "err", err)
 		}
 		cancel()
 	}
-
-	return nil
 }
