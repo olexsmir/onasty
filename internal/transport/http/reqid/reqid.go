@@ -49,6 +49,7 @@ func GetContext(ctx context.Context) string {
 	return rid
 }
 
+// SetContext gets a parent context and returns a child context with the set provided request ID
 func SetContext(ctx context.Context, rid string) context.Context {
 	return context.WithValue(ctx, RequestID, rid)
 }
