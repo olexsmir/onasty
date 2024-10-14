@@ -61,7 +61,6 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 		return dtos.NoteDTO{}, err
 	}
 
-	// TODO: there should be a better way to do it
 	m := models.Note{ //nolint:exhaustruct
 		ExpiresAt:            note.ExpiresAt,
 		BurnBeforeExpiration: note.BurnBeforeExpiration,
@@ -78,6 +77,6 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	// TODO: in future not remove, leave some metadata
-	// to shot user that note was alreasy seen
+	// to shot user that note was already seen
 	return note, n.noterepo.DeleteBySlug(ctx, note.Slug)
 }

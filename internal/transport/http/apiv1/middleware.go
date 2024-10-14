@@ -70,7 +70,7 @@ func (a *APIV1) metricsMiddleware(c *gin.Context) {
 	}
 }
 
-//nolint:unused // TODO: remove me later
+//nolint:unused
 func (a *APIV1) isUserAuthorized(c *gin.Context) bool {
 	return !a.getUserID(c).IsNil()
 }

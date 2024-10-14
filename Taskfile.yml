@@ -7,11 +7,8 @@ includes:
   migrate: ./migrations/Taskfile.yml
 
 tasks:
-  build:
-    - go build -o .bin/onasty ./cmd/server/
-
   run:
-    - docker compose up -d --build core
+    - docker compose up -d --build --remove-orphans core
 
   lint:
     - golangci-lint run
@@ -29,7 +26,7 @@ tasks:
     - task: test:e2e
 
   test:unit:
-    - go test -v --short ./...
+    - go test --count=1 -v --short ./...
 
   test:e2e:
     - go test --count=1 -v ./e2e/
