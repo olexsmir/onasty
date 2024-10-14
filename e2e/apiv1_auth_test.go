@@ -44,7 +44,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 		email    string
 		password string
 	}{
-		{name: "all fiels empty", email: "", password: "", username: ""},
+		{name: "all fields empty", email: "", password: "", username: ""},
 		{
 			name:     "non valid email",
 			username: "testing",
@@ -156,7 +156,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 			expectedCode: http.StatusBadRequest,
 		},
 		{
-			name:         "wrong credintials",
+			name:         "wrong credentials",
 			email:        email,
 			password:     e.uuid(),
 			expectedCode: http.StatusUnauthorized,
@@ -233,7 +233,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 		},
 		{
 			name:         "wrong email",
-			email:        "wrong@emai.com",
+			email:        "wrong@email.com",
 			password:     password,
 			expectedCode: http.StatusUnauthorized,
 		},
