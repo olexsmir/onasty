@@ -27,3 +27,14 @@ jobs:
 
       - name: e2e tests
         run: go test -v ./e2e/
+
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Golangci Lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: ./...
