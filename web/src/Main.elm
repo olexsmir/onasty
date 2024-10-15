@@ -2,10 +2,10 @@ module Main exposing (main)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation exposing (Key)
-import Html as H
-import Html.Attributes as A
-import Model exposing (Model)
+import Model exposing (Model, Page(..))
 import Msg exposing (Msg(..))
+import Pages.HomePage
+import Pages.NotFound
 import Url exposing (Url)
 
 
@@ -28,12 +28,16 @@ main =
 {-| the functions that called when elm first runs
 -}
 init : Flags -> Url -> Key -> ( Model, Cmd Msg )
-init _ url _ =
+init _ url key =
     let
-        _ =
-            Debug.log "url" url
+        initModel : Model
+        initModel =
+            { curPage = Home
+            , apiResponse = Nothing
+            , navKey = key
+            }
     in
-    ( Model "User", Cmd.none )
+    ( initModel, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -55,9 +59,13 @@ onUrlChange url =
 
 view : Model -> Document Msg
 view model =
-    { title = "Onasty"
-    , body =
-        [ H.div []
-            [ H.text "Hello" ]
-        ]
-    }
+    case model.curPage of
+        Home ->
+            { title = "Onasty"
+            , body = [ Pages.HomePage.view model ]
+            }
+
+        NotFound ->
+            { title = "404 Not Found"
+            , body = [ Pages.NotFound.view ]
+            }

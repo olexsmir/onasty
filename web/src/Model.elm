@@ -1,6 +1,16 @@
-module Model exposing (Model)
+module Model exposing (Model, Page(..))
+
+import Api
+import Browser.Navigation exposing (Key)
 
 
 type alias Model =
-    { name : String
+    { apiResponse : Maybe Api.Response
+    , curPage : Page
+    , navKey : Key
     }
+
+
+type Page
+    = Home
+    | NotFound
