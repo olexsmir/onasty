@@ -1,11 +1,11 @@
 module Model exposing (Model, Page(..))
 
-import Api
 import Browser.Navigation exposing (Key)
+import Viewer exposing (Viewer)
 
 
 type alias Model =
-    { apiResponse : Maybe Api.Response
+    { viewer : Viewer
     , curPage : Page
     , navKey : Key
     }
