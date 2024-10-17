@@ -45,10 +45,6 @@ func newLimiter(rps, burst int, ttl time.Duration) *rateLimiter {
 	}
 }
 
-func (r *rateLimiter) Allow() bool {
-	return false
-}
-
 // Retrieve and return the rate limiter for the current visitor if it
 // already exists. Otherwise create a new rate limiter and add it to
 // the visitors map, using the IP address as the key.
