@@ -7,21 +7,28 @@ import (
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/transport/http/apiv1"
+	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 type Transport struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
+
+	ratelimitCfg                   ratelimit.Config
+	ratelimitCfgResendVerification ratelimit.Config
 }
 
 func NewTransport(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
+	ratelimitCfg, ratelimitCfgResendVerification ratelimit.Config,
 ) *Transport {
 	return &Transport{
-		usersrv: us,
-		notesrv: ns,
+		usersrv:                        us,
+		notesrv:                        ns,
+		ratelimitCfg:                   ratelimitCfg,
+		ratelimitCfgResendVerification: ratelimitCfgResendVerification,
 	}
 }
 

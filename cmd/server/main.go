@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/config"
@@ -25,6 +26,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
+	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
 )
 
 func main() {
@@ -83,7 +85,20 @@ func run(ctx context.Context) error {
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
 
-	handler := httptransport.NewTransport(usersrv, notesrv)
+	rateLimiterConfig := ratelimit.Config{
+		RPS:   cfg.RateLimiterRPS,
+		TTL:   cfg.RateLimiterTTL,
+		Burst: cfg.RateLimiterBurst,
+	}
+
+	rateLimiterConfigForEmailSending := ratelimit.Config{RPS: 1, TTL: time.Minute, Burst: 1}
+
+	handler := httptransport.NewTransport(
+		usersrv,
+		notesrv,
+		rateLimiterConfig,
+		rateLimiterConfigForEmailSending,
+	)
 
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
