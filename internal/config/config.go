@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -28,6 +29,10 @@ type Config struct {
 	LogLevel    string
 	LogFormat   string
 	LogShowLine bool
+
+	RateLimiterRPS   int
+	RateLimiterBurst int
+	RateLimiterTTL   time.Duration
 }
 
 func NewConfig() *Config {
@@ -39,17 +44,17 @@ func NewConfig() *Config {
 		PasswordSalt: getenvOrDefault("PASSWORD_SALT", ""),
 
 		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
-		JwtAccessTokenTTL: mustParseDurationOrPanic(
+		JwtAccessTokenTTL: mustParseDuration(
 			getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m"),
 		),
-		JwtRefreshTokenTTL: mustParseDurationOrPanic(
+		JwtRefreshTokenTTL: mustParseDuration(
 			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
 		),
 
 		MailgunFrom:   getenvOrDefault("MAILGUN_FROM", ""),
 		MailgunDomain: getenvOrDefault("MAILGUN_DOMAIN", ""),
 		MailgunAPIKey: getenvOrDefault("MAILGUN_API_KEY", ""),
-		VerificationTokenTTL: mustParseDurationOrPanic(
+		VerificationTokenTTL: mustParseDuration(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
 		),
 
@@ -59,6 +64,10 @@ func NewConfig() *Config {
 		LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
 		LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),
 		LogShowLine: getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
+
+		RateLimiterRPS:   mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
+		RateLimiterBurst: mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
+		RateLimiterTTL:   mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
 	}
 }
 
@@ -73,7 +82,18 @@ func getenvOrDefault(key, def string) string {
 	return def
 }
 
-func mustParseDurationOrPanic(dur string) time.Duration {
+func mustGetenvOrDefaultInt(key string, def int) int {
+	if v, ok := os.LookupEnv(key); ok {
+		r, err := strconv.Atoi(v)
+		if err != nil {
+			panic(err)
+		}
+		return r
+	}
+	return def
+}
+
+func mustParseDuration(dur string) time.Duration {
 	d, err := time.ParseDuration(dur)
 	if err != nil {
 		panic(errors.Join(errors.New("cannot time.ParseDuration"), err)) //nolint:err113

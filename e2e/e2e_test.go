@@ -26,6 +26,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
+	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
@@ -117,7 +118,14 @@ func (e *AppTestSuite) initDeps() {
 	noterepo := noterepo.New(e.postgresDB)
 	notesrv := notesrv.New(noterepo)
 
-	handler := httptransport.NewTransport(usersrv, notesrv)
+	// for testing purposes, it's ok to have high values ig
+	ratelimitCfg := ratelimit.Config{
+		RPS:   1000,
+		TTL:   time.Millisecond,
+		Burst: 1000,
+	}
+
+	handler := httptransport.NewTransport(usersrv, notesrv, ratelimitCfg)
 	e.router = handler.Handler()
 }
 
