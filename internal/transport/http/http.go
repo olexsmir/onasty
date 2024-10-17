@@ -15,20 +15,18 @@ type Transport struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
 
-	ratelimitCfg                   ratelimit.Config
-	ratelimitCfgResendVerification ratelimit.Config
+	ratelimitCfg ratelimit.Config
 }
 
 func NewTransport(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
-	ratelimitCfg, ratelimitCfgResendVerification ratelimit.Config,
+	ratelimitCfg ratelimit.Config,
 ) *Transport {
 	return &Transport{
-		usersrv:                        us,
-		notesrv:                        ns,
-		ratelimitCfg:                   ratelimitCfg,
-		ratelimitCfgResendVerification: ratelimitCfgResendVerification,
+		usersrv:      us,
+		notesrv:      ns,
+		ratelimitCfg: ratelimitCfg,
 	}
 }
 
@@ -40,7 +38,7 @@ func (t *Transport) Handler() http.Handler {
 		t.logger(),
 	)
 
-	api := r.Group("/api")
+	api := r.Group("/api", ratelimit.MiddlewareWithConfig(t.ratelimitCfg))
 	api.GET("/ping", t.pingHandler)
 	apiv1.NewAPIV1(t.usersrv, t.notesrv).Routes(api.Group("/v1"))
 
