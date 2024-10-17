@@ -13,7 +13,7 @@ import (
 
 type (
 	rateLimiter struct {
-		mu sync.Mutex
+		mu sync.RWMutex
 
 		visitors map[visitorIP]*visitor
 
@@ -47,20 +47,27 @@ func newLimiter(rps, burst int, ttl time.Duration) *rateLimiter {
 // already exists. Otherwise create a new rate limiter and add it to
 // the visitors map, using the IP address as the key.
 func (r *rateLimiter) getVisitor(ip visitorIP) *rate.Limiter {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
+	r.mu.RLock()
 	v, exists := r.visitors[ip]
+	r.mu.RUnlock()
+
 	if !exists {
 		limit := rate.NewLimiter(r.limit, r.burst)
+
+		r.mu.Lock()
 		r.visitors[ip] = &visitor{
 			limiter:  limit,
 			lastSeen: time.Now(),
 		}
+		r.mu.Unlock()
+
 		return limit
 	}
 
+	r.mu.Lock()
 	v.lastSeen = time.Now()
+	r.mu.Unlock()
+
 	return v.limiter
 }
 
