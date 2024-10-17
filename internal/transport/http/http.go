@@ -36,9 +36,10 @@ func (t *Transport) Handler() http.Handler {
 		gin.Recovery(),
 		reqid.Middleware(),
 		t.logger(),
+		ratelimit.MiddlewareWithConfig(t.ratelimitCfg),
 	)
 
-	api := r.Group("/api", ratelimit.MiddlewareWithConfig(t.ratelimitCfg))
+	api := r.Group("/api")
 	api.GET("/ping", t.pingHandler)
 	apiv1.NewAPIV1(t.usersrv, t.notesrv).Routes(api.Group("/v1"))
 
