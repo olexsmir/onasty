@@ -3,9 +3,9 @@ name: golang
 on:
   push:
     branches: [main]
-    paths: ["*.go", "go.mod", "go.sum"]
+    paths: &go_files ["*.go", "go.mod", "go.sum"]
   pull_request:
-    paths: ["*.go", "go.mod", "go.sum"]
+    paths: *go_files
 
 jobs:
   release:
