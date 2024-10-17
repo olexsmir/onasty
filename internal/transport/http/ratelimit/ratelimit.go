@@ -100,7 +100,10 @@ func MiddlewareWithConfig(c Config) gin.HandlerFunc {
 		ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
 		if err != nil {
 			slog.Error("splitting host and port", "err", err)
-			c.AbortWithStatusJSON(http.StatusInternalServerError, "internal server error")
+			c.AbortWithStatusJSON(
+				http.StatusInternalServerError,
+				gin.H{"message": "internal server error"},
+			)
 			return
 		}
 
