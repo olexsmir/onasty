@@ -3,7 +3,9 @@ name: golang
 on:
   push:
     branches: [main]
+    paths: &go_files ["*.go", "go.mod", "go.sum"]
   pull_request:
+    paths: *go_files
 
 jobs:
   release:
@@ -25,3 +27,13 @@ jobs:
 
       - name: e2e tests
         run: go test -v ./e2e/
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Golangci Lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          args: ./...
