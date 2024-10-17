@@ -1,11 +1,12 @@
 name: golang
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
-    paths: &go_files ["*.go", "go.mod", "go.sum"]
+    paths: ["*.go", "go.mod", "go.sum"]
   pull_request:
-    paths: *go_files
+    paths: ["*.go", "go.mod", "go.sum"]
 
 jobs:
   release:
