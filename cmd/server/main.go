@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/config"
@@ -91,13 +90,10 @@ func run(ctx context.Context) error {
 		Burst: cfg.RateLimiterBurst,
 	}
 
-	rateLimiterConfigForEmailSending := ratelimit.Config{RPS: 1, TTL: time.Minute, Burst: 1}
-
 	handler := httptransport.NewTransport(
 		usersrv,
 		notesrv,
 		rateLimiterConfig,
-		rateLimiterConfigForEmailSending,
 	)
 
 	// http server
