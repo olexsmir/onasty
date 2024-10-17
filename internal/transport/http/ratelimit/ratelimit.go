@@ -3,8 +3,6 @@
 package ratelimit
 
 import (
-	"log/slog"
-	"net"
 	"net/http"
 	"sync"
 	"time"
@@ -54,10 +52,12 @@ func (r *rateLimiter) getVisitor(ip visitorIP) *rate.Limiter {
 
 	v, exists := r.visitors[ip]
 	if !exists {
+		limit := rate.NewLimiter(r.limit, r.burst)
 		r.visitors[ip] = &visitor{
-			limiter:  rate.NewLimiter(1, 1),
+			limiter:  limit,
 			lastSeen: time.Now(),
 		}
+		return limit
 	}
 
 	v.lastSeen = time.Now()
@@ -97,17 +97,13 @@ func MiddlewareWithConfig(c Config) gin.HandlerFunc {
 	go lmt.cleanupVisitors()
 
 	return func(c *gin.Context) {
-		ip, _, err := net.SplitHostPort(c.Request.RemoteAddr)
-		if err != nil {
-			slog.Error("splitting host and port", "err", err)
-			c.AbortWithStatusJSON(
-				http.StatusInternalServerError,
-				gin.H{"message": "internal server error"},
-			)
+		visitor := lmt.getVisitor(visitorIP(c.ClientIP()))
+		if visitor == nil {
+			c.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
-		if !lmt.getVisitor(visitorIP(ip)).Allow() {
+		if !visitor.Allow() {
 			c.AbortWithStatus(http.StatusTooManyRequests)
 			return
 		}
