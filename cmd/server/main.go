@@ -25,6 +25,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
+	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
 )
 
 func main() {
@@ -83,7 +84,17 @@ func run(ctx context.Context) error {
 	noterepo := noterepo.New(psqlDB)
 	notesrv := notesrv.New(noterepo)
 
-	handler := httptransport.NewTransport(usersrv, notesrv)
+	rateLimiterConfig := ratelimit.Config{
+		RPS:   cfg.RateLimiterRPS,
+		TTL:   cfg.RateLimiterTTL,
+		Burst: cfg.RateLimiterBurst,
+	}
+
+	handler := httptransport.NewTransport(
+		usersrv,
+		notesrv,
+		rateLimiterConfig,
+	)
 
 	// http server
 	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
