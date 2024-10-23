@@ -25,12 +25,15 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
+	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	tsredis "github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -46,6 +49,9 @@ type (
 
 		postgresDB   *psqlutil.DB
 		stopPostgres stopDBFunc
+
+		redis     *redis.Client
+		stopRedis stopDBFunc
 
 		router       http.Handler
 		hasher       hasher.Hasher
@@ -78,6 +84,12 @@ func (e *AppTestSuite) SetupSuite() {
 	e.postgresDB = db
 	e.stopPostgres = stop
 
+	rdb, stop, err := e.prepRedis()
+	e.require.NoError(err)
+
+	e.redis = rdb
+	e.stopRedis = stop
+
 	e.initDeps()
 }
 
@@ -103,6 +115,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
+	usercache := usercache.New(e.redis)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
@@ -110,6 +123,7 @@ func (e *AppTestSuite) initDeps() {
 		e.hasher,
 		e.jwtTokenizer,
 		e.mailer,
+		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.AppURL,
@@ -179,6 +193,26 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	e.require.NoError(err)
 
 	return db, stop, driver.Close()
+}
+
+func (e *AppTestSuite) prepRedis() (*redis.Client, stopDBFunc, error) {
+	redisContainer, err := tsredis.Run(e.ctx, "redis:7.4-alpine")
+	e.require.NoError(err)
+
+	stop := func() {
+		err := redisContainer.Terminate(e.ctx)
+		e.require.NoError(err)
+	}
+
+	uri, err := redisContainer.ConnectionString(e.ctx)
+	e.require.NoError(err)
+
+	connOpts, err := redis.ParseURL(uri)
+	e.require.NoError(err)
+
+	rdb := redis.NewClient(connOpts)
+
+	return rdb, stop, nil
 }
 
 func (e *AppTestSuite) getConfig() *config.Config {

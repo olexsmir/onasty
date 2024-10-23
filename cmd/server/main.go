@@ -23,9 +23,11 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
+	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -61,6 +63,11 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	rdb := redis.NewClient(&redis.Options{ //nolint:exhaustruct
+		Addr:     cfg.RedisAddr,
+		Password: cfg.RedisPassword,
+	})
+
 	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
@@ -69,6 +76,7 @@ func run(ctx context.Context) error {
 	vertokrepo := vertokrepo.New(psqlDB)
 
 	userepo := userepo.New(psqlDB)
+	usercache := usercache.New(rdb)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
@@ -76,6 +84,7 @@ func run(ctx context.Context) error {
 		sha256Hasher,
 		jwtTokenizer,
 		mailGunMailer,
+		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.AppURL,

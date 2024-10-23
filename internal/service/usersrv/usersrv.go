@@ -14,6 +14,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
+	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
@@ -43,6 +44,7 @@ type UserSrv struct {
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
 	mailer       mailer.Mailer
+	cache        usercache.UserCacheer
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
@@ -56,6 +58,7 @@ func New(
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailer mailer.Mailer,
+	cache usercache.UserCacheer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 	appURL string,
 ) *UserSrv {
@@ -66,6 +69,7 @@ func New(
 		hasher:               hasher,
 		jwtTokenizer:         jwtTokenizer,
 		mailer:               mailer,
+		cache:                cache,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
 		appURL:               appURL,
@@ -227,6 +231,10 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	if r, err := u.cache.GetUserExists(ctx, id.String()); err == nil {
+		return r, nil
+	}
+
 	return u.userstore.CheckIfUserExists(ctx, id)
 }
 

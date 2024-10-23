@@ -8,11 +8,15 @@ import (
 )
 
 type Config struct {
-	AppEnv       string
-	AppURL       string
-	ServerPort   string
+	AppEnv     string
+	AppURL     string
+	ServerPort string
+
 	PostgresDSN  string
 	PasswordSalt string
+
+	RedisAddr     string
+	RedisPassword string
 
 	JwtSigningKey      string
 	JwtAccessTokenTTL  time.Duration
@@ -37,11 +41,14 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		AppEnv:       getenvOrDefault("APP_ENV", "debug"),
-		AppURL:       getenvOrDefault("APP_URL", ""),
-		ServerPort:   getenvOrDefault("SERVER_PORT", "3000"),
-		PostgresDSN:  getenvOrDefault("POSTGRESQL_DSN", ""),
-		PasswordSalt: getenvOrDefault("PASSWORD_SALT", ""),
+		AppEnv:     getenvOrDefault("APP_ENV", "debug"),
+		AppURL:     getenvOrDefault("APP_URL", ""),
+		ServerPort: getenvOrDefault("SERVER_PORT", "3000"),
+
+		PostgresDSN:   getenvOrDefault("POSTGRESQL_DSN", ""),
+		PasswordSalt:  getenvOrDefault("PASSWORD_SALT", ""),
+		RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
+		RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),
 
 		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
 		JwtAccessTokenTTL: mustParseDuration(
