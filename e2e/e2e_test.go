@@ -111,7 +111,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usercache := usercache.New(e.redis)
+	usercache := usercache.New(e.redis, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
