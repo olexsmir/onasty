@@ -25,6 +25,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
+	"github.com/olexsmir/onasty/internal/store/rdb"
 	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
@@ -50,7 +51,7 @@ type (
 		postgresDB   *psqlutil.DB
 		stopPostgres stopDBFunc
 
-		redis     *redis.Client
+		redis     *rdb.DB
 		stopRedis stopDBFunc
 
 		router       http.Handler
@@ -188,7 +189,7 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc) {
 	return db, stop
 }
 
-func (e *AppTestSuite) prepRedis() (*redis.Client, stopDBFunc) {
+func (e *AppTestSuite) prepRedis() (*rdb.DB, stopDBFunc) {
 	redisContainer, err := tsredis.Run(e.ctx, "redis:7.4-alpine")
 	e.require.NoError(err)
 
@@ -200,8 +201,10 @@ func (e *AppTestSuite) prepRedis() (*redis.Client, stopDBFunc) {
 	connOpts, err := redis.ParseURL(uri)
 	e.require.NoError(err)
 
-	rdb := redis.NewClient(connOpts)
-	return rdb, stop
+	redis, err := rdb.Connect(e.ctx, connOpts.Addr, connOpts.Password, connOpts.DB)
+	e.require.NoError(err)
+
+	return redis, stop
 }
 
 func (e *AppTestSuite) getConfig() *config.Config {
@@ -217,5 +220,6 @@ func (e *AppTestSuite) getConfig() *config.Config {
 		LogShowLine:          os.Getenv("LOG_SHOW_LINE") == "true",
 		LogFormat:            "text",
 		LogLevel:             "debug",
+		CacheUsersTTL:        time.Second,
 	}
 }
