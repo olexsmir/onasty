@@ -3,6 +3,7 @@ package usersrv
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -231,19 +232,41 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetUserIsExists(ctx, id.String()); err == nil {
+	if r, err := u.cache.GetIsExists(ctx, id.String()); err != nil {
+		slog.ErrorContext(ctx, "usercache", "err", err)
+	} else if err == nil {
 		return r, nil
 	}
 
-	return u.userstore.CheckIfUserExists(ctx, id)
+	isExists, err := u.userstore.CheckIfUserExists(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	if err := u.cache.SetIsExists(ctx, id.String(), isExists); err != nil {
+		slog.Error("usercache", "err", err)
+	}
+
+	return isExists, nil
 }
 
 func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetUserIsActivated(ctx, userID.String()); err == nil {
+	if r, err := u.cache.GetIsActivated(ctx, userID.String()); err != nil {
+		slog.ErrorContext(ctx, "usercache", "err", err)
+	} else if err == nil {
 		return r, nil
 	}
 
-	return u.userstore.CheckIfUserIsActivated(ctx, userID)
+	isActivated, err := u.userstore.CheckIfUserExists(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := u.cache.SetIsActivated(ctx, userID.String(), isActivated); err != nil {
+		slog.Error("usercache", "err", err)
+	}
+
+	return isActivated, nil
 }
 
 func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
