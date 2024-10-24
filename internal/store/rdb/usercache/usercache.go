@@ -2,8 +2,8 @@ package usercache
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -28,17 +28,14 @@ func New(rdb *redis.Client) *UserCache {
 }
 
 func (u *UserCache) SetUserExists(ctx context.Context, userID string, val bool) error {
-	_, err := u.rdb.Set(
-		ctx,
-		fmt.Sprintf("user:%s:exists", userID),
-		val,
-		time.Hour,
-	).Result()
+	_, err := u.rdb.
+		Set(ctx, getKey("exists", userID), val, time.Hour).
+		Result()
 	return err
 }
 
 func (u *UserCache) GetUserExists(ctx context.Context, userID string) (bool, error) {
-	res, err := u.rdb.Get(ctx, fmt.Sprintf("user:%s:exists", userID)).Bool()
+	res, err := u.rdb.Get(ctx, getKey(userID, "exists")).Bool()
 	if err != nil {
 		slog.ErrorContext(ctx, "usercache", "err", err)
 		return false, err
@@ -48,20 +45,27 @@ func (u *UserCache) GetUserExists(ctx context.Context, userID string) (bool, err
 }
 
 func (u *UserCache) SetUserIsActivated(ctx context.Context, userID string, val bool) error {
-	_, err := u.rdb.Set(
-		ctx,
-		fmt.Sprintf("user:%s:activated", userID),
-		val,
-		time.Hour,
-	).Result()
+	_, err := u.rdb.
+		Set(ctx, getKey("activated", userID), val, time.Hour).
+		Result()
 	return err
 }
 
 func (u *UserCache) GetUserIsActivated(ctx context.Context, userID string) (bool, error) {
-	res, err := u.rdb.Get(ctx, fmt.Sprintf("user:%s:activated", userID)).Bool()
+	res, err := u.rdb.Get(ctx, getKey(userID, "activated")).Bool()
 	if err != nil {
 		slog.ErrorContext(ctx, "usercache", "err", err)
 		return false, err
 	}
 	return res, nil
+}
+
+// getKey return a key for redis in this format user:<userID>:<key>
+func getKey(userID, key string) string {
+	var sb strings.Builder
+	sb.WriteString("user:")
+	sb.WriteString(userID)
+	sb.WriteString(":")
+	sb.WriteString(key)
+	return sb.String()
 }
