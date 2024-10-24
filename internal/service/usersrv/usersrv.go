@@ -239,6 +239,10 @@ func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, err
 }
 
 func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
+	if r, err := u.cache.GetUserIsActivated(ctx, userID.String()); err == nil {
+		return r, nil
+	}
+
 	return u.userstore.CheckIfUserIsActivated(ctx, userID)
 }
 
