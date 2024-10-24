@@ -25,12 +25,16 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
+	"github.com/olexsmir/onasty/internal/store/rdb"
+	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	tsredis "github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -46,6 +50,9 @@ type (
 
 		postgresDB   *psqlutil.DB
 		stopPostgres stopDBFunc
+
+		redis     *rdb.DB
+		stopRedis stopDBFunc
 
 		router       http.Handler
 		hasher       hasher.Hasher
@@ -72,11 +79,13 @@ func (e *AppTestSuite) SetupSuite() {
 	e.ctx = context.Background()
 	e.require = e.Require()
 
-	db, stop, err := e.prepPostgres()
-	e.require.NoError(err)
-
+	db, stop := e.prepPostgres()
 	e.postgresDB = db
 	e.stopPostgres = stop
+
+	rdb, stop := e.prepRedis()
+	e.redis = rdb
+	e.stopRedis = stop
 
 	e.initDeps()
 }
@@ -103,6 +112,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
+	usercache := usercache.New(e.redis, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
@@ -110,6 +120,7 @@ func (e *AppTestSuite) initDeps() {
 		e.hasher,
 		e.jwtTokenizer,
 		e.mailer,
+		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.AppURL,
@@ -129,7 +140,7 @@ func (e *AppTestSuite) initDeps() {
 	e.router = handler.Handler()
 }
 
-func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
+func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc) {
 	dbCredential := "testing"
 	postgresContainer, err := postgres.Run(e.ctx,
 		"postgres:16-alpine",
@@ -139,10 +150,7 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")))
 	e.require.NoError(err)
 
-	stop := func() {
-		err = postgresContainer.Terminate(e.ctx)
-		e.require.NoError(err)
-	}
+	stop := func() { e.require.NoError(postgresContainer.Terminate(e.ctx)) }
 
 	// connect to the db
 	host, err := postgresContainer.Host(e.ctx)
@@ -175,10 +183,28 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	)
 	e.require.NoError(err)
 
-	err = m.Up()
+	e.require.NoError(m.Up())
+	e.require.NoError(driver.Close())
+
+	return db, stop
+}
+
+func (e *AppTestSuite) prepRedis() (*rdb.DB, stopDBFunc) {
+	redisContainer, err := tsredis.Run(e.ctx, "redis:7.4-alpine")
 	e.require.NoError(err)
 
-	return db, stop, driver.Close()
+	stop := func() { e.require.NoError(redisContainer.Terminate(e.ctx)) }
+
+	uri, err := redisContainer.ConnectionString(e.ctx)
+	e.require.NoError(err)
+
+	connOpts, err := redis.ParseURL(uri)
+	e.require.NoError(err)
+
+	redis, err := rdb.Connect(e.ctx, connOpts.Addr, connOpts.Password, connOpts.DB)
+	e.require.NoError(err)
+
+	return redis, stop
 }
 
 func (e *AppTestSuite) getConfig() *config.Config {
@@ -194,5 +220,6 @@ func (e *AppTestSuite) getConfig() *config.Config {
 		LogShowLine:          os.Getenv("LOG_SHOW_LINE") == "true",
 		LogFormat:            "text",
 		LogLevel:             "debug",
+		CacheUsersTTL:        time.Second,
 	}
 }
