@@ -138,5 +138,9 @@ func run(ctx context.Context) error {
 		return errors.Join(errors.New("failed to close postgres connection"), err)
 	}
 
+	if err := redisDB.Close(); err != nil {
+		return errors.Join(errors.New("failed to close redis connection"), err)
+	}
+
 	return nil
 }
