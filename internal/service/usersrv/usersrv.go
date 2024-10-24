@@ -232,10 +232,10 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetIsExists(ctx, id.String()); err != nil {
-		slog.ErrorContext(ctx, "usercache", "err", err)
-	} else if err == nil {
+	if r, err := u.cache.GetIsExists(ctx, id.String()); err == nil {
 		return r, nil
+	} else { //nolint:revive
+		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
 	isExists, err := u.userstore.CheckIfUserExists(ctx, id)
@@ -251,10 +251,10 @@ func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, err
 }
 
 func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetIsActivated(ctx, userID.String()); err != nil {
-		slog.ErrorContext(ctx, "usercache", "err", err)
-	} else if err == nil {
+	if r, err := u.cache.GetIsActivated(ctx, userID.String()); err == nil {
 		return r, nil
+	} else { //nolint:revive
+		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
 	isActivated, err := u.userstore.CheckIfUserExists(ctx, userID)
