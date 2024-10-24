@@ -2,7 +2,6 @@ package usercache
 
 import (
 	"context"
-	"log/slog"
 	"strings"
 	"time"
 
