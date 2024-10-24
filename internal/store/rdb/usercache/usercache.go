@@ -21,15 +21,19 @@ var _ UserCacheer = (*UserCache)(nil)
 
 type UserCache struct {
 	rdb *redis.Client
+	ttl time.Duration
 }
 
-func New(rdb *redis.Client) *UserCache {
-	return &UserCache{rdb}
+func New(rdb *redis.Client, ttl time.Duration) *UserCache {
+	return &UserCache{
+		rdb: rdb,
+		ttl: ttl,
+	}
 }
 
 func (u *UserCache) SetUserIsExists(ctx context.Context, userID string, val bool) error {
 	_, err := u.rdb.
-		Set(ctx, getKey("exists", userID), val, time.Hour).
+		Set(ctx, getKey("exists", userID), val, u.ttl).
 		Result()
 	return err
 }
@@ -46,7 +50,7 @@ func (u *UserCache) GetUserIsExists(ctx context.Context, userID string) (bool, e
 
 func (u *UserCache) SetUserIsActivated(ctx context.Context, userID string, val bool) error {
 	_, err := u.rdb.
-		Set(ctx, getKey("activated", userID), val, time.Hour).
+		Set(ctx, getKey("activated", userID), val, u.ttl).
 		Result()
 	return err
 }

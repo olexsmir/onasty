@@ -37,6 +37,8 @@ type Config struct {
 	RateLimiterRPS   int
 	RateLimiterBurst int
 	RateLimiterTTL   time.Duration
+
+	CacheUsersTTL time.Duration
 }
 
 func NewConfig() *Config {
@@ -75,6 +77,8 @@ func NewConfig() *Config {
 		RateLimiterRPS:   mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
 		RateLimiterBurst: mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
 		RateLimiterTTL:   mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
+
+		CacheUsersTTL: mustParseDuration(getenvOrDefault("CACHE_USERS_TTL", "1h")),
 	}
 }
 

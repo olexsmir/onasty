@@ -76,7 +76,7 @@ func run(ctx context.Context) error {
 	vertokrepo := vertokrepo.New(psqlDB)
 
 	userepo := userepo.New(psqlDB)
-	usercache := usercache.New(rdb)
+	usercache := usercache.New(rdb, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
