@@ -17,6 +17,9 @@ type Config struct {
 
 	RedisAddr     string
 	RedisPassword string
+	RedisDB       int
+
+	CacheUsersTTL time.Duration
 
 	JwtSigningKey      string
 	JwtAccessTokenTTL  time.Duration
@@ -37,8 +40,6 @@ type Config struct {
 	RateLimiterRPS   int
 	RateLimiterBurst int
 	RateLimiterTTL   time.Duration
-
-	CacheUsersTTL time.Duration
 }
 
 func NewConfig() *Config {
@@ -47,10 +48,14 @@ func NewConfig() *Config {
 		AppURL:     getenvOrDefault("APP_URL", ""),
 		ServerPort: getenvOrDefault("SERVER_PORT", "3000"),
 
-		PostgresDSN:   getenvOrDefault("POSTGRESQL_DSN", ""),
-		PasswordSalt:  getenvOrDefault("PASSWORD_SALT", ""),
+		PostgresDSN:  getenvOrDefault("POSTGRESQL_DSN", ""),
+		PasswordSalt: getenvOrDefault("PASSWORD_SALT", ""),
+
 		RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
 		RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),
+		RedisDB:       mustGetenvOrDefaultInt(getenvOrDefault("REDIS_DB", "0"), 0),
+
+		CacheUsersTTL: mustParseDuration(getenvOrDefault("CACHE_USERS_TTL", "1h")),
 
 		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
 		JwtAccessTokenTTL: mustParseDuration(
@@ -77,8 +82,6 @@ func NewConfig() *Config {
 		RateLimiterRPS:   mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
 		RateLimiterBurst: mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
 		RateLimiterTTL:   mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
-
-		CacheUsersTTL: mustParseDuration(getenvOrDefault("CACHE_USERS_TTL", "1h")),
 	}
 }
 

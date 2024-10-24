@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/olexsmir/onasty/internal/store/rdb"
 )
 
 type UserCacheer interface {
@@ -19,11 +19,11 @@ type UserCacheer interface {
 var _ UserCacheer = (*UserCache)(nil)
 
 type UserCache struct {
-	rdb *redis.Client
+	rdb *rdb.DB
 	ttl time.Duration
 }
 
-func New(rdb *redis.Client, ttl time.Duration) *UserCache {
+func New(rdb *rdb.DB, ttl time.Duration) *UserCache {
 	return &UserCache{
 		rdb: rdb,
 		ttl: ttl,
