@@ -231,7 +231,7 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetUserExists(ctx, id.String()); err == nil {
+	if r, err := u.cache.GetUserIsExists(ctx, id.String()); err == nil {
 		return r, nil
 	}
 
