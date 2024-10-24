@@ -78,15 +78,11 @@ func (e *AppTestSuite) SetupSuite() {
 	e.ctx = context.Background()
 	e.require = e.Require()
 
-	db, stop, err := e.prepPostgres()
-	e.require.NoError(err)
-
+	db, stop := e.prepPostgres()
 	e.postgresDB = db
 	e.stopPostgres = stop
 
-	rdb, stop, err := e.prepRedis()
-	e.require.NoError(err)
-
+	rdb, stop := e.prepRedis()
 	e.redis = rdb
 	e.stopRedis = stop
 
@@ -143,7 +139,7 @@ func (e *AppTestSuite) initDeps() {
 	e.router = handler.Handler()
 }
 
-func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
+func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc) {
 	dbCredential := "testing"
 	postgresContainer, err := postgres.Run(e.ctx,
 		"postgres:16-alpine",
@@ -153,10 +149,7 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")))
 	e.require.NoError(err)
 
-	stop := func() {
-		err = postgresContainer.Terminate(e.ctx)
-		e.require.NoError(err)
-	}
+	stop := func() { e.require.NoError(postgresContainer.Terminate(e.ctx)) }
 
 	// connect to the db
 	host, err := postgresContainer.Host(e.ctx)
@@ -189,20 +182,17 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc, error) {
 	)
 	e.require.NoError(err)
 
-	err = m.Up()
-	e.require.NoError(err)
+	e.require.NoError(m.Up())
+	e.require.NoError(driver.Close())
 
-	return db, stop, driver.Close()
+	return db, stop
 }
 
-func (e *AppTestSuite) prepRedis() (*redis.Client, stopDBFunc, error) {
+func (e *AppTestSuite) prepRedis() (*redis.Client, stopDBFunc) {
 	redisContainer, err := tsredis.Run(e.ctx, "redis:7.4-alpine")
 	e.require.NoError(err)
 
-	stop := func() {
-		err := redisContainer.Terminate(e.ctx)
-		e.require.NoError(err)
-	}
+	stop := func() { e.require.NoError(redisContainer.Terminate(e.ctx)) }
 
 	uri, err := redisContainer.ConnectionString(e.ctx)
 	e.require.NoError(err)
@@ -211,8 +201,7 @@ func (e *AppTestSuite) prepRedis() (*redis.Client, stopDBFunc, error) {
 	e.require.NoError(err)
 
 	rdb := redis.NewClient(connOpts)
-
-	return rdb, stop, nil
+	return rdb, stop
 }
 
 func (e *AppTestSuite) getConfig() *config.Config {
