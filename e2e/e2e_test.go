@@ -79,13 +79,8 @@ func (e *AppTestSuite) SetupSuite() {
 	e.ctx = context.Background()
 	e.require = e.Require()
 
-	db, stop := e.prepPostgres()
-	e.postgresDB = db
-	e.stopPostgres = stop
-
-	rdb, stop := e.prepRedis()
-	e.redis = rdb
-	e.stopRedis = stop
+	e.postgresDB, e.stopPostgres = e.prepPostgres()
+	e.redis, e.stopRedis = e.prepRedis()
 
 	e.initDeps()
 }
