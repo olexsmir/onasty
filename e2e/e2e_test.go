@@ -33,15 +33,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	tsredis "github.com/testcontainers/testcontainers-go/modules/redis"
+	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
+	tcredis "github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/testcontainers/testcontainers-go/wait"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type (
-	stopDBFunc   func()
+	stopFunc     func()
 	AppTestSuite struct {
 		suite.Suite
 
@@ -49,10 +49,10 @@ type (
 		require *require.Assertions
 
 		postgresDB   *psqlutil.DB
-		stopPostgres stopDBFunc
+		stopPostgres stopFunc
 
 		redis     *rdb.DB
-		stopRedis stopDBFunc
+		stopRedis stopFunc
 
 		router       http.Handler
 		hasher       hasher.Hasher
@@ -140,13 +140,13 @@ func (e *AppTestSuite) initDeps() {
 	e.router = handler.Handler()
 }
 
-func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc) {
+func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopFunc) {
 	dbCredential := "testing"
-	postgresContainer, err := postgres.Run(e.ctx,
+	postgresContainer, err := tcpostgres.Run(e.ctx,
 		"postgres:16-alpine",
-		postgres.WithUsername(dbCredential),
-		postgres.WithPassword(dbCredential),
-		postgres.WithDatabase(dbCredential),
+		tcpostgres.WithUsername(dbCredential),
+		tcpostgres.WithPassword(dbCredential),
+		tcpostgres.WithDatabase(dbCredential),
 		testcontainers.WithWaitStrategy(wait.ForListeningPort("5432/tcp")))
 	e.require.NoError(err)
 
@@ -189,8 +189,8 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopDBFunc) {
 	return db, stop
 }
 
-func (e *AppTestSuite) prepRedis() (*rdb.DB, stopDBFunc) {
-	redisContainer, err := tsredis.Run(e.ctx, "redis:7.4-alpine")
+func (e *AppTestSuite) prepRedis() (*rdb.DB, stopFunc) {
+	redisContainer, err := tcredis.Run(e.ctx, "redis:7.4-alpine")
 	e.require.NoError(err)
 
 	stop := func() { e.require.NoError(redisContainer.Terminate(e.ctx)) }
