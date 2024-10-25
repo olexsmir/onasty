@@ -159,17 +159,14 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopFunc) {
 	port, err := postgresContainer.MappedPort(e.ctx, "5432/tcp")
 	e.require.NoError(err)
 
-	db, err := psqlutil.Connect(
-		e.ctx,
-		fmt.Sprintf( //nolint:nosprintfhostport
-			"postgres://%s:%s@%s:%s/%s",
-			dbCredential,
-			dbCredential,
-			host,
-			port.Port(),
-			dbCredential,
-		),
-	)
+	db, err := psqlutil.Connect(e.ctx, fmt.Sprintf( //nolint:nosprintfhostport
+		"postgres://%s:%s@%s:%s/%s",
+		dbCredential,
+		dbCredential,
+		host,
+		port.Port(),
+		dbCredential,
+	))
 	e.require.NoError(err)
 
 	// run migrations
