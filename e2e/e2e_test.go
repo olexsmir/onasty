@@ -92,6 +92,7 @@ func (e *AppTestSuite) SetupSuite() {
 
 func (e *AppTestSuite) TearDownSuite() {
 	e.stopPostgres()
+	e.stopRedis()
 }
 
 // initDeps initializes the dependencies for the app
