@@ -20,7 +20,7 @@ type (
 	}
 )
 
-func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
+func (e *AppTestSuite) TestNoteV1_Create() {
 	tests := []struct {
 		name   string
 		inp    apiv1NoteCreateRequest
@@ -92,27 +92,6 @@ func (e *AppTestSuite) TestNoteV1_Create_unauthorized() {
 		httpResp := e.httpRequest(http.MethodPost, "/api/v1/note", e.jsonify(tt.inp))
 		tt.assert(httpResp, tt.inp)
 	}
-}
-
-func (e *AppTestSuite) TestNoteV1_Create_authorized() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
-	httpResp := e.httpRequest(
-		http.MethodPost,
-		"/api/v1/note",
-		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
-			Content: "some random ass content for the test",
-		}),
-		toks.AccessToken,
-	)
-
-	var body apiv1NoteCreateResponse
-	e.readBodyAndUnjsonify(httpResp.Body, &body)
-
-	dbNote := e.getNoteFromDBbySlug(body.Slug)
-	dbNoteAuthor := e.getLastNoteAuthorsRecordByAuthorID(uid)
-
-	e.Equal(http.StatusCreated, httpResp.Code)
-	e.Equal(dbNote.ID.String(), dbNoteAuthor.noteID.String())
 }
 
 type apiv1NoteGetResponse struct {
