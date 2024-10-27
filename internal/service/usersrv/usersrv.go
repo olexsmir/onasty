@@ -3,6 +3,7 @@ package usersrv
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -14,6 +15,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
+	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
@@ -43,6 +45,7 @@ type UserSrv struct {
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
 	mailer       mailer.Mailer
+	cache        usercache.UserCacheer
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
@@ -56,6 +59,7 @@ func New(
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailer mailer.Mailer,
+	cache usercache.UserCacheer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 	appURL string,
 ) *UserSrv {
@@ -66,6 +70,7 @@ func New(
 		hasher:               hasher,
 		jwtTokenizer:         jwtTokenizer,
 		mailer:               mailer,
+		cache:                cache,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
 		appURL:               appURL,
@@ -227,11 +232,41 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	return u.userstore.CheckIfUserExists(ctx, id)
+	if r, err := u.cache.GetIsExists(ctx, id.String()); err == nil {
+		return r, nil
+	} else { //nolint:revive
+		slog.ErrorContext(ctx, "usercache", "err", err)
+	}
+
+	isExists, err := u.userstore.CheckIfUserExists(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	if err := u.cache.SetIsExists(ctx, id.String(), isExists); err != nil {
+		slog.Error("usercache", "err", err)
+	}
+
+	return isExists, nil
 }
 
 func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
-	return u.userstore.CheckIfUserIsActivated(ctx, userID)
+	if r, err := u.cache.GetIsActivated(ctx, userID.String()); err == nil {
+		return r, nil
+	} else { //nolint:revive
+		slog.ErrorContext(ctx, "usercache", "err", err)
+	}
+
+	isActivated, err := u.userstore.CheckIfUserExists(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+
+	if err := u.cache.SetIsActivated(ctx, userID.String(), isActivated); err != nil {
+		slog.Error("usercache", "err", err)
+	}
+
+	return isActivated, nil
 }
 
 func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {

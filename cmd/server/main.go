@@ -23,6 +23,8 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
+	"github.com/olexsmir/onasty/internal/store/rdb"
+	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
@@ -61,6 +63,11 @@ func run(ctx context.Context) error {
 		return err
 	}
 
+	redisDB, err := rdb.Connect(ctx, cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		return err
+	}
+
 	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
@@ -69,6 +76,7 @@ func run(ctx context.Context) error {
 	vertokrepo := vertokrepo.New(psqlDB)
 
 	userepo := userepo.New(psqlDB)
+	usercache := usercache.New(redisDB, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
@@ -76,6 +84,7 @@ func run(ctx context.Context) error {
 		sha256Hasher,
 		jwtTokenizer,
 		mailGunMailer,
+		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.AppURL,
@@ -127,6 +136,10 @@ func run(ctx context.Context) error {
 
 	if err := psqlDB.Close(); err != nil {
 		return errors.Join(errors.New("failed to close postgres connection"), err)
+	}
+
+	if err := redisDB.Close(); err != nil {
+		return errors.Join(errors.New("failed to close redis connection"), err)
 	}
 
 	return nil
