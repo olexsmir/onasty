@@ -51,7 +51,7 @@ type (
 		postgresDB   *psqlutil.DB
 		stopPostgres stopFunc
 
-		redis     *rdb.DB
+		redisDB   *rdb.DB
 		stopRedis stopFunc
 
 		router       http.Handler
@@ -80,7 +80,7 @@ func (e *AppTestSuite) SetupSuite() {
 	e.require = e.Require()
 
 	e.postgresDB, e.stopPostgres = e.prepPostgres()
-	e.redis, e.stopRedis = e.prepRedis()
+	e.redisDB, e.stopRedis = e.prepRedis()
 
 	e.initDeps()
 }
@@ -108,7 +108,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
 	userepo := userepo.New(e.postgresDB)
-	usercache := usercache.New(e.redis, cfg.CacheUsersTTL)
+	usercache := usercache.New(e.redisDB, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
 		sessionrepo,
