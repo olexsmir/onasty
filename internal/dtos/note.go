@@ -12,6 +12,7 @@ type NoteDTO struct {
 	Content              string
 	Slug                 string
 	BurnBeforeExpiration bool
+	Password             string
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
 }
@@ -21,6 +22,7 @@ type CreateNoteDTO struct {
 	UserID               uuid.UUID
 	Slug                 string
 	BurnBeforeExpiration bool
+	Password             string
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
 }
