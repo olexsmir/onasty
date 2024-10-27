@@ -33,8 +33,8 @@ func New(db *psqlutil.DB) *NoteRepo {
 func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNoteDTO) error {
 	query, args, err := pgq.
 		Insert("notes").
-		Columns("content", "slug", "burn_before_expiration ", "created_at", "expires_at").
-		Values(inp.Content, inp.Slug, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
+		Columns("content", "slug", "password", "burn_before_expiration ", "created_at", "expires_at").
+		Values(inp.Content, inp.Slug, inp.Password, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
 		SQL()
 	if err != nil {
 		return err
