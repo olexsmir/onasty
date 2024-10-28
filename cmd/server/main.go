@@ -91,7 +91,7 @@ func run(ctx context.Context) error {
 	)
 
 	noterepo := noterepo.New(psqlDB)
-	notesrv := notesrv.New(noterepo, sha256Hasher)
+	notesrv := notesrv.New(noterepo, sha256Hasher) // TODO: setup other hasher for note passwords
 
 	rateLimiterConfig := ratelimit.Config{
 		RPS:   cfg.RateLimiterRPS,
