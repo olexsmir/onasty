@@ -12,6 +12,7 @@ import (
 type createNoteRequest struct {
 	Content              string    `json:"content"`
 	Slug                 string    `json:"slug"`
+	Password             string    `json:"password"`
 	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
 	ExpiresAt            time.Time `json:"expires_at"`
 }
@@ -44,6 +45,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		Content:              note.Content,
 		UserID:               a.getUserID(c),
 		Slug:                 note.Slug,
+		Password:             note.Password,
 		BurnBeforeExpiration: note.BurnBeforeExpiration,
 		CreatedAt:            note.CreatedAt,
 		ExpiresAt:            note.ExpiresAt,

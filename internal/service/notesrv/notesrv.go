@@ -2,9 +2,11 @@ package notesrv
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
+	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 )
@@ -14,6 +16,7 @@ type NoteServicer interface {
 	// if slug is empty it will be generated, otherwise used as is
 	// if userID is empty it means user isn't authorized so it will be used
 	Create(ctx context.Context, note dtos.CreateNoteDTO, userID uuid.UUID) (dtos.NoteSlugDTO, error)
+
 	GetBySlugAndRemoveIfNeeded(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
 }
 
@@ -21,11 +24,13 @@ var _ NoteServicer = (*NoteSrv)(nil)
 
 type NoteSrv struct {
 	noterepo noterepo.NoteStorer
+	hasher   hasher.Hasher
 }
 
-func New(noterepo noterepo.NoteStorer) *NoteSrv {
+func New(noterepo noterepo.NoteStorer, hasher hasher.Hasher) *NoteSrv {
 	return &NoteSrv{
 		noterepo: noterepo,
+		hasher:   hasher,
 	}
 }
 
