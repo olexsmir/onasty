@@ -39,11 +39,12 @@ func (n *NoteSrv) Create(
 	inp dtos.CreateNoteDTO,
 	userID uuid.UUID,
 ) (dtos.NoteSlugDTO, error) {
+	slog.DebugContext(ctx, "creating", "inp", inp)
+
 	if inp.Slug == "" {
 		inp.Slug = uuid.Must(uuid.NewV4()).String()
 	}
 
-	slog.DebugContext(ctx, "creating", "inp", inp)
 	if inp.Password != "" {
 		hashedPassword, err := n.hasher.Hash(inp.Password)
 		if err != nil {
