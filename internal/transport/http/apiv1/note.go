@@ -33,6 +33,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		Slug:                 req.Slug,
 		BurnBeforeExpiration: req.BurnBeforeExpiration,
 		CreatedAt:            time.Now(),
+		Password:             req.Password,
 		ExpiresAt:            req.ExpiresAt,
 	}
 
