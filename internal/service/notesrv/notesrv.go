@@ -43,8 +43,16 @@ func (n *NoteSrv) Create(
 		inp.Slug = uuid.Must(uuid.NewV4()).String()
 	}
 
-	err := n.noterepo.Create(ctx, inp)
-	if err != nil {
+	slog.DebugContext(ctx, "creating", "inp", inp)
+	if inp.Password != "" {
+		hashedPassword, err := n.hasher.Hash(inp.Password)
+		if err != nil {
+			return "", err
+		}
+		inp.Password = hashedPassword
+	}
+
+	if err := n.noterepo.Create(ctx, inp); err != nil {
 		return "", err
 	}
 
