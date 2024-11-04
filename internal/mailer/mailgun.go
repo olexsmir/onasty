@@ -26,8 +26,8 @@ func NewMailgun(from, domain, apiKey string) *Mailgun {
 }
 
 func (m *Mailgun) Send(ctx context.Context, to, subject, content string) error {
-	msg := m.mg.NewMessage(m.from, subject, "", to)
-	msg.SetHtml(content)
+	msg := mailgun.NewMessage(m.from, subject, "", to)
+	msg.SetHTML(content)
 
 	slog.InfoContext(ctx, "email sent", "to", to)
 
