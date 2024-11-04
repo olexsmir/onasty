@@ -8,7 +8,8 @@ RUN go mod download
 COPY cmd cmd
 COPY internal internal
 
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags='-w -s' -o /onasty ./cmd/server
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+RUN go build -trimpath -ldflags='-w -s' -o /onasty ./cmd/server
 
 FROM alpine:3.20
 COPY --from=builder /onasty /onasty
