@@ -34,7 +34,7 @@ func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
 	switch format {
 	case "json":
 		slogHandler = slog.NewJSONHandler(os.Stdout, handlerOptions)
-	case "text":
+	case "text", "txt":
 		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
 	default:
 		return nil, errors.New("unknown log format")
