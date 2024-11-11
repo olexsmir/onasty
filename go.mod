@@ -10,7 +10,7 @@ require (
 	github.com/henvic/pgq v0.0.3
 	github.com/jackc/pgx-gofrs-uuid v0.0.0-20230224015001-1d428863c2e2
 	github.com/jackc/pgx/v5 v5.7.1
-	github.com/mailgun/mailgun-go/v4 v4.18.1
+	github.com/mailgun/mailgun-go/v4 v4.18.5
 	github.com/prometheus/client_golang v1.20.5
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/stretchr/testify v1.9.0
