@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/service/notesrv"
 )
 
 type createNoteRequest struct {
@@ -59,6 +60,10 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, createNoteResponse{slug})
 }
 
+type getNoteBySlugRequest struct {
+	Password string `json:"password,omitempty"`
+}
+
 type getNoteBySlugResponse struct {
 	Content   string    `json:"content"`
 	CratedAt  time.Time `json:"crated_at"`
@@ -66,8 +71,20 @@ type getNoteBySlugResponse struct {
 }
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
+	var req getNoteBySlugRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
 	slug := c.Param("slug")
-	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(c.Request.Context(), slug)
+	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(
+		c.Request.Context(),
+		notesrv.GetNoteBySlugInput{
+			Slug:     slug,
+			Password: req.Password,
+		},
+	)
 	if err != nil {
 		errorResponse(c, err)
 		return

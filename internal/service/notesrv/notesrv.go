@@ -17,7 +17,8 @@ type NoteServicer interface {
 	// if userID is empty it means user isn't authorized so it will be used
 	Create(ctx context.Context, note dtos.CreateNoteDTO, userID uuid.UUID) (dtos.NoteSlugDTO, error)
 
-	GetBySlugAndRemoveIfNeeded(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
+	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed
+	GetBySlugAndRemoveIfNeeded(ctx context.Context, input GetNoteBySlugInput) (dtos.NoteDTO, error)
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -68,9 +69,13 @@ func (n *NoteSrv) Create(
 
 func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	ctx context.Context,
-	slug dtos.NoteSlugDTO,
+	inp GetNoteBySlugInput,
 ) (dtos.NoteDTO, error) {
-	note, err := n.noterepo.GetBySlug(ctx, slug)
+	if err := inp.Validate(); err != nil {
+		return dtos.NoteDTO{}, err
+	}
+
+	note, err := n.noterepo.GetBySlug(ctx, inp.Slug)
 	if err != nil {
 		return dtos.NoteDTO{}, err
 	}
