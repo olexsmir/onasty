@@ -13,7 +13,7 @@ import (
 )
 
 type NoteStorer interface {
-	// Create creates a note
+	// Create creates a note.
 	Create(ctx context.Context, inp dtos.CreateNoteDTO) error
 
 	// GetBySlug gets a note by slug.
