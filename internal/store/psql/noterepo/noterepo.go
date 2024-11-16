@@ -13,10 +13,28 @@ import (
 )
 
 type NoteStorer interface {
+	// Create creates a note
 	Create(ctx context.Context, inp dtos.CreateNoteDTO) error
+
+	// GetBySlug gets a note by slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
+
+	// GetBySlugAndPassword gets a note by slug and password.
+	// the "password" should be hashed.
+	//
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	GetBySlugAndPassword(
+		ctx context.Context,
+		slug dtos.NoteSlugDTO,
+		password string,
+	) (dtos.NoteDTO, error)
+
+	// DeleteBySlug deletes note by slug or returns [models.ErrNoteNotFound] if note if not found.
 	DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
 
+	// SetAuthorIDBySlug assigns author to note by slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
 	SetAuthorIDBySlug(ctx context.Context, slug dtos.NoteSlugDTO, authorID uuid.UUID) error
 }
 
