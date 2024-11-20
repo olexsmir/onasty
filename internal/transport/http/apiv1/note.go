@@ -1,6 +1,8 @@
 package apiv1
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"time"
 
@@ -72,7 +74,7 @@ type getNoteBySlugResponse struct {
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	var req getNoteBySlugRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
 		newError(c, http.StatusBadRequest, "invalid request")
 		return
 	}
