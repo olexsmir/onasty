@@ -31,6 +31,7 @@ import (
 )
 
 func main() {
+	panic()
 	if err := run(context.Background()); err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
