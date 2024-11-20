@@ -71,10 +71,6 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	ctx context.Context,
 	inp GetNoteBySlugInput,
 ) (dtos.NoteDTO, error) {
-	if err := inp.Validate(); err != nil {
-		return dtos.NoteDTO{}, err
-	}
-
 	note, err := n.getNoteFromDBasedOnInput(ctx, inp)
 	if err != nil {
 		return dtos.NoteDTO{}, err
