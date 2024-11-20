@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["*.go", "go.mod", "go.sum"]
+    paths: ["**.go", "go.mod", "go.sum"]
   pull_request:
-    paths: ["*.go", "go.mod", "go.sum"]
+    paths: ["**.go", "go.mod", "go.sum"]
 
 jobs:
   release:
