@@ -75,7 +75,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 		return dtos.NoteDTO{}, err
 	}
 
-	note, err := n.noterepo.GetBySlug(ctx, inp.Slug)
+	note, err := n.getNoteFromDBasedOnInput(ctx, inp)
 	if err != nil {
 		return dtos.NoteDTO{}, err
 	}
@@ -98,4 +98,19 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	// TODO: in future not remove, leave some metadata
 	// to shot user that note was already seen
 	return note, n.noterepo.DeleteBySlug(ctx, note.Slug)
+}
+
+func (n *NoteSrv) getNoteFromDBasedOnInput(
+	ctx context.Context,
+	inp GetNoteBySlugInput,
+) (dtos.NoteDTO, error) {
+	if inp.HasPassword() {
+		hashedPassword, err := n.hasher.Hash(inp.Password)
+		if err != nil {
+			return dtos.NoteDTO{}, err
+		}
+
+		return n.noterepo.GetBySlugAndPassword(ctx, inp.Slug, hashedPassword)
+	}
+	return n.noterepo.GetBySlug(ctx, inp.Slug)
 }

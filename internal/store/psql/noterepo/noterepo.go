@@ -70,7 +70,38 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.N
 	query, args, err := pgq.
 		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
 		From("notes").
-		Where("slug = ?", slug).
+		Where(pgq.Eq{
+			"slug":     slug,
+			"password": "is null",
+		}).
+		SQL()
+	if err != nil {
+		return dtos.NoteDTO{}, err
+	}
+
+	var note dtos.NoteDTO
+	err = s.db.QueryRow(ctx, query, args...).
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return dtos.NoteDTO{}, models.ErrNoteNotFound
+	}
+
+	return note, err
+}
+
+func (s *NoteRepo) GetBySlugAndPassword(
+	ctx context.Context,
+	slug dtos.NoteSlugDTO,
+	passwd string,
+) (dtos.NoteDTO, error) {
+	query, args, err := pgq.
+		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		From("notes").
+		Where(pgq.Eq{
+			"slug":     slug,
+			"password": passwd,
+		}).
 		SQL()
 	if err != nil {
 		return dtos.NoteDTO{}, err

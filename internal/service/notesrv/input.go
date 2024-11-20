@@ -25,3 +25,7 @@ func (i GetNoteBySlugInput) Validate() error {
 
 	return nil
 }
+
+func (i GetNoteBySlugInput) HasPassword() bool {
+	return i.Password != ""
+}
