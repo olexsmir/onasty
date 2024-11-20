@@ -12,6 +12,7 @@ type (
 	apiv1NoteCreateRequest struct {
 		Content              string    `json:"content"`
 		Slug                 string    `json:"slug"`
+		Password             string    `json:"password"`
 		BurnBeforeExpiration bool      `json:"burn_before_expiration"`
 		ExpiresAt            time.Time `json:"expires_at"`
 	}
@@ -63,6 +64,16 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 
 				dbNote := e.getNoteFromDBbySlug(inp.Slug)
 				e.NotEmpty(dbNote)
+			},
+		},
+		{
+			name: "set password",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content:  e.uuid(),
+				Password: e.uuid(),
+			},
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
+				e.Equal(r.Code, http.StatusCreated)
 			},
 		},
 		{
@@ -124,4 +135,79 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 
 	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
 	e.Empty(dbNote)
+}
+
+type apiv1NoteGetRequest struct {
+	Password string `json:"password"`
+}
+
+func (e *AppTestSuite) TestNoteV1_GetWithPassword() {
+	content := e.uuid()
+	passwd := e.uuid()
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:  content,
+			Password: passwd,
+		}),
+	)
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
+
+	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, e.jsonify(apiv1NoteGetRequest{
+		Password: passwd,
+	}))
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	var body apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	e.Equal(content, body.Content)
+
+	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
+	e.Empty(dbNote)
+}
+
+func (e *AppTestSuite) TestNoteV1_GetWithPassword_wrongNoPassword() {
+	content := e.uuid()
+	passwd := e.uuid()
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:  content,
+			Password: passwd,
+		}),
+	)
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
+
+	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(httpResp.Code, http.StatusNotFound)
+}
+
+func (e *AppTestSuite) TestNoteV1_GetWithPassword_wrong() {
+	content := e.uuid()
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:  content,
+			Password: e.uuid(),
+		}),
+	)
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
+
+	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, e.jsonify(apiv1NoteGetRequest{
+		Password: e.uuid(),
+	}))
+	e.Equal(httpResp.Code, http.StatusNotFound)
 }
