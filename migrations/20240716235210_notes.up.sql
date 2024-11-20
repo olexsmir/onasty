@@ -1,8 +1,8 @@
-create table notes (
-  id uuid primary key default uuid_generate_v4(),
-  content text not null,
-  slug varchar(255) not null unique,
-  burn_before_expiration boolean default false,
-  created_at timestamptz not null default now(),
-  expires_at timestamptz
+CREATE TABLE notes (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    content text NOT NULL,
+    slug varchar(255) NOT NULL UNIQUE,
+    burn_before_expiration boolean DEFAULT FALSE,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    expires_at timestamptz
 );

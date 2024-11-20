@@ -1,9 +1,9 @@
-create table users (
-  id uuid primary key default uuid_generate_v4(),
-  username varchar(255) not null unique,
-  email varchar(255) not null unique,
-  password varchar(255) not null,
-  activated boolean not null default false,
-  created_at timestamptz not null default now(),
-  last_login_at timestamptz not null default now()
+CREATE TABLE users (
+    id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username varchar(255) NOT NULL UNIQUE,
+    email varchar(255) NOT NULL UNIQUE,
+    password varchar(255) NOT NULL,
+    activated boolean NOT NULL DEFAULT FALSE,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    last_login_at timestamptz NOT NULL DEFAULT now()
 );

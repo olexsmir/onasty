@@ -1,1 +1,1 @@
-drop table notes_authors;
+DROP TABLE notes_authors;

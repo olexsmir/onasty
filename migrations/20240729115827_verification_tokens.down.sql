@@ -1,1 +1,1 @@
-drop table verification_tokens;
+DROP TABLE verification_tokens;
