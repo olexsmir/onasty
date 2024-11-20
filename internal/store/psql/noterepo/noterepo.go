@@ -13,10 +13,28 @@ import (
 )
 
 type NoteStorer interface {
+	// Create creates a note.
 	Create(ctx context.Context, inp dtos.CreateNoteDTO) error
+
+	// GetBySlug gets a note by slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
+
+	// GetBySlugAndPassword gets a note by slug and password.
+	// the "password" should be hashed.
+	//
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	GetBySlugAndPassword(
+		ctx context.Context,
+		slug dtos.NoteSlugDTO,
+		password string,
+	) (dtos.NoteDTO, error)
+
+	// DeleteBySlug deletes note by slug or returns [models.ErrNoteNotFound] if note if not found.
 	DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
 
+	// SetAuthorIDBySlug assigns author to note by slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
 	SetAuthorIDBySlug(ctx context.Context, slug dtos.NoteSlugDTO, authorID uuid.UUID) error
 }
 
@@ -33,8 +51,8 @@ func New(db *psqlutil.DB) *NoteRepo {
 func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNoteDTO) error {
 	query, args, err := pgq.
 		Insert("notes").
-		Columns("content", "slug", "burn_before_expiration ", "created_at", "expires_at").
-		Values(inp.Content, inp.Slug, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
+		Columns("content", "slug", "password", "burn_before_expiration ", "created_at", "expires_at").
+		Values(inp.Content, inp.Slug, inp.Password, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
 		SQL()
 	if err != nil {
 		return err
@@ -52,7 +70,36 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.N
 	query, args, err := pgq.
 		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
 		From("notes").
-		Where("slug = ?", slug).
+		Where("(password is null or password = '')").
+		Where(pgq.Eq{"slug": slug}).
+		SQL()
+	if err != nil {
+		return dtos.NoteDTO{}, err
+	}
+
+	var note dtos.NoteDTO
+	err = s.db.QueryRow(ctx, query, args...).
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return dtos.NoteDTO{}, models.ErrNoteNotFound
+	}
+
+	return note, err
+}
+
+func (s *NoteRepo) GetBySlugAndPassword(
+	ctx context.Context,
+	slug dtos.NoteSlugDTO,
+	passwd string,
+) (dtos.NoteDTO, error) {
+	query, args, err := pgq.
+		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		From("notes").
+		Where(pgq.Eq{
+			"slug":     slug,
+			"password": passwd,
+		}).
 		SQL()
 	if err != nil {
 		return dtos.NoteDTO{}, err

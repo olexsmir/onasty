@@ -18,6 +18,7 @@ type Note struct {
 	ID                   uuid.UUID
 	Content              string
 	Slug                 string
+	Password             string
 	BurnBeforeExpiration bool
 	CreatedAt            time.Time
 	ExpiresAt            time.Time

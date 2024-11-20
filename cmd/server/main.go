@@ -68,7 +68,8 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	sha256Hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
+	userPasswordHasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
+	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePassowrdSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
 
@@ -81,7 +82,7 @@ func run(ctx context.Context) error {
 		userepo,
 		sessionrepo,
 		vertokrepo,
-		sha256Hasher,
+		userPasswordHasher,
 		jwtTokenizer,
 		mailGunMailer,
 		usercache,
@@ -91,7 +92,7 @@ func run(ctx context.Context) error {
 	)
 
 	noterepo := noterepo.New(psqlDB)
-	notesrv := notesrv.New(noterepo)
+	notesrv := notesrv.New(noterepo, notePasswordHasher)
 
 	rateLimiterConfig := ratelimit.Config{
 		RPS:   cfg.RateLimiterRPS,

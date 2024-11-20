@@ -123,7 +123,7 @@ func (e *AppTestSuite) initDeps() {
 	)
 
 	noterepo := noterepo.New(e.postgresDB)
-	notesrv := notesrv.New(noterepo)
+	notesrv := notesrv.New(noterepo, e.hasher)
 
 	// for testing purposes, it's ok to have high values ig
 	ratelimitCfg := ratelimit.Config{
