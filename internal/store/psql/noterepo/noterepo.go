@@ -70,10 +70,8 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.N
 	query, args, err := pgq.
 		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
 		From("notes").
-		Where(pgq.Eq{
-			"slug":     slug,
-			"password": "is null",
-		}).
+		Where("(password is null or password = '')").
+		Where(pgq.Eq{"slug": slug}).
 		SQL()
 	if err != nil {
 		return dtos.NoteDTO{}, err
