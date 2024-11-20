@@ -12,8 +12,9 @@ type Config struct {
 	AppURL     string
 	ServerPort string
 
-	PostgresDSN  string
-	PasswordSalt string
+	PostgresDSN      string
+	PasswordSalt     string
+	NotePassowrdSalt string
 
 	RedisAddr     string
 	RedisPassword string
@@ -48,8 +49,9 @@ func NewConfig() *Config {
 		AppURL:     getenvOrDefault("APP_URL", ""),
 		ServerPort: getenvOrDefault("SERVER_PORT", "3000"),
 
-		PostgresDSN:  getenvOrDefault("POSTGRESQL_DSN", ""),
-		PasswordSalt: getenvOrDefault("PASSWORD_SALT", ""),
+		PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
+		PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),
+		NotePassowrdSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
 
 		RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
 		RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),
