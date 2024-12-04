@@ -5,6 +5,7 @@ dotenv:
 
 includes:
   migrate: ./migrations/Taskfile.yml
+  mailer: ./mailer/Taskfile.yaml
 
 tasks:
   run:
