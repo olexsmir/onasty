@@ -72,7 +72,7 @@ func (r *rateLimiter) getVisitor(ip visitorIP) *rate.Limiter {
 }
 
 // Every minute check the map for visitors that haven't been seen for
-// more than 3 minutes and delete the entries.
+// more than set [rateLimiter.ttl] and delete the entries.
 func (r *rateLimiter) cleanupVisitors() {
 	for {
 		time.Sleep(time.Minute)
