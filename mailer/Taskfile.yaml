@@ -1,0 +1,5 @@
+version: "3"
+
+tasks:
+  run:
+  - bun run ./src/index.ts
