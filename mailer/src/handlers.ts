@@ -1,8 +1,10 @@
-import nats from "nats"
+import nats from "nats";
+import type { Context } from "./context.ts";
 
-export const send = (msg: nats.Msg) => {
-    console.log(
-        msg.json()
-    );
+export const ping = (msg: nats.Msg) => {
+    msg.respond();
+};
 
-}
+export const send = (ctx: Context, msg: nats.Msg) => {
+    msg.respond();
+};
