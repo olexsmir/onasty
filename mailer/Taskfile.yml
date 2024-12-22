@@ -1,0 +1,8 @@
+version: 3
+
+tasks:
+  run:
+    - bun run ./src/index.ts
+
+  build:
+    - bun build ./src/index.ts --target=bun --outfile=mailer.js
