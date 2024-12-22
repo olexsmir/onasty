@@ -10,6 +10,14 @@ services:
       - 8000:8000
       - 8001:8001
 
+  mailer:
+    image: onasty:mailer
+    container_name: onasty-mailer
+    build:
+      context: ./mailer
+      dockerfile: Dockerfile
+    env_file: .env
+
   nats:
     image: nats:2.10
     ports:

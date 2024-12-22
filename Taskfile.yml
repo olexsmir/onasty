@@ -5,11 +5,13 @@ dotenv:
 
 includes:
   migrate: ./migrations/Taskfile.yml
-  mailer: ./mailer/Taskfile.yaml
+  mailer:
+    taskfile: ./mailer/Taskfile.yml
+    dir: ./mailer
 
 tasks:
   run:
-    - docker compose up -d --build --remove-orphans core
+    - docker compose up -d --build --remove-orphans core mailer
 
   lint:
     - golangci-lint run

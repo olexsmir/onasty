@@ -1,4 +1,4 @@
-node_modules/
-*.tsbuildinfo
-.env
-.env.development.local
+/node_modules/
+/*.tsbuildinfo
+/.env
+/dist.js
