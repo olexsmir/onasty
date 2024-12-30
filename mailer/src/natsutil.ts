@@ -8,6 +8,7 @@ export async function subscribe(
     subject: string,
     callback: SubscriberCallbackFunction,
 ) {
+    console.log(`subscribing to ${subject}`)
     const s = conn.subscribe(subject);
     for await (const m of s) {
         callback(m);
@@ -25,6 +26,7 @@ export async function subscribeContext(
     ctx: Context,
     callback: SubscriberCallbackWithContextFunction,
 ) {
+    console.log(`subscribing to ${subject}`)
     const s = conn.subscribe(subject);
     for await (const m of s) {
         callback(ctx, m);
