@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 
-	pgxuuid "github.com/jackc/pgx-gofrs-uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -13,17 +11,7 @@ import (
 type DB struct{ *pgxpool.Pool }
 
 func Connect(ctx context.Context, dsn string) (*DB, error) {
-	dbConf, err := pgxpool.ParseConfig(dsn)
-	if err != nil {
-		return nil, err
-	}
-
-	dbConf.AfterConnect = func(_ context.Context, c *pgx.Conn) error {
-		pgxuuid.Register(c.TypeMap())
-		return nil
-	}
-
-	db, err := pgxpool.NewWithConfig(ctx, dbConf)
+	db, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}
