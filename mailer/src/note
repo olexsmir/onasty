@@ -1,0 +1,6 @@
+{
+    "template": "email_verification",
+    "variables": {
+        "token": "TOKEN"
+    }
+}
