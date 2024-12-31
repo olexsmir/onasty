@@ -8,6 +8,10 @@ type Config struct {
 	MailgunFrom   string
 	MailgunDomain string
 	MailgunAPIKey string
+
+	LogLevel    string
+	LogFormat   string
+	LogShowLine bool
 }
 
 func NewConfig() *Config {
@@ -17,6 +21,9 @@ func NewConfig() *Config {
 		MailgunFrom:   getenvOrDefault("MAILGUN_FROM", ""),
 		MailgunDomain: getenvOrDefault("MAILGUN_DOMAIN", ""),
 		MailgunAPIKey: getenvOrDefault("MAILGUN_API_KEY", ""),
+		LogLevel:      getenvOrDefault("LOG_LEVEL", "debug"),
+		LogFormat:     getenvOrDefault("LOG_FORMAT", "json"),
+		LogShowLine:   getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
 	}
 }
 

@@ -8,7 +8,10 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/micro"
+	"github.com/olexsmir/onasty/internal/logger"
 )
+
+// ideally this function should just call a run() that will return an error and fail on error
 
 func main() {
 	cfg := NewConfig()
@@ -17,6 +20,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
+	if err != nil {
+		slog.Error("failed to set default logger")
+	}
+
+	slog.SetDefault(logger)
 
 	svc, err := micro.AddService(nc, micro.Config{ //nolint:exhaustruct
 		Name:    "mailer",
