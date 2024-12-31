@@ -22,6 +22,11 @@ services:
     ports:
       - 5432:5432
 
+  nats:
+    image: nats:2.10
+    ports:
+      - 4222:4222
+
   redis:
     image: redis:7.4-alpine
     container_name: onasty-redis
