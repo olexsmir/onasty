@@ -37,7 +37,7 @@ func main() {
 	}
 }
 
-//nolint:err113
+//nolint:err113,funlen
 func run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
