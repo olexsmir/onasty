@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
@@ -11,6 +13,7 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/micro"
 	"github.com/olexsmir/onasty/internal/logger"
+	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
 
 	_ "embed"
 )
@@ -58,7 +61,15 @@ func run() error {
 		return err
 	}
 
-	// TODO: add metrics
+	if cfg.MetricsEnabled {
+		srv := httpserver.NewServer(cfg.MetricsPort, MetricsHandler())
+		go func() {
+			slog.Info("starting metrics server", "port", cfg.MetricsPort)
+			if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
+				slog.Error("failed to start metrics server", "error", err)
+			}
+		}()
+	}
 
 	slog.Info("the service is listening")
 
