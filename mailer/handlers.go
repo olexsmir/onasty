@@ -65,6 +65,7 @@ type sendRequest struct {
 }
 
 func (h Handlers) sendHandler(req micro.Request) {
+	// NOTE: the input probably should be validated
 	var inp sendRequest
 	if err := json.Unmarshal(req.Data(), &inp); err != nil {
 		slog.Error("failed to unmarshal input data", "err", err)
