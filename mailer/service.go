@@ -34,6 +34,7 @@ func (s Service) Send(
 		select {
 		case <-ctx.Done():
 			slog.ErrorContext(ctx, "failed to send verification email", "err", ctx.Err())
+			return
 		default:
 			if err := s.mg.Send(ctx, receiver, t.Subject, t.Body); err != nil {
 				slog.ErrorContext(ctx, "failed to send verification email", "err", err)
