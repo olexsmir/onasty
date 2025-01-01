@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -9,31 +10,41 @@ import (
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/micro"
 	"github.com/olexsmir/onasty/internal/logger"
+
+	_ "embed"
 )
 
-// ideally this function should just call a run() that will return an error and fail on error
+//go:embed version
+var version string
 
 func main() {
-	cfg := NewConfig()
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+}
 
+func run() error {
+	cfg := NewConfig()
 	nc, err := nats.Connect(cfg.NatsURL)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
 	if err != nil {
-		slog.Error("failed to set default logger")
+		return err
 	}
 
 	slog.SetDefault(logger)
 
-	svc, err := micro.AddService(nc, micro.Config{ //nolint:exhaustruct
+	//nolint:exhaustruct
+	svc, err := micro.AddService(nc, micro.Config{
 		Name:    "mailer",
-		Version: "0.0.1",
+		Version: version,
 	})
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	mg := NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
@@ -41,22 +52,27 @@ func main() {
 	handlers := NewHandlers(service)
 
 	if err := handlers.RegisterAll(svc); err != nil {
-		slog.Error("failed to register handlers", "err", err)
+		return err
 	}
 
-	slog.Info("should be running")
+	// TODO: add metrics
 
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-	<-sigCh
+	slog.Info("the service is listening")
 
-	slog.Info("stopping")
+	// graceful shutdown
+	quitCh := make(chan os.Signal, 1)
+	signal.Notify(quitCh, syscall.SIGINT, syscall.SIGTERM)
+	<-quitCh
+
+	slog.Info("stopping the service")
 
 	if err := svc.Stop(); err != nil {
-		slog.Error("failed stopping service", "err", err)
+		return err
 	}
 
 	if err := nc.Drain(); err != nil {
-		slog.Error("failed to close nats connection", "err", err)
+		return err
 	}
+
+	return nil
 }
