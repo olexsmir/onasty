@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"time"
 
 	"github.com/invopop/jsonschema"
 	"github.com/nats-io/nats.go/micro"
+	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 type Handlers struct {
@@ -55,6 +57,8 @@ func (h Handlers) pingHandler(req micro.Request) {
 }
 
 type sendRequest struct {
+	RequestID string `json:"request_id"`
+
 	Receiver     string            `json:"receiver"`
 	TemplateName string            `json:"template_name"`
 	Options      map[string]string `json:"options"`
@@ -67,13 +71,14 @@ func (h Handlers) sendHandler(req micro.Request) {
 		return
 	}
 
-	if err := h.service.Send(context.TODO(), sendInput{
-		Receiver:     inp.Receiver,
-		TemplateName: inp.TemplateName,
-		Options:      inp.Options,
-	}); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx = reqid.SetContext(ctx, inp.RequestID)
+
+	if err := h.service.Send(ctx, cancel, inp.Receiver, inp.TemplateName, inp.Options); err != nil {
 		_ = req.Error("500", err.Error(), nil)
 	}
+
+	_ = req.Respond(nil)
 }
 
 func schemaFor(t any) string {
