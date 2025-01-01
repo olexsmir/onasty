@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/nats-io/nats.go"
@@ -15,7 +16,9 @@ import (
 )
 
 //go:embed version
-var version string
+var _version string
+
+var version = strings.Trim(_version, "\n")
 
 func main() {
 	if err := run(); err != nil {
