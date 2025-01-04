@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: ./mailer/Dockerfile
-    env_file: .env
+    env_file: ./mailer/.env
 
   postgres:
     image: postgres:16-alpine
