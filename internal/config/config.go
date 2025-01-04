@@ -11,6 +11,7 @@ type Config struct {
 	AppEnv     string
 	AppURL     string
 	ServerPort string
+	NatsURL    string
 
 	PostgresDSN      string
 	PasswordSalt     string
@@ -48,6 +49,7 @@ func NewConfig() *Config {
 		AppEnv:     getenvOrDefault("APP_ENV", "debug"),
 		AppURL:     getenvOrDefault("APP_URL", ""),
 		ServerPort: getenvOrDefault("SERVER_PORT", "3000"),
+		NatsURL:    getenvOrDefault("NATS_URL", ""),
 
 		PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
 		PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),

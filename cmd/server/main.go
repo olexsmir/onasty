@@ -10,11 +10,12 @@ import (
 	"os/signal"
 
 	"github.com/gin-gonic/gin"
+	"github.com/nats-io/nats.go"
 	"github.com/olexsmir/onasty/internal/config"
+	"github.com/olexsmir/onasty/internal/events/mailermq"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
-	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/metrics"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
@@ -58,6 +59,11 @@ func run(ctx context.Context) error {
 	}
 
 	// app deps
+	nc, err := nats.Connect(cfg.NatsURL)
+	if err != nil {
+		return err
+	}
+
 	psqlDB, err := psqlutil.Connect(ctx, cfg.PostgresDSN)
 	if err != nil {
 		return err
@@ -71,7 +77,8 @@ func run(ctx context.Context) error {
 	userPasswordHasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePassowrdSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
-	mailGunMailer := mailer.NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
+
+	mailermq := mailermq.New(nc)
 
 	sessionrepo := sessionrepo.New(psqlDB)
 	vertokrepo := vertokrepo.New(psqlDB)
@@ -84,7 +91,7 @@ func run(ctx context.Context) error {
 		vertokrepo,
 		userPasswordHasher,
 		jwtTokenizer,
-		mailGunMailer,
+		mailermq,
 		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,

@@ -8,15 +8,14 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
+	"github.com/olexsmir/onasty/internal/events/mailermq"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
-	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
-	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
 type UserServicer interface {
@@ -44,7 +43,7 @@ type UserSrv struct {
 	vertokrepo   vertokrepo.VerificationTokenStorer
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
-	mailer       mailer.Mailer
+	mailermq     *mailermq.MailerMQ
 	cache        usercache.UserCacheer
 
 	refreshTokenTTL      time.Duration
@@ -58,7 +57,7 @@ func New(
 	vertokrepo vertokrepo.VerificationTokenStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
-	mailer mailer.Mailer,
+	mailermq *mailermq.MailerMQ,
 	cache usercache.UserCacheer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 	appURL string,
@@ -69,7 +68,7 @@ func New(
 		vertokrepo:           vertokrepo,
 		hasher:               hasher,
 		jwtTokenizer:         jwtTokenizer,
-		mailer:               mailer,
+		mailermq:             mailermq,
 		cache:                cache,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
@@ -99,8 +98,12 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 		return uuid.Nil, err
 	}
 
-	sendingCtx, cancel := getContextForEmailSending(ctx)
-	go u.sendVerificationEmail(sendingCtx, cancel, inp.Email, vtok, u.appURL)
+	if err := u.mailermq.SendVerificationEmail(ctx, mailermq.SendVerificationEmailRequest{
+		Receiver: inp.Email,
+		Token:    vtok,
+	}); err != nil {
+		return uuid.Nil, err
+	}
 
 	return uid, nil
 }
@@ -221,8 +224,12 @@ func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDT
 		return err
 	}
 
-	sendingCtx, cancel := getContextForEmailSending(ctx)
-	go u.sendVerificationEmail(sendingCtx, cancel, inp.Email, token, u.appURL)
+	if err := u.mailermq.SendVerificationEmail(ctx, mailermq.SendVerificationEmailRequest{
+		Receiver: inp.Email,
+		Token:    token,
+	}); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -284,12 +291,4 @@ func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
 		Access:  accessToken,
 		Refresh: refreshToken,
 	}, err
-}
-
-func getContextForEmailSending(ctx context.Context) (context.Context, context.CancelFunc) {
-	rid := reqid.GetContext(ctx)
-	resCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	resCtx = reqid.SetContext(resCtx, rid)
-
-	return resCtx, cancel
 }
