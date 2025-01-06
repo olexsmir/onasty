@@ -136,7 +136,6 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	)
 
 	e.Equal(http.StatusOK, httpResp.Code)
-	// e.NotEmpty(e.mailer.GetLastSentEmailToEmail(email))
 }
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
