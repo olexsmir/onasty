@@ -43,7 +43,7 @@ type UserSrv struct {
 	vertokrepo   vertokrepo.VerificationTokenStorer
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
-	mailermq     *mailermq.MailerMQ
+	mailermq     mailermq.Mailer
 	cache        usercache.UserCacheer
 
 	refreshTokenTTL      time.Duration
@@ -57,7 +57,7 @@ func New(
 	vertokrepo vertokrepo.VerificationTokenStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
-	mailermq *mailermq.MailerMQ,
+	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 	appURL string,

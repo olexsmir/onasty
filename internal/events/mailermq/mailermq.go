@@ -9,6 +9,10 @@ import (
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
+type Mailer interface {
+	SendVerificationEmail(ctx context.Context, input SendVerificationEmailRequest) error
+}
+
 type MailerMQ struct {
 	nc *nats.Conn
 }
