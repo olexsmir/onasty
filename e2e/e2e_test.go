@@ -14,7 +14,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/olexsmir/onasty/internal/config"
-	"github.com/olexsmir/onasty/internal/events/mailermq"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
@@ -113,7 +112,7 @@ func (e *AppTestSuite) initDeps() {
 		vertokrepo,
 		e.hasher,
 		e.jwtTokenizer,
-		&mailermq.MailerMQ{},
+		newMailerMockService(),
 		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
