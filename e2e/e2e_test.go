@@ -17,7 +17,6 @@ import (
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
-	"github.com/olexsmir/onasty/internal/mailer"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -57,7 +56,6 @@ type (
 		router       http.Handler
 		hasher       hasher.Hasher
 		jwtTokenizer jwtutil.JWTTokenizer
-		mailer       *mailer.TestMailer
 	}
 	errorResponse struct {
 		Message string `json:"message"`
@@ -102,7 +100,6 @@ func (e *AppTestSuite) initDeps() {
 
 	e.hasher = hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	e.jwtTokenizer = jwtutil.NewJWTUtil(cfg.JwtSigningKey, time.Hour)
-	e.mailer = mailer.NewTestMailer()
 
 	sessionrepo := sessionrepo.New(e.postgresDB)
 	vertokrepo := vertokrepo.New(e.postgresDB)
@@ -115,7 +112,7 @@ func (e *AppTestSuite) initDeps() {
 		vertokrepo,
 		e.hasher,
 		e.jwtTokenizer,
-		e.mailer,
+		newMailerMockService(),
 		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,

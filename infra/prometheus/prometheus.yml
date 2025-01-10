@@ -10,4 +10,16 @@ scrape_configs:
     follow_redirects: true
     honor_timestamps: true
     static_configs:
-    - targets: [core:8001]
+      - targets: [core:8001]
+        labels:
+          service: "core"
+
+  - job_name: mailer
+    metrics_path: /metrics
+    scheme: http
+    follow_redirects: true
+    honor_labels: true
+    static_configs:
+      - targets: [mailer:8001]
+        labels:
+          service: "mailer"

@@ -10,6 +10,14 @@ services:
       - 8000:8000
       - 8001:8001
 
+  mailer:
+    image: onasty:mailer
+    container_name: onasty-mailer
+    build:
+      context: .
+      dockerfile: ./mailer/Dockerfile
+    env_file: ./mailer/.env
+
   postgres:
     image: postgres:16-alpine
     container_name: onasty-postgres
@@ -21,6 +29,11 @@ services:
       - .docker/postgres:/var/lib/postgresql/data
     ports:
       - 5432:5432
+
+  nats:
+    image: nats:2.10
+    ports:
+      - 4222:4222
 
   redis:
     image: redis:7.4-alpine
