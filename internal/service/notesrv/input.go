@@ -13,5 +13,5 @@ type GetNoteBySlugInput struct {
 }
 
 func (i GetNoteBySlugInput) HasPassword() bool {
-	return len(i.Password) == 0
+	return i.Password != ""
 }
