@@ -30,8 +30,8 @@ type NoteStorer interface {
 		password string,
 	) (dtos.NoteDTO, error)
 
-	// DeleteBySlug deletes note by slug or returns [models.ErrNoteNotFound] if note if not found.
-	DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
+	// RemoveBySlug deletes note by slug or returns [models.ErrNoteNotFound] if note if not found.
+	RemoveBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
 
 	// SetAuthorIDBySlug assigns author to note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
@@ -116,7 +116,7 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	return note, err
 }
 
-func (s *NoteRepo) DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error {
+func (s *NoteRepo) RemoveBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error {
 	query, args, err := pgq.
 		Delete("notes").
 		Where(pgq.Eq{"slug": slug}).
