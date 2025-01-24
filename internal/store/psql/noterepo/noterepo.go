@@ -3,6 +3,7 @@ package noterepo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
@@ -117,15 +118,18 @@ func (s *NoteRepo) GetBySlugAndPassword(
 }
 
 func (s *NoteRepo) RemoveBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error {
-	query, args, err := pgq.
-		Delete("notes").
-		Where(pgq.Eq{"slug": slug}).
-		SQL()
-	if err != nil {
-		return err
-	}
+	query := `--sql
+update
+  notes
+set
+  is_read = true,
+  read_at = $1,
+  content = ''
+where
+  slug = $2
+  and is_read != true`
 
-	_, err = s.db.Exec(ctx, query, args...)
+	_, err := s.db.Exec(ctx, query, time.Now(), slug)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.ErrNoteNotFound
 	}
