@@ -68,6 +68,8 @@ type getNoteBySlugRequest struct {
 
 type getNoteBySlugResponse struct {
 	Content   string    `json:"content"`
+	IsRead    bool      `json:"is_read"`
+	ReadAt    time.Time `json:"read_at"`
 	CratedAt  time.Time `json:"crated_at"`
 	ExpiresAt time.Time `json:"expires_at"`
 }

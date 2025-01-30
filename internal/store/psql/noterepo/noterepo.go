@@ -69,7 +69,15 @@ func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNoteDTO) error {
 
 func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error) {
 	query, args, err := pgq.
-		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		Select(
+			"content",
+			"slug",
+			"burn_before_expiration",
+			"is_read",
+			"read_at",
+			"created_at",
+			"expires_at",
+		).
 		From("notes").
 		Where("(password is null or password = '')").
 		Where(pgq.Eq{"slug": slug}).
@@ -80,7 +88,8 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.N
 
 	var note dtos.NoteDTO
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration,
+			&note.IsRead, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return dtos.NoteDTO{}, models.ErrNoteNotFound

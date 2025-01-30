@@ -20,6 +20,8 @@ type Note struct {
 	Slug                 string
 	Password             string
 	BurnBeforeExpiration bool
+	IsRead               bool
+	ReadAt               time.Time
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
 }
