@@ -96,6 +96,8 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, getNoteBySlugResponse{
 		Content:   note.Content,
+		IsRead:    note.IsRead,
+		ReadAt:    note.ReadAt,
 		CratedAt:  note.CreatedAt,
 		ExpiresAt: note.ExpiresAt,
 	})
