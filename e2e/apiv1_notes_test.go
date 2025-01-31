@@ -134,7 +134,6 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 	e.Equal(content, body.Content)
 
 	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
-
 	e.Equal(dbNote.IsRead, true)
 }
 
