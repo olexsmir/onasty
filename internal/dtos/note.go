@@ -19,6 +19,14 @@ type NoteDTO struct {
 	ExpiresAt            time.Time
 }
 
+type NoteMetadataDTO struct {
+	Slug      string    `json:"slug"`
+	IsRead    bool      `json:"is_read"`
+	ReadAt    time.Time `json:"read_at"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
 type CreateNoteDTO struct {
 	Content              string
 	UserID               uuid.UUID
