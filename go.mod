@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
-	github.com/gofrs/uuid/v5 v5.3.0
+	github.com/gofrs/uuid/v5 v5.3.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/henvic/pgq v0.0.3
