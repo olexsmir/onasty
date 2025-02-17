@@ -3,6 +3,7 @@ package noterepo
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
@@ -30,8 +31,8 @@ type NoteStorer interface {
 		password string,
 	) (dtos.NoteDTO, error)
 
-	// DeleteBySlug deletes note by slug or returns [models.ErrNoteNotFound] if note if not found.
-	DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
+	// RemoveBySlug deletes note by slug or returns [models.ErrNoteNotFound] if note if not found.
+	RemoveBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error
 
 	// SetAuthorIDBySlug assigns author to note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
@@ -68,7 +69,15 @@ func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNoteDTO) error {
 
 func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error) {
 	query, args, err := pgq.
-		Select("content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		Select(
+			"content",
+			"slug",
+			"burn_before_expiration",
+			"is_read",
+			"read_at",
+			"created_at",
+			"expires_at",
+		).
 		From("notes").
 		Where("(password is null or password = '')").
 		Where(pgq.Eq{"slug": slug}).
@@ -79,7 +88,8 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.N
 
 	var note dtos.NoteDTO
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration,
+			&note.IsRead, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return dtos.NoteDTO{}, models.ErrNoteNotFound
@@ -116,16 +126,19 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	return note, err
 }
 
-func (s *NoteRepo) DeleteBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error {
-	query, args, err := pgq.
-		Delete("notes").
-		Where(pgq.Eq{"slug": slug}).
-		SQL()
-	if err != nil {
-		return err
-	}
+func (s *NoteRepo) RemoveBySlug(ctx context.Context, slug dtos.NoteSlugDTO) error {
+	query := `--sql
+update
+  notes
+set
+  is_read = true,
+  read_at = $1,
+  content = ''
+where
+  slug = $2
+  and is_read != true`
 
-	_, err = s.db.Exec(ctx, query, args...)
+	_, err := s.db.Exec(ctx, query, time.Now(), slug)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.ErrNoteNotFound
 	}

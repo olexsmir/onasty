@@ -85,6 +85,14 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 		return dtos.NoteDTO{}, models.ErrNoteExpired
 	}
 
+	// first read if check if notes was read
+	//   if it was return an error and when it was read
+	// check if note should be burnt right after showing and if so
+	//  , remove all data but keep metadata
+	// TODO: implement repo for removing all data and setting medatada
+	// TODO: implement repo for checking if note is already read
+	//   ideally it has to to be one select that also checks if it was unread
+
 	// since not every note should be burn before expiration
 	// we return early if it's not
 	if m.ShouldBeBurnt() {
@@ -93,7 +101,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 
 	// TODO: in future not remove, leave some metadata
 	// to shot user that note was already seen
-	return note, n.noterepo.DeleteBySlug(ctx, note.Slug)
+	return note, n.noterepo.RemoveBySlug(ctx, note.Slug)
 }
 
 func (n *NoteSrv) getNoteFromDBasedOnInput(
