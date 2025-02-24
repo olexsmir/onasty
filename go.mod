@@ -13,7 +13,7 @@ require (
 	github.com/mailgun/mailgun-go/v4 v4.22.1
 	github.com/nats-io/nats.go v1.39.0
 	github.com/prometheus/client_golang v1.20.5
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/redis/go-redis/v9 v9.7.1
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.35.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.35.0
