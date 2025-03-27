@@ -58,7 +58,7 @@ func (j *JWTUtil) RefreshToken() (string, error) {
 
 func (j *JWTUtil) Parse(token string) (Payload, error) {
 	var claims jwt.RegisteredClaims
-	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrUnexpectedSigningMethod
 		}

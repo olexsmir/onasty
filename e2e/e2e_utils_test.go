@@ -18,7 +18,7 @@ func (e *AppTestSuite) jsonify(v any) []byte {
 	return r
 }
 
-// readBodyAndUnjsonify reads body of `httptest.ResponseRecorder` and unmarshalls it into res
+// readBodyAndUnjsonify reads body of [httptest.ResponseRecorder] and unmarshalls it into res
 //
 // Example:
 //
@@ -32,7 +32,7 @@ func (e *AppTestSuite) readBodyAndUnjsonify(b *bytes.Buffer, res any) {
 	e.require.NoError(err)
 }
 
-// httpRequest sends http request to the server and returns `httptest.ResponseRecorder`
+// httpRequest sends http request to the server and returns [httptest.ResponseRecorder]
 // content-type always set to application/json
 func (e *AppTestSuite) httpRequest(
 	method, url string,
