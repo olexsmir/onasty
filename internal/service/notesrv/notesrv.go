@@ -3,6 +3,7 @@ package notesrv
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
@@ -91,9 +92,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 		return note, nil
 	}
 
-	// TODO: in future not remove, leave some metadata
-	// to shot user that note was already seen
-	return note, n.noterepo.DeleteBySlug(ctx, note.Slug)
+	return note, n.noterepo.MarkAsRead(ctx, inp.Slug, time.Now())
 }
 
 func (n *NoteSrv) getNoteFromDBasedOnInput(
