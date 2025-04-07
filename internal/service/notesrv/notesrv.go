@@ -92,7 +92,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 		return note, nil
 	}
 
-	return note, n.noterepo.MarkAsRead(ctx, inp.Slug, time.Now())
+	return note, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
 }
 
 func (n *NoteSrv) getNoteFromDBasedOnInput(
