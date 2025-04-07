@@ -93,17 +93,12 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		return
 	}
 
-	if !note.ReadAt.IsZero() {
-		c.JSON(http.StatusNotFound, getNoteBySlugResponse{
-			Content:   note.Content,
-			ReadAt:    note.ReadAt,
-			CratedAt:  note.CreatedAt,
-			ExpiresAt: note.ExpiresAt,
-		})
-		return
+	status := http.StatusOK
+	if note.ReadAt != nil && !note.ReadAt.IsZero() {
+		status = http.StatusNotFound
 	}
 
-	c.JSON(http.StatusOK, getNoteBySlugResponse{
+	c.JSON(status, getNoteBySlugResponse{
 		Content:   note.Content,
 		ReadAt:    note.ReadAt,
 		CratedAt:  note.CreatedAt,
