@@ -106,9 +106,10 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 }
 
 type apiv1NoteGetResponse struct {
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Content   string     `json:"content"`
+	ReadAt    *time.Time `json:"read_at"`
+	CreatedAt time.Time  `json:"created_at"`
+	ExpiresAt time.Time  `json:"expires_at"`
 }
 
 func (e *AppTestSuite) TestNoteV1_Get() {
@@ -134,7 +135,8 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 	e.Equal(content, body.Content)
 
 	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
-	e.Empty(dbNote)
+	e.Equal(dbNote.Content, "")
+	e.Equal(dbNote.ReadAt.IsZero(), false)
 }
 
 type apiv1NoteGetRequest struct {
@@ -157,9 +159,13 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword() {
 	var bodyCreated apiv1NoteCreateResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
 
-	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, e.jsonify(apiv1NoteGetRequest{
-		Password: passwd,
-	}))
+	httpResp = e.httpRequest(
+		http.MethodGet,
+		"/api/v1/note/"+bodyCreated.Slug,
+		e.jsonify(apiv1NoteGetRequest{
+			Password: passwd,
+		}),
+	)
 	e.Equal(httpResp.Code, http.StatusOK)
 
 	var body apiv1NoteGetResponse
@@ -168,7 +174,8 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword() {
 	e.Equal(content, body.Content)
 
 	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
-	e.Empty(dbNote)
+	e.Equal(dbNote.Content, "")
+	e.Equal(dbNote.ReadAt.IsZero(), false)
 }
 
 func (e *AppTestSuite) TestNoteV1_GetWithPassword_wrongNoPassword() {
@@ -206,8 +213,12 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword_wrong() {
 	var bodyCreated apiv1NoteCreateResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
 
-	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, e.jsonify(apiv1NoteGetRequest{
-		Password: e.uuid(),
-	}))
+	httpResp = e.httpRequest(
+		http.MethodGet,
+		"/api/v1/note/"+bodyCreated.Slug,
+		e.jsonify(apiv1NoteGetRequest{
+			Password: e.uuid(),
+		}),
+	)
 	e.Equal(httpResp.Code, http.StatusNotFound)
 }
