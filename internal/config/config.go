@@ -22,6 +22,7 @@ type Config struct {
 	RedisDB       int
 
 	CacheUsersTTL time.Duration
+	CacheNoteTTL  time.Duration
 
 	JwtSigningKey      string
 	JwtAccessTokenTTL  time.Duration
@@ -57,6 +58,7 @@ func NewConfig() *Config {
 		RedisDB:       mustGetenvOrDefaultInt(getenvOrDefault("REDIS_DB", "0"), 0),
 
 		CacheUsersTTL: mustParseDuration(getenvOrDefault("CACHE_USERS_TTL", "1h")),
+		CacheNoteTTL:  mustParseDuration(getenvOrDefault("CACHE_NOTE_TTL", "1h")),
 
 		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
 		JwtAccessTokenTTL: mustParseDuration(
