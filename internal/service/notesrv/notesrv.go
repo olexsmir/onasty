@@ -108,8 +108,10 @@ func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (dtos.Not
 		return dtos.NoteDTO{}, err
 	}
 
-	if err = n.cache.SetNote(ctx, inp.Slug, note); err != nil {
-		slog.Error("notecache", "err", err)
+	if note.ReadAt != nil && !note.ReadAt.IsZero() {
+		if err = n.cache.SetNote(ctx, inp.Slug, note); err != nil {
+			slog.Error("notecache", "err", err)
+		}
 	}
 
 	return note, err
