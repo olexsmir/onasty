@@ -13,6 +13,8 @@ type NoteDTO struct {
 	Slug                 string
 	BurnBeforeExpiration bool
 	Password             string
+	IsRead               bool
+	ReadAt               *time.Time
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
 }

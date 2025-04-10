@@ -6,6 +6,9 @@ dotenv:
 includes:
   migrate: ./migrations/Taskfile.yml
 
+env:
+  DOCKER_BUILDKIT: 1
+
 tasks:
   run:
     - docker compose up -d --build --remove-orphans core mailer
