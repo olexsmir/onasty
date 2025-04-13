@@ -134,7 +134,7 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDT
 		return dtos.TokensDTO{}, models.ErrUserIsNotActivated
 	}
 
-	tokens, err := u.getTokens(user.ID)
+	tokens, err := u.createTokens(user.ID)
 	if err != nil {
 		return dtos.TokensDTO{}, err
 	}
@@ -159,7 +159,7 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 		return dtos.TokensDTO{}, err
 	}
 
-	tokens, err := u.getTokens(userID)
+	tokens, err := u.createTokens(userID)
 	if err != nil {
 		return dtos.TokensDTO{}, err
 	}
@@ -179,6 +179,8 @@ func (u *UserSrv) ChangePassword(
 	userID uuid.UUID,
 	inp dtos.ResetUserPasswordDTO,
 ) error {
+	// TODO: compare current password with providede, and assert on mismatch
+
 	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
 	if err != nil {
 		return err
@@ -243,11 +245,12 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetIsExists(ctx, id.String()); err == nil {
+	r, err := u.cache.GetIsExists(ctx, id.String())
+	if err == nil {
 		return r, nil
-	} else { //nolint:revive
-		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
+
+	slog.ErrorContext(ctx, "usercache", "err", err)
 
 	isExists, err := u.userstore.CheckIfUserExists(ctx, id)
 	if err != nil {
@@ -255,32 +258,33 @@ func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, err
 	}
 
 	if err := u.cache.SetIsExists(ctx, id.String(), isExists); err != nil {
-		slog.Error("usercache", "err", err)
+		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
 	return isExists, nil
 }
 
-func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetIsActivated(ctx, userID.String()); err == nil {
+func (u *UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
+	r, err := u.cache.GetIsActivated(ctx, userID.String())
+	if err == nil {
 		return r, nil
-	} else { //nolint:revive
-		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
-	isActivated, err := u.userstore.CheckIfUserExists(ctx, userID)
+	slog.ErrorContext(ctx, "usercache", "err", err)
+
+	isActivated, err := u.userstore.CheckIfUserIsActivated(ctx, userID)
 	if err != nil {
 		return false, err
 	}
 
 	if err := u.cache.SetIsActivated(ctx, userID.String(), isActivated); err != nil {
-		slog.Error("usercache", "err", err)
+		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
 	return isActivated, nil
 }
 
-func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
+func (u UserSrv) createTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
 	accessToken, err := u.jwtTokenizer.AccessToken(jwtutil.Payload{UserID: userID.String()})
 	if err != nil {
 		return dtos.TokensDTO{}, err
