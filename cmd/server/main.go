@@ -25,6 +25,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	"github.com/olexsmir/onasty/internal/store/rdb"
+	"github.com/olexsmir/onasty/internal/store/rdb/notecache"
 	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/httpserver"
@@ -98,8 +99,9 @@ func run(ctx context.Context) error {
 		cfg.AppURL,
 	)
 
+	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)
 	noterepo := noterepo.New(psqlDB)
-	notesrv := notesrv.New(noterepo, notePasswordHasher)
+	notesrv := notesrv.New(noterepo, notePasswordHasher, notecache)
 
 	rateLimiterConfig := ratelimit.Config{
 		RPS:   cfg.RateLimiterRPS,

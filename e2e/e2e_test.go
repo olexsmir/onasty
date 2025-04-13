@@ -25,6 +25,7 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 	"github.com/olexsmir/onasty/internal/store/rdb"
+	"github.com/olexsmir/onasty/internal/store/rdb/notecache"
 	"github.com/olexsmir/onasty/internal/store/rdb/usercache"
 	httptransport "github.com/olexsmir/onasty/internal/transport/http"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
@@ -119,8 +120,9 @@ func (e *AppTestSuite) initDeps() {
 		cfg.AppURL,
 	)
 
+	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)
 	noterepo := noterepo.New(e.postgresDB)
-	notesrv := notesrv.New(noterepo, e.hasher)
+	notesrv := notesrv.New(noterepo, e.hasher, notecache)
 
 	// for testing purposes, it's ok to have high values ig
 	ratelimitCfg := ratelimit.Config{

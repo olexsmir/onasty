@@ -91,19 +91,39 @@ func (e *AppTestSuite) getLastInsertedUserByEmail(em string) models.User {
 	return u
 }
 
-func (e *AppTestSuite) getNoteFromDBbySlug(slug string) models.Note {
+type noteModel struct {
+	ID                   uuid.UUID
+	Content              string
+	Slug                 string
+	BurnBeforeExpiration bool
+	Password             string
+	IsRead               bool
+	ReadAt               *time.Time
+	CreatedAt            time.Time
+	ExpiresAt            time.Time
+}
+
+func (e *AppTestSuite) getNoteFromDBbySlug(slug string) noteModel {
 	query, args, err := pgq.
-		Select("id", "content", "slug", "burn_before_expiration", "created_at", "expires_at").
+		Select(
+			"id",
+			"content",
+			"slug",
+			"burn_before_expiration",
+			"read_at",
+			"created_at",
+			"expires_at",
+		).
 		From("notes").
 		Where(pgq.Eq{"slug": slug}).
 		SQL()
 	e.require.NoError(err)
 
-	var note models.Note
+	var note noteModel
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
-		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return models.Note{} //nolint:exhaustruct
+		return noteModel{} //nolint:exhaustruct
 	}
 
 	e.require.NoError(err)

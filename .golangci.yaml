@@ -1,19 +1,15 @@
+version: "2"
 run:
-  timeout: 3m
   tests: true
 
 linters:
-  # fast: true
-  disable-all: true
+  default: none
   enable:
     - errcheck # checking for unchecked errors
-    - gosimple # specializes in simplifying a code
     - govet # reports suspicious constructs, such as Printf calls whose arguments do not align with the format string
     - staticcheck # is a go vet on steroids, applying a ton of static analysis checks
     - ineffassign # detects when assignments to existing variables are not used
-    - typecheck # like the front-end of a Go compiler, parses and type-checks Go code
     - unused # checks for unused constants, variables, functions and types
-    ## disabled by default
     - asasalint # checks for pass []any as any in variadic func(...any)
     - asciicheck # checks that your code does not contain non-ASCII identifiers
     - bidichk # checks for dangerous unicode character sequences
@@ -32,8 +28,6 @@ linters:
     - goconst # finds repeated strings that could be replaced by a constant
     - gocritic # provides diagnostics that check for bugs, performance and style issues
     - gocyclo # computes and checks the cyclomatic complexity of functions
-    - goimports # in addition to fixing imports, goimports also formats your code in the same style as gofmt
-    - gofumpt
     - gomoddirectives # manages the use of 'replace', 'retract', and 'excludes' directives in go.mod
     - goprintffuncname # checks that printf-like functions are named with f at the end
     - gosec # inspects source code for security problems
@@ -59,8 +53,6 @@ linters:
     - rowserrcheck # checks whether Err of rows is checked successfully
     - sloglint # ensure consistent code style when using log/slog
     - sqlclosecheck # checks that sql.Rows and sql.Stmt are closed
-    - stylecheck # is a replacement for golint
-    - tenv # detects using os.Setenv instead of t.Setenv since Go1.17
     - testableexamples # checks if examples are testable (have an expected output)
     - testifylint # checks usage of github.com/stretchr/testify
     - tparallel # detects inappropriate usage of t.Parallel() method in your Go test codes
@@ -76,82 +68,74 @@ linters:
     - contextcheck # check whether the function uses a non-inherited context
     - ireturn # accept interfaces, return concrete types
 
-linters-settings:
-  cyclop:
-    # The maximal code complexity to report.
-    # Default: 10
-    max-complexity: 30
-    # The maximal average package complexity.
-    # If it's higher than 0.0 (float) the check is enabled
-    # Default: 0.0
-    package-average: 10.0
+  settings:
+    cyclop:
+      max-complexity: 30
+      package-average: 10
 
-  errcheck:
-    # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
-    # Such cases aren't reported by default.
-    # Default: false
-    check-type-assertions: true
+    errcheck:
+      check-type-assertions: true
 
-  funlen:
-    # Checks the number of lines in a function.
-    # If lower than 0, disable the check.
-    # Default: 60
-    lines: 100
-    # Checks the number of statements in a function.
-    # If lower than 0, disable the check.
-    # Default: 40
-    statements: 50
-    # Ignore comments when counting lines.
-    # Default false
-    ignore-comments: true
+    exhaustruct:
+      exclude:
+        - log/slog\.HandlerOptions
+        - net/http\.Server
+        - github.com/golang-jwt/jwt/v5\.RegisteredClaims
 
-  gocritic:
-    # Settings passed to gocritic.
-    # The settings key is the name of a supported gocritic checker.
-    # The list of supported checkers can be find in https://go-critic.github.io/overview.
-    settings:
-      captLocal:
-        # Whether to restrict checker to params only.
-        # Default: true
-        paramsOnly: false
-      underef:
-        # Whether to skip (*x).method() calls where x is a pointer receiver.
-        # Default: true
-        skipRecvDeref: false
+    funlen:
+      lines: 100
+      statements: 50
+      ignore-comments: true
 
-  govet:
-    enable-all: true
-    disable:
-      - fieldalignment # too strict
+    gocritic:
+      settings:
+        captLocal:
+          paramsOnly: false
+        underef:
+          skipRecvDeref: false
 
-  nakedret:
-    # the gods will judge me but I just don't like naked returns at all
-    max-func-lines: 0
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
 
-  exhaustruct:
-    exclude:
-      - 'log/slog\.HandlerOptions'
-      - 'net/http\.Server'
-
-      - 'github.com/golang-jwt/jwt/v5\.RegisteredClaims'
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - gocritic
+        source: //noinspection
+      - linters:
+          - bodyclose
+          - dupl
+          - err113
+          - funlen
+          - goconst
+          - gosec
+          - lll
+          - noctx
+          - wrapcheck
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 
 issues:
-  # Maximum count of issues with the same text.
-  # Set to 0 to disable.
-  # Default: 3
   max-same-issues: 50
 
-  exclude-rules:
-    - source: "//noinspection"
-      linters: [ gocritic ]
-    - path: "_test\\.go"
-      linters:
-        - bodyclose
-        - dupl
-        - funlen
-        - goerr113
-        - goconst
-        - gosec
-        - noctx
-        - wrapcheck
-        - lll
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

@@ -20,6 +20,7 @@ type Note struct {
 	Slug                 string
 	Password             string
 	BurnBeforeExpiration bool
+	ReadAt               time.Time
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
 }
@@ -44,4 +45,8 @@ func (n Note) IsExpired() bool {
 func (n Note) ShouldBeBurnt() bool {
 	return !n.ExpiresAt.IsZero() &&
 		n.BurnBeforeExpiration
+}
+
+func (n Note) IsRead() bool {
+	return !n.ReadAt.IsZero()
 }

@@ -67,9 +67,10 @@ type getNoteBySlugRequest struct {
 }
 
 type getNoteBySlugResponse struct {
-	Content   string    `json:"content"`
-	CratedAt  time.Time `json:"crated_at"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Content   string     `json:"content,omitempty"`
+	ReadAt    *time.Time `json:"read_at,omitempty"`
+	CratedAt  time.Time  `json:"crated_at"`
+	ExpiresAt time.Time  `json:"expires_at"`
 }
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
@@ -92,8 +93,14 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, getNoteBySlugResponse{
+	status := http.StatusOK
+	if note.ReadAt != nil && !note.ReadAt.IsZero() {
+		status = http.StatusNotFound
+	}
+
+	c.JSON(status, getNoteBySlugResponse{
 		Content:   note.Content,
+		ReadAt:    note.ReadAt,
 		CratedAt:  note.CreatedAt,
 		ExpiresAt: note.ExpiresAt,
 	})

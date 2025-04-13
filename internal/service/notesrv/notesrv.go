@@ -3,12 +3,14 @@ package notesrv
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
+	"github.com/olexsmir/onasty/internal/store/rdb/notecache"
 )
 
 type NoteServicer interface {
@@ -26,12 +28,14 @@ var _ NoteServicer = (*NoteSrv)(nil)
 type NoteSrv struct {
 	noterepo noterepo.NoteStorer
 	hasher   hasher.Hasher
+	cache    notecache.NoteCacher
 }
 
-func New(noterepo noterepo.NoteStorer, hasher hasher.Hasher) *NoteSrv {
+func New(noterepo noterepo.NoteStorer, hasher hasher.Hasher, cache notecache.NoteCacher) *NoteSrv {
 	return &NoteSrv{
 		noterepo: noterepo,
 		hasher:   hasher,
+		cache:    cache,
 	}
 }
 
@@ -71,7 +75,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	ctx context.Context,
 	inp GetNoteBySlugInput,
 ) (dtos.NoteDTO, error) {
-	note, err := n.getNoteFromDBasedOnInput(ctx, inp)
+	note, err := n.getNote(ctx, inp)
 	if err != nil {
 		return dtos.NoteDTO{}, err
 	}
@@ -91,9 +95,26 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 		return note, nil
 	}
 
-	// TODO: in future not remove, leave some metadata
-	// to shot user that note was already seen
-	return note, n.noterepo.DeleteBySlug(ctx, note.Slug)
+	return note, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
+}
+
+func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (dtos.NoteDTO, error) {
+	if r, err := n.cache.GetNote(ctx, inp.Slug); err == nil {
+		return r, nil
+	}
+
+	note, err := n.getNoteFromDBasedOnInput(ctx, inp)
+	if err != nil {
+		return dtos.NoteDTO{}, err
+	}
+
+	if note.ReadAt != nil && !note.ReadAt.IsZero() {
+		if err = n.cache.SetNote(ctx, inp.Slug, note); err != nil {
+			slog.ErrorContext(ctx, "notecache", "err", err)
+		}
+	}
+
+	return note, err
 }
 
 func (n *NoteSrv) getNoteFromDBasedOnInput(

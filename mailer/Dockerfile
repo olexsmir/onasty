@@ -9,8 +9,9 @@ COPY internal internal
 COPY mailer mailer
 
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-RUN go build -trimpath -ldflags='-w -s' -o /mailer ./mailer
-
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go build -trimpath -ldflags='-w -s' -o /mailer ./mailer
 
 FROM alpine:3.21
 COPY --from=builder /mailer /mailer
