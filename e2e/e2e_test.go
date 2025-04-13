@@ -117,7 +117,6 @@ func (e *AppTestSuite) initDeps() {
 		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
-		cfg.AppURL,
 	)
 
 	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)

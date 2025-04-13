@@ -96,7 +96,6 @@ func run(ctx context.Context) error {
 		usercache,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
-		cfg.AppURL,
 	)
 
 	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)

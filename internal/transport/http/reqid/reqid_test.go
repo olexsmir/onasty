@@ -43,7 +43,7 @@ func BenchmarkMiddleware(b *testing.B) {
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	require.NoError(b, err)
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		r.ServeHTTP(w, req)
 	}
 }

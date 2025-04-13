@@ -48,7 +48,6 @@ type UserSrv struct {
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
-	appURL               string
 }
 
 func New(
@@ -60,7 +59,6 @@ func New(
 	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
-	appURL string,
 ) *UserSrv {
 	return &UserSrv{
 		userstore:            userstore,
@@ -72,7 +70,6 @@ func New(
 		cache:                cache,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
-		appURL:               appURL,
 	}
 }
 
