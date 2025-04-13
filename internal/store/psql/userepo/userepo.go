@@ -7,17 +7,16 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
 	"github.com/jackc/pgx/v5"
-	"github.com/olexsmir/onasty/internal/dtos"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
 type UserStorer interface {
-	Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
+	Create(ctx context.Context, inp models.User) (uuid.UUID, error)
 
 	// GetUserByCredentials returns user by email and password
 	// the password should be hashed
-	GetUserByCredentials(ctx context.Context, email, password string) (dtos.UserDTO, error)
+	GetUserByCredentials(ctx context.Context, email, password string) (models.User, error)
 
 	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
@@ -46,11 +45,11 @@ func New(db *psqlutil.DB) *UserRepo {
 	}
 }
 
-func (r *UserRepo) Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error) {
+func (r *UserRepo) Create(ctx context.Context, inp models.User) (uuid.UUID, error) {
 	query, args, err := pgq.
 		Insert("users").
-		Columns("username", "email", "password", "created_at", "last_login_at").
-		Values(inp.Username, inp.Email, inp.Password, inp.CreatedAt, inp.LastLoginAt).
+		Columns("username", "email", "password", "activated", "created_at", "last_login_at").
+		Values(inp.Username, inp.Email, inp.Password, inp.Activated, inp.CreatedAt, inp.LastLoginAt).
 		Returning("id").
 		SQL()
 	if err != nil {
@@ -75,7 +74,7 @@ func (r *UserRepo) Create(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUI
 func (r *UserRepo) GetUserByCredentials(
 	ctx context.Context,
 	email, password string,
-) (dtos.UserDTO, error) {
+) (models.User, error) {
 	query, args, err := pgq.
 		Select("id", "username", "email", "password", "activated", "created_at", "last_login_at").
 		From("users").
@@ -85,14 +84,14 @@ func (r *UserRepo) GetUserByCredentials(
 		}).
 		SQL()
 	if err != nil {
-		return dtos.UserDTO{}, err
+		return models.User{}, err
 	}
 
-	var user dtos.UserDTO
+	var user models.User
 	err = r.db.QueryRow(ctx, query, args...).
 		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return dtos.UserDTO{}, models.ErrUserNotFound
+		return models.User{}, models.ErrUserNotFound
 	}
 
 	return user, err

@@ -79,30 +79,42 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 		return uuid.UUID{}, err
 	}
 
-	uid, err := u.userstore.Create(ctx, dtos.CreateUserDTO{
+	user := models.User{
+		ID:          uuid.Nil, // nil, because it does not get used here
 		Username:    inp.Username,
 		Email:       inp.Email,
+		Activated:   false,
 		Password:    hashedPassword,
 		CreatedAt:   inp.CreatedAt,
 		LastLoginAt: inp.LastLoginAt,
-	})
+	}
+	if err = user.Validate(); err != nil {
+		return uuid.Nil, err
+	}
+
+	userID, err := u.userstore.Create(ctx, user)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	vtok := uuid.Must(uuid.NewV4()).String()
-	if err := u.vertokrepo.Create(ctx, vtok, uid, time.Now(), time.Now().Add(u.verificationTokenTTL)); err != nil {
+	verificationToken := uuid.Must(uuid.NewV4()).String()
+	if err := u.vertokrepo.Create(
+		ctx,
+		verificationToken,
+		userID, time.Now(),
+		time.Now().Add(u.verificationTokenTTL),
+	); err != nil {
 		return uuid.Nil, err
 	}
 
 	if err := u.mailermq.SendVerificationEmail(ctx, mailermq.SendVerificationEmailRequest{
 		Receiver: inp.Email,
-		Token:    vtok,
+		Token:    verificationToken,
 	}); err != nil {
 		return uuid.Nil, err
 	}
 
-	return uid, nil
+	return userID, nil
 }
 
 func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error) {

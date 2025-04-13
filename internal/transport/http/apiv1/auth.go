@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/dtos"
-	"github.com/olexsmir/onasty/internal/models"
 )
 
 type signUpRequest struct {
@@ -22,25 +21,12 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	user := models.User{ //nolint:exhaustruct
+	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
 		Username:    req.Username,
 		Email:       req.Email,
 		Password:    req.Password,
 		CreatedAt:   time.Now(),
 		LastLoginAt: time.Now(),
-	}
-	if err := user.Validate(); err != nil {
-		// TODO: find a way to return all errors at once
-		newErrorStatus(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
-		Username:    user.Username,
-		Email:       user.Email,
-		Password:    user.Password,
-		CreatedAt:   user.CreatedAt,
-		LastLoginAt: user.LastLoginAt,
 	}); err != nil {
 		errorResponse(c, err)
 		return
