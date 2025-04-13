@@ -46,3 +46,7 @@ func (u User) Validate() error {
 
 	return nil
 }
+
+func (u User) IsActivated() bool {
+	return u.Activated
+}

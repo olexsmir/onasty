@@ -118,20 +118,19 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID
 }
 
 func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error) {
-	hashedPassword, err := u.hasher.Hash(inp.Password)
+	user, err := u.userstore.GetUserByEmail(ctx, inp.Email)
 	if err != nil {
 		return dtos.TokensDTO{}, err
 	}
 
-	user, err := u.userstore.GetUserByCredentials(ctx, inp.Email, hashedPassword)
-	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
+	if err = u.hasher.Compare(user.Password, inp.Password); err != nil {
+		if errors.Is(err, hasher.ErrMismatchedHashes) {
 			return dtos.TokensDTO{}, models.ErrUserWrongCredentials
 		}
 		return dtos.TokensDTO{}, err
 	}
 
-	if !user.Activated {
+	if !user.IsActivated() {
 		return dtos.TokensDTO{}, models.ErrUserIsNotActivated
 	}
 
@@ -207,17 +206,13 @@ func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
 }
 
 func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDTO) error {
-	hashedPassword, err := u.hasher.Hash(inp.Password)
+	user, err := u.userstore.GetUserByEmail(ctx, inp.Email)
 	if err != nil {
 		return err
 	}
 
-	user, err := u.userstore.GetUserByCredentials(ctx, inp.Email, hashedPassword)
-	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
-			return models.ErrUserWrongCredentials
-		}
-		return err
+	if err = u.hasher.Compare(user.Password, inp.Password); err != nil {
+		return models.ErrUserWrongCredentials
 	}
 
 	if user.Activated {
