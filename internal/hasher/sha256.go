@@ -20,3 +20,15 @@ func (h *SHA256Hasher) Hash(inp string) (string, error) {
 	}
 	return hex.EncodeToString(hash.Sum([]byte(h.salt))), nil
 }
+
+func (h *SHA256Hasher) Compare(hash, plain string) error {
+	expected, err := h.Hash(plain)
+	if err != nil {
+		return err
+	}
+
+	if expected != hash {
+		return ErrMismatchedHashes
+	}
+	return nil
+}
