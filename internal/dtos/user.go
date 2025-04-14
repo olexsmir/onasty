@@ -2,19 +2,7 @@ package dtos
 
 import (
 	"time"
-
-	"github.com/gofrs/uuid/v5"
 )
-
-type UserDTO struct {
-	ID          uuid.UUID
-	Username    string
-	Email       string
-	Password    string
-	Activated   bool
-	CreatedAt   time.Time
-	LastLoginAt time.Time
-}
 
 type ChangeUserPasswordDTO struct {
 	CurrentPassword string
