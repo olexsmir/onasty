@@ -16,7 +16,7 @@ type UserDTO struct {
 	LastLoginAt time.Time
 }
 
-type ResetUserPasswordDTO struct {
+type ChangeUserPasswordDTO struct {
 	CurrentPassword string
 	NewPassword     string
 }

@@ -24,7 +24,7 @@ type UserServicer interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
 
-	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ResetUserPasswordDTO) error
+	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPasswordDTO) error
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
@@ -177,7 +177,7 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 func (u *UserSrv) ChangePassword(
 	ctx context.Context,
 	userID uuid.UUID,
-	inp dtos.ResetUserPasswordDTO,
+	inp dtos.ChangeUserPasswordDTO,
 ) error {
 	// TODO: compare current password with providede, and assert on mismatch
 
