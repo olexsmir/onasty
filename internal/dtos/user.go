@@ -4,11 +4,6 @@ import (
 	"time"
 )
 
-type ChangeUserPasswordDTO struct {
-	CurrentPassword string
-	NewPassword     string
-}
-
 type CreateUserDTO struct {
 	Username    string
 	Email       string
@@ -20,4 +15,14 @@ type CreateUserDTO struct {
 type SignInDTO struct {
 	Email    string
 	Password string
+}
+
+type ChangeUserPasswordDTO struct {
+	CurrentPassword string
+	NewPassword     string
+}
+
+type TokensDTO struct {
+	Access  string
+	Refresh string
 }
