@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type CreateUserDTO struct {
+type SignUp struct {
 	Username    string
 	Email       string
 	Password    string
@@ -12,17 +12,17 @@ type CreateUserDTO struct {
 	LastLoginAt time.Time
 }
 
-type SignInDTO struct {
+type SignIn struct {
 	Email    string
 	Password string
 }
 
-type ChangeUserPasswordDTO struct {
+type ChangeUserPassword struct {
 	CurrentPassword string
 	NewPassword     string
 }
 
-type TokensDTO struct {
+type Tokens struct {
 	Access  string
 	Refresh string
 }

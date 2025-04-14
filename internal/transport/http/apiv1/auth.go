@@ -21,7 +21,7 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
+	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.SignUp{
 		Username:    req.Username,
 		Email:       req.Email,
 		Password:    req.Password,
@@ -52,7 +52,7 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 		return
 	}
 
-	toks, err := a.usersrv.SignIn(c.Request.Context(), dtos.SignInDTO{
+	toks, err := a.usersrv.SignIn(c.Request.Context(), dtos.SignIn{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -106,10 +106,12 @@ func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 		return
 	}
 
-	if err := a.usersrv.ResendVerificationEmail(c.Request.Context(), dtos.SignInDTO{
-		Email:    req.Email,
-		Password: req.Password,
-	}); err != nil {
+	if err := a.usersrv.ResendVerificationEmail(
+		c.Request.Context(),
+		dtos.SignIn{
+			Email:    req.Email,
+			Password: req.Password,
+		}); err != nil {
 		errorResponse(c, err)
 		return
 	}
@@ -141,7 +143,7 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	if err := a.usersrv.ChangePassword(
 		c.Request.Context(),
 		a.getUserID(c),
-		dtos.ChangeUserPasswordDTO{
+		dtos.ChangeUserPassword{
 			CurrentPassword: req.CurrentPassword,
 			NewPassword:     req.NewPassword,
 		}); err != nil {
