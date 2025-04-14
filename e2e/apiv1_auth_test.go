@@ -234,7 +234,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 			name:         "wrong email",
 			email:        "wrong@email.com",
 			password:     password,
-			expectedCode: http.StatusUnauthorized,
+			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name:         "wrong password",
