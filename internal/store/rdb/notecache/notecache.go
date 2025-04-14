@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/olexsmir/onasty/internal/dtos"
+	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/rdb"
 )
 
 type NoteCacher interface {
-	SetNote(ctx context.Context, slug string, note dtos.NoteDTO) error
-	GetNote(ctx context.Context, slug string) (dtos.NoteDTO, error)
+	SetNote(ctx context.Context, slug string, note models.Note) error
+	GetNote(ctx context.Context, slug string) (models.Note, error)
 }
 
 type NoteCache struct {
@@ -28,7 +28,7 @@ func New(rdb *rdb.DB, ttl time.Duration) *NoteCache {
 	}
 }
 
-func (n *NoteCache) SetNote(ctx context.Context, slug string, note dtos.NoteDTO) error {
+func (n *NoteCache) SetNote(ctx context.Context, slug string, note models.Note) error {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(note); err != nil {
 		return err
@@ -38,15 +38,15 @@ func (n *NoteCache) SetNote(ctx context.Context, slug string, note dtos.NoteDTO)
 	return err
 }
 
-func (n *NoteCache) GetNote(ctx context.Context, slug string) (dtos.NoteDTO, error) {
+func (n *NoteCache) GetNote(ctx context.Context, slug string) (models.Note, error) {
 	val, err := n.rdb.Get(ctx, getKey(slug)).Bytes()
 	if err != nil {
-		return dtos.NoteDTO{}, err
+		return models.Note{}, err
 	}
 
-	var note dtos.NoteDTO
+	var note models.Note
 	if err = gob.NewDecoder(bytes.NewReader(val)).Decode(&note); err != nil {
-		return dtos.NoteDTO{}, err
+		return models.Note{}, err
 	}
 
 	return note, err

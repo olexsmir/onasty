@@ -9,14 +9,18 @@ import (
 type NoteSlugDTO = string
 
 type NoteDTO struct {
-	Content              string
-	Slug                 string
-	BurnBeforeExpiration bool
-	Password             string
-	IsRead               bool
-	ReadAt               *time.Time
-	CreatedAt            time.Time
-	ExpiresAt            time.Time
+	Content   string
+	Slug      NoteSlugDTO
+	ReadAt    *time.Time
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+type GetNoteDTO struct {
+	Content   string
+	ReadAt    time.Time
+	CreatedAt time.Time
+	ExpiresAt time.Time
 }
 
 type CreateNoteDTO struct {

@@ -19,7 +19,7 @@ type NoteStorer interface {
 
 	// GetBySlug gets a note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
-	GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error)
+	GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (models.Note, error)
 
 	// GetBySlugAndPassword gets a note by slug and password.
 	// the "password" should be hashed.
@@ -29,7 +29,7 @@ type NoteStorer interface {
 		ctx context.Context,
 		slug dtos.NoteSlugDTO,
 		password string,
-	) (dtos.NoteDTO, error)
+	) (models.Note, error)
 
 	// RemoveBySlug marks note as read, deletes it's content, and keeps meta data
 	// Returns [models.ErrNoteNotFound] if note is not found.
@@ -68,7 +68,7 @@ func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNoteDTO) error {
 	return err
 }
 
-func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.NoteDTO, error) {
+func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (models.Note, error) {
 	query, args, err := pgq.
 		Select("content", "slug", "burn_before_expiration", "read_at", "created_at", "expires_at").
 		From("notes").
@@ -76,15 +76,15 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlugDTO) (dtos.N
 		Where(pgq.Eq{"slug": slug}).
 		SQL()
 	if err != nil {
-		return dtos.NoteDTO{}, err
+		return models.Note{}, err
 	}
 
-	var note dtos.NoteDTO
+	var note models.Note
 	err = s.db.QueryRow(ctx, query, args...).
 		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return dtos.NoteDTO{}, models.ErrNoteNotFound
+		return models.Note{}, models.ErrNoteNotFound
 	}
 
 	return note, err
@@ -94,7 +94,7 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	ctx context.Context,
 	slug dtos.NoteSlugDTO,
 	passwd string,
-) (dtos.NoteDTO, error) {
+) (models.Note, error) {
 	query, args, err := pgq.
 		Select("content", "slug", "burn_before_expiration", "read_at", "created_at", "expires_at").
 		From("notes").
@@ -104,15 +104,15 @@ func (s *NoteRepo) GetBySlugAndPassword(
 		}).
 		SQL()
 	if err != nil {
-		return dtos.NoteDTO{}, err
+		return models.Note{}, err
 	}
 
-	var note dtos.NoteDTO
+	var note models.Note
 	err = s.db.QueryRow(ctx, query, args...).
 		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
-		return dtos.NoteDTO{}, models.ErrNoteNotFound
+		return models.Note{}, models.ErrNoteNotFound
 	}
 
 	return note, err
@@ -129,7 +129,7 @@ func (s *NoteRepo) RemoveBySlug(
 		Set("read_at", readAt).
 		Where(pgq.Eq{
 			"slug":    slug,
-			"read_at": nil,
+			"read_at": time.Time{}, // check if time is null
 		}).
 		SQL()
 	if err != nil {

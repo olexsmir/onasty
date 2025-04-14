@@ -20,7 +20,10 @@ type NoteServicer interface {
 	Create(ctx context.Context, note dtos.CreateNoteDTO, userID uuid.UUID) (dtos.NoteSlugDTO, error)
 
 	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed
-	GetBySlugAndRemoveIfNeeded(ctx context.Context, input GetNoteBySlugInput) (dtos.NoteDTO, error)
+	GetBySlugAndRemoveIfNeeded(
+		ctx context.Context,
+		input GetNoteBySlugInput,
+	) (dtos.GetNoteDTO, error)
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -74,41 +77,43 @@ func (n *NoteSrv) Create(
 func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	ctx context.Context,
 	inp GetNoteBySlugInput,
-) (dtos.NoteDTO, error) {
+) (dtos.GetNoteDTO, error) {
 	note, err := n.getNote(ctx, inp)
 	if err != nil {
-		return dtos.NoteDTO{}, err
+		return dtos.GetNoteDTO{}, err
 	}
 
-	m := models.Note{ //nolint:exhaustruct
-		ExpiresAt:            note.ExpiresAt,
-		BurnBeforeExpiration: note.BurnBeforeExpiration,
+	if note.IsExpired() {
+		return dtos.GetNoteDTO{}, models.ErrNoteExpired
 	}
 
-	if m.IsExpired() {
-		return dtos.NoteDTO{}, models.ErrNoteExpired
+	respNote := dtos.GetNoteDTO{
+		Content:   note.Content,
+		ReadAt:    note.ReadAt,
+		CreatedAt: note.CreatedAt,
+		ExpiresAt: note.ExpiresAt,
 	}
 
 	// since not every note should be burn before expiration
 	// we return early if it's not
-	if m.ShouldBeBurnt() {
-		return note, nil
+	if note.ShouldBeBurnt() {
+		return respNote, nil
 	}
 
-	return note, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
+	return respNote, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
 }
 
-func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (dtos.NoteDTO, error) {
+func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (models.Note, error) {
 	if r, err := n.cache.GetNote(ctx, inp.Slug); err == nil {
 		return r, nil
 	}
 
 	note, err := n.getNoteFromDBasedOnInput(ctx, inp)
 	if err != nil {
-		return dtos.NoteDTO{}, err
+		return models.Note{}, err
 	}
 
-	if note.ReadAt != nil && !note.ReadAt.IsZero() {
+	if !note.IsRead() {
 		if err = n.cache.SetNote(ctx, inp.Slug, note); err != nil {
 			slog.ErrorContext(ctx, "notecache", "err", err)
 		}
@@ -120,11 +125,11 @@ func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (dtos.Not
 func (n *NoteSrv) getNoteFromDBasedOnInput(
 	ctx context.Context,
 	inp GetNoteBySlugInput,
-) (dtos.NoteDTO, error) {
+) (models.Note, error) {
 	if inp.HasPassword() {
 		hashedPassword, err := n.hasher.Hash(inp.Password)
 		if err != nil {
-			return dtos.NoteDTO{}, err
+			return models.Note{}, err
 		}
 
 		return n.noterepo.GetBySlugAndPassword(ctx, inp.Slug, hashedPassword)
