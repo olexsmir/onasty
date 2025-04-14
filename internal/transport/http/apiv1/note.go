@@ -45,7 +45,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
-	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNoteDTO{
+	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNote{
 		Content:              note.Content,
 		UserID:               a.getUserID(c),
 		Slug:                 note.Slug,

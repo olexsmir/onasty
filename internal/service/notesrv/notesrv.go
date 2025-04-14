@@ -17,13 +17,13 @@ type NoteServicer interface {
 	// Create creates note
 	// if slug is empty it will be generated, otherwise used as is
 	// if userID is empty it means user isn't authorized so it will be used
-	Create(ctx context.Context, note dtos.CreateNoteDTO, userID uuid.UUID) (dtos.NoteSlugDTO, error)
+	Create(ctx context.Context, note dtos.CreateNote, userID uuid.UUID) (dtos.NoteSlug, error)
 
 	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed
 	GetBySlugAndRemoveIfNeeded(
 		ctx context.Context,
 		input GetNoteBySlugInput,
-	) (dtos.GetNoteDTO, error)
+	) (dtos.GetNote, error)
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -44,9 +44,9 @@ func New(noterepo noterepo.NoteStorer, hasher hasher.Hasher, cache notecache.Not
 
 func (n *NoteSrv) Create(
 	ctx context.Context,
-	inp dtos.CreateNoteDTO,
+	inp dtos.CreateNote,
 	userID uuid.UUID,
-) (dtos.NoteSlugDTO, error) {
+) (dtos.NoteSlug, error) {
 	slog.DebugContext(ctx, "creating", "inp", inp)
 
 	if inp.Slug == "" {
@@ -77,17 +77,17 @@ func (n *NoteSrv) Create(
 func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	ctx context.Context,
 	inp GetNoteBySlugInput,
-) (dtos.GetNoteDTO, error) {
+) (dtos.GetNote, error) {
 	note, err := n.getNote(ctx, inp)
 	if err != nil {
-		return dtos.GetNoteDTO{}, err
+		return dtos.GetNote{}, err
 	}
 
 	if note.IsExpired() {
-		return dtos.GetNoteDTO{}, models.ErrNoteExpired
+		return dtos.GetNote{}, models.ErrNoteExpired
 	}
 
-	respNote := dtos.GetNoteDTO{
+	respNote := dtos.GetNote{
 		Content:   note.Content,
 		ReadAt:    note.ReadAt,
 		CreatedAt: note.CreatedAt,
