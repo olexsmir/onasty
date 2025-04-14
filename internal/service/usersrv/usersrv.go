@@ -218,7 +218,7 @@ func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDT
 	}
 
 	if user.Activated {
-		return models.ErrUserIsAlreeadyVerified
+		return models.ErrUserIsAlreadyVerified
 	}
 
 	token, err := u.vertokrepo.GetTokenOrUpdateTokenByUserID(
