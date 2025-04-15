@@ -61,7 +61,20 @@ func (n *NoteSrv) Create(
 		inp.Password = hashedPassword
 	}
 
-	if err := n.noterepo.Create(ctx, inp); err != nil {
+	//nolint:exhaustruct // ID - cannot be predicted, and ReadAt will be set on read
+	note := models.Note{
+		Content:              inp.Content,
+		Slug:                 inp.Slug,
+		Password:             inp.Password,
+		BurnBeforeExpiration: inp.BurnBeforeExpiration,
+		CreatedAt:            inp.CreatedAt,
+		ExpiresAt:            inp.ExpiresAt,
+	}
+	if err := note.Validate(); err != nil {
+		return "", err
+	}
+
+	if err := n.noterepo.Create(ctx, note); err != nil {
 		return "", err
 	}
 

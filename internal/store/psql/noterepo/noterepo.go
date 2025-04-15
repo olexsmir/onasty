@@ -15,7 +15,7 @@ import (
 
 type NoteStorer interface {
 	// Create creates a note.
-	Create(ctx context.Context, inp dtos.CreateNote) error
+	Create(ctx context.Context, note models.Note) error
 
 	// GetBySlug gets a note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
@@ -50,7 +50,7 @@ func New(db *psqlutil.DB) *NoteRepo {
 	return &NoteRepo{db}
 }
 
-func (s *NoteRepo) Create(ctx context.Context, inp dtos.CreateNote) error {
+func (s *NoteRepo) Create(ctx context.Context, inp models.Note) error {
 	query, args, err := pgq.
 		Insert("notes").
 		Columns("content", "slug", "password", "burn_before_expiration ", "created_at", "expires_at").
