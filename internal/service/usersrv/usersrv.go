@@ -118,7 +118,7 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error
 }
 
 func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, error) {
-	user, err := u.userstore.GetUserByEmail(ctx, inp.Email)
+	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
 		return dtos.Tokens{}, err
 	}
@@ -208,7 +208,7 @@ func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
 }
 
 func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignIn) error {
-	user, err := u.userstore.GetUserByEmail(ctx, inp.Email)
+	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
 		return err
 	}

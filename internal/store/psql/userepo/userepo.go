@@ -16,7 +16,7 @@ type UserStorer interface {
 
 	// GetUserByCredentials returns user by email and password
 	// the password should be hashed
-	GetUserByEmail(ctx context.Context, email string) (models.User, error)
+	GetByEmail(ctx context.Context, email string) (models.User, error)
 
 	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
@@ -71,7 +71,7 @@ func (r *UserRepo) Create(ctx context.Context, inp models.User) (uuid.UUID, erro
 	return id, err
 }
 
-func (r *UserRepo) GetUserByEmail(
+func (r *UserRepo) GetByEmail(
 	ctx context.Context,
 	email string,
 ) (models.User, error) {
