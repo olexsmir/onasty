@@ -101,7 +101,8 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error
 	if err := u.vertokrepo.Create(
 		ctx,
 		verificationToken,
-		userID, time.Now(),
+		userID,
+		time.Now(),
 		time.Now().Add(u.verificationTokenTTL),
 	); err != nil {
 		return uuid.Nil, err
