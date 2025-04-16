@@ -173,8 +173,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 
 		e.Equal(httpResp.Code, t.expectedCode)
 
-		// no email should be sent
-		// e.Empty(e.mailer.GetLastSentEmailToEmail(t.email))
+		// TODO: no email should be sent
 	}
 }
 
@@ -223,7 +222,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 		expectedMsg string
 	}{
 		{
-			name:         "unactivated user",
+			name:         "inactivated user",
 			email:        unactivatedEmail,
 			password:     password,
 			expectedCode: http.StatusBadRequest,
@@ -341,12 +340,12 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	e.Equal(httpResp.Code, http.StatusOK)
 
 	userDB := e.getUserByUsername(username)
-	hashedNewPassword, err := e.hasher.Hash(newPassword)
-	e.require.NoError(err)
-
-	e.Equal(userDB.Password, hashedNewPassword)
+	e.Equal(userDB.Username, username)
+	e.NoError(e.hasher.Compare(userDB.Password, newPassword))
 }
 
+// createAndSingIn creates an activated username, logs them in,
+// and returns their userID along with access and refresh tokens.
 func (e *AppTestSuite) createAndSingIn(
 	email, username, password string,
 ) (uuid.UUID, apiv1AuthSignInResponse) {
