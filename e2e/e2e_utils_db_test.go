@@ -10,7 +10,8 @@ import (
 	"github.com/olexsmir/onasty/internal/models"
 )
 
-func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
+// getUserByUsername queries user from db by it's username
+func (e *AppTestSuite) getUserByUsername(username string) models.User {
 	query, args, err := pgq.
 		Select("id", "username", "email", "password", "created_at", "last_login_at").
 		From("users").
@@ -26,7 +27,8 @@ func (e *AppTestSuite) getUserFromDBByUsername(username string) models.User {
 	return user
 }
 
-func (e *AppTestSuite) insertUserIntoDB(uname, email, passwd string, activated ...bool) uuid.UUID {
+// insertUser inserts user into db
+func (e *AppTestSuite) insertUser(uname, email, passwd string, activated ...bool) uuid.UUID {
 	p, err := e.hasher.Hash(passwd)
 	e.require.NoError(err)
 
@@ -50,7 +52,8 @@ func (e *AppTestSuite) insertUserIntoDB(uname, email, passwd string, activated .
 	return id
 }
 
-func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session {
+// getLastSessionByUserID gets last inserted [models.Session] for particular user
+func (e *AppTestSuite) getLastSessionByUserID(uid uuid.UUID) models.Session {
 	query, args, err := pgq.
 		Select("refresh_token", "expires_at").
 		From("sessions").
@@ -71,9 +74,10 @@ func (e *AppTestSuite) getLastUserSessionByUserID(uid uuid.UUID) models.Session 
 	return session
 }
 
-func (e *AppTestSuite) getLastInsertedUserByEmail(em string) models.User {
+// getLastUserByEmail gets last inserted [models.User] by user's email
+func (e *AppTestSuite) getLastUserByEmail(em string) models.User {
 	query, args, err := pgq.
-		Select("id", "username", "activated", "email", "password").
+		Select("id", "username", "activated", "email", "password", "created_at", "last_login_at").
 		From("users").
 		Where(pgq.Eq{"email": em}).
 		OrderBy("created_at DESC").
@@ -83,7 +87,7 @@ func (e *AppTestSuite) getLastInsertedUserByEmail(em string) models.User {
 
 	var u models.User
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
-		Scan(&u.ID, &u.Username, &u.Activated, &u.Email, &u.Password)
+		Scan(&u.ID, &u.Username, &u.Activated, &u.Email, &u.Password, &u.CreatedAt, &u.LastLoginAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.User{} //nolint:exhaustruct
 	}
@@ -92,6 +96,7 @@ func (e *AppTestSuite) getLastInsertedUserByEmail(em string) models.User {
 	return u
 }
 
+// getNoteBySlug gets [models.Note] by slug
 func (e *AppTestSuite) getNoteBySlug(slug string) models.Note {
 	query, args, err := pgq.
 		Select(
