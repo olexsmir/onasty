@@ -8,7 +8,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/henvic/pgq v0.0.3
-	github.com/jackc/pgx/v5 v5.7.2
+	github.com/jackc/pgx/v5 v5.7.4
 	github.com/mailgun/mailgun-go/v4 v4.22.2
 	github.com/nats-io/nats.go v1.41.0
 	github.com/prometheus/client_golang v1.21.1
