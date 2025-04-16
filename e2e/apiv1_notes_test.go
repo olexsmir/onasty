@@ -46,7 +46,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				_, err := uuid.FromString(body.Slug)
 				e.require.NoError(err)
 
-				dbNote := e.getNoteFromDBbySlug(body.Slug)
+				dbNote := e.getNoteBySlug(body.Slug)
 				e.NotEmpty(dbNote)
 			},
 		},
@@ -62,7 +62,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
 
-				dbNote := e.getNoteFromDBbySlug(inp.Slug)
+				dbNote := e.getNoteBySlug(inp.Slug)
 				e.NotEmpty(dbNote)
 			},
 		},
@@ -89,7 +89,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
 
-				dbNote := e.getNoteFromDBbySlug(body.Slug)
+				dbNote := e.getNoteBySlug(body.Slug)
 				e.NotEmpty(dbNote)
 
 				e.Equal(dbNote.Content, inp.Content)
@@ -134,7 +134,7 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 
 	e.Equal(content, body.Content)
 
-	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
 	e.Equal(dbNote.Content, "")
 	e.Equal(dbNote.ReadAt.IsZero(), false)
 }
@@ -173,7 +173,7 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword() {
 
 	e.Equal(content, body.Content)
 
-	dbNote := e.getNoteFromDBbySlug(bodyCreated.Slug)
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
 	e.Equal(dbNote.Content, "")
 	e.Equal(dbNote.ReadAt.IsZero(), false)
 }
