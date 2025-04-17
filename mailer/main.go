@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/micro"
@@ -62,7 +63,12 @@ func run() error {
 	}
 
 	if cfg.MetricsEnabled {
-		srv := httpserver.NewServer(cfg.MetricsPort, MetricsHandler())
+		srv := httpserver.NewServer(MetricsHandler(), httpserver.Config{
+			Port:            cfg.MetricsPort,
+			ReadTimeout:     10 * time.Second,
+			WriteTimeout:    10 * time.Second,
+			MaxHeaderSizeMb: 1,
+		})
 		go func() {
 			slog.Info("starting metrics server", "port", cfg.MetricsPort)
 			if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
