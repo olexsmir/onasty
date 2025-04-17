@@ -16,7 +16,6 @@ import (
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
-	"github.com/olexsmir/onasty/internal/metrics"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -115,9 +114,9 @@ func run(ctx context.Context) error {
 	)
 
 	// http server
-	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
+	srv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.HttpPort, cfg))
 	go func() {
-		slog.Info("starting http server", "port", cfg.ServerPort)
+		slog.Info("starting http server", "port", cfg.HttpPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
@@ -125,7 +124,7 @@ func run(ctx context.Context) error {
 
 	// metrics
 	if cfg.MetricsEnabled {
-		mSrv := httpserver.NewServer(cfg.MetricsPort, metrics.Handler())
+		mSrv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.MetricsPort, cfg))
 		go func() {
 			slog.Info("starting metrics server", "port", cfg.MetricsPort)
 			if err := mSrv.Start(); !errors.Is(err, http.ErrServerClosed) {
@@ -152,4 +151,13 @@ func run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func httpConfig(port string, cfg *config.Config) httpserver.Config {
+	return httpserver.Config{
+		Port:            port,
+		ReadTimeout:     cfg.HttpReadTimeout,
+		WriteTimeout:    cfg.HttpWriteTimeout,
+		MaxHeaderSizeMb: cfg.HttpHeaderMaxSizeMb,
+	}
 }

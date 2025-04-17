@@ -8,10 +8,14 @@ import (
 )
 
 type Config struct {
-	AppEnv     string
-	AppURL     string
-	ServerPort string
-	NatsURL    string
+	AppEnv  string
+	AppURL  string
+	NatsURL string
+
+	HttpPort            string
+	HttpWriteTimeout    time.Duration
+	HttpReadTimeout     time.Duration
+	HttpHeaderMaxSizeMb int
 
 	PostgresDSN      string
 	PasswordSalt     string
@@ -44,10 +48,14 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		AppEnv:     getenvOrDefault("APP_ENV", "debug"),
-		AppURL:     getenvOrDefault("APP_URL", ""),
-		ServerPort: getenvOrDefault("SERVER_PORT", "3000"),
-		NatsURL:    getenvOrDefault("NATS_URL", ""),
+		AppEnv:  getenvOrDefault("APP_ENV", "debug"),
+		AppURL:  getenvOrDefault("APP_URL", ""),
+		NatsURL: getenvOrDefault("NATS_URL", ""),
+
+		HttpPort:            getenvOrDefault("HTTP_PORT", "3000"),
+		HttpWriteTimeout:    mustParseDuration(getenvOrDefault("HTTP_WRITE_TIMEOUT", "10s")),
+		HttpReadTimeout:     mustParseDuration(getenvOrDefault("HTTP_READ_TIMEOUT", "10s")),
+		HttpHeaderMaxSizeMb: mustGetenvOrDefaultInt("HTTP_HEADER_MAX_SIZE_MB", 1),
 
 		PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
 		PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),
