@@ -4,7 +4,8 @@ updates:
     directory: /
     open-pull-requests-limit: 3
     schedule:
-      interval: weekly
+      interval: monthly
+      day: wednesday
 
   - package-ecosystem: docker
     directories:
@@ -13,9 +14,11 @@ updates:
     open-pull-requests-limit: 2
     schedule:
       interval: monthly
+      day: wednesday
 
   - package-ecosystem: github-actions
-    directory: .github/workflows
+    directory: /
     open-pull-requests-limit: 2
     schedule:
       interval: monthly
+      day: wednesday
