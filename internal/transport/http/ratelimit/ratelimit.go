@@ -72,8 +72,8 @@ func (r *rateLimiter) getVisitor(ip visitorIP) *rate.Limiter {
 }
 
 // cleanUpVisitors checks the map of visitors that haven't been seed
-// for more than [Config.TTL] and delete those entries
-func (r *rateLimiter) cleanUpVisitors() {
+// for more than [Config].TTL and delete those entries
+func (r *rateLimiter) cleanupVisitors() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -84,11 +84,11 @@ func (r *rateLimiter) cleanUpVisitors() {
 	}
 }
 
-// cleanupVisitorsLoop runs [cleanupVisitors] every minute
+// cleanupVisitorsLoop runs [rateLimiter.cleanupVisitors] every minute
 func (r *rateLimiter) cleanupVisitorsLoop() {
 	for {
 		time.Sleep(time.Minute)
-		r.cleanUpVisitors()
+		r.cleanupVisitors()
 	}
 }
 
