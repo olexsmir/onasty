@@ -18,7 +18,7 @@ type JWTTokenizer interface {
 	// RefreshToken generates a random string of 64 chars.
 	RefreshToken() (string, error)
 
-	// Parse parses the token and returns its [Payload]
+	// Parse parses the token and returns its [Payload].
 	Parse(token string) (Payload, error)
 }
 
