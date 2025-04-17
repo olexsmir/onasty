@@ -202,7 +202,7 @@ func (e *AppTestSuite) getConfig() *config.Config {
 	return &config.Config{ //nolint:exhaustruct
 		AppEnv:               "testing",
 		AppURL:               "",
-		HttpPort:             "3000",
+		HTTPPort:             "3000",
 		PasswordSalt:         "salty-password",
 		JwtSigningKey:        "jwt-key",
 		JwtAccessTokenTTL:    time.Hour,

@@ -114,9 +114,9 @@ func run(ctx context.Context) error {
 	)
 
 	// http server
-	srv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.HttpPort, cfg))
+	srv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.HTTPPort, cfg))
 	go func() {
-		slog.Info("starting http server", "port", cfg.HttpPort)
+		slog.Info("starting http server", "port", cfg.HTTPPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
@@ -156,8 +156,8 @@ func run(ctx context.Context) error {
 func httpConfig(port string, cfg *config.Config) httpserver.Config {
 	return httpserver.Config{
 		Port:            port,
-		ReadTimeout:     cfg.HttpReadTimeout,
-		WriteTimeout:    cfg.HttpWriteTimeout,
-		MaxHeaderSizeMb: cfg.HttpHeaderMaxSizeMb,
+		ReadTimeout:     cfg.HTTPReadTimeout,
+		WriteTimeout:    cfg.HTTPWriteTimeout,
+		MaxHeaderSizeMb: cfg.HTTPHeaderMaxSizeMb,
 	}
 }
