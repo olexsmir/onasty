@@ -43,8 +43,8 @@ func newLimiter(rps, burst int, ttl time.Duration) *rateLimiter {
 	}
 }
 
-// Retrieve and return the rate limiter for the current visitor if it
-// already exists. Otherwise create a new rate limiter and add it to
+// getVisitor Retrieve and return the rate limiter for the current visitor
+// if it already exists. Otherwise create a new rate limiter and add it to
 // the visitors map, using the IP address as the key.
 func (r *rateLimiter) getVisitor(ip visitorIP) *rate.Limiter {
 	r.mu.RLock()
@@ -71,19 +71,24 @@ func (r *rateLimiter) getVisitor(ip visitorIP) *rate.Limiter {
 	return v.limiter
 }
 
-// Every minute check the map for visitors that haven't been seen for
-// more than 3 minutes and delete the entries.
-func (r *rateLimiter) cleanupVisitors() {
+// cleanUpVisitors checks the map of visitors that haven't been seed
+// for more than [Config.TTL] and delete those entries
+func (r *rateLimiter) cleanUpVisitors() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for ip, v := range r.visitors {
+		if time.Since(v.lastSeen) > r.ttl {
+			delete(r.visitors, ip)
+		}
+	}
+}
+
+// cleanupVisitorsLoop runs [cleanupVisitors] every minute
+func (r *rateLimiter) cleanupVisitorsLoop() {
 	for {
 		time.Sleep(time.Minute)
-
-		r.mu.Lock()
-		for ip, v := range r.visitors {
-			if time.Since(v.lastSeen) > r.ttl {
-				delete(r.visitors, ip)
-			}
-		}
-		r.mu.Unlock()
+		r.cleanUpVisitors()
 	}
 }
 
@@ -101,7 +106,7 @@ type Config struct {
 // MiddlewareWithConfig returns a new rate limiting middleware with the given config
 func MiddlewareWithConfig(c Config) gin.HandlerFunc {
 	lmt := newLimiter(c.RPS, c.Burst, c.TTL)
-	go lmt.cleanupVisitors()
+	go lmt.cleanupVisitorsLoop()
 
 	return func(c *gin.Context) {
 		visitor := lmt.getVisitor(visitorIP(c.ClientIP()))
