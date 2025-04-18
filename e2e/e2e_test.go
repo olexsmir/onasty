@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -199,18 +198,14 @@ func (e *AppTestSuite) prepRedis() (*rdb.DB, stopFunc) {
 }
 
 func (e *AppTestSuite) getConfig() *config.Config {
-	return &config.Config{ //nolint:exhaustruct
-		AppEnv:               "testing",
-		AppURL:               "",
-		HTTPPort:             "3000",
-		PasswordSalt:         "salty-password",
-		JwtSigningKey:        "jwt-key",
-		JwtAccessTokenTTL:    time.Hour,
-		JwtRefreshTokenTTL:   24 * time.Hour,
-		VerificationTokenTTL: 24 * time.Hour,
-		LogShowLine:          os.Getenv("LOG_SHOW_LINE") == "true",
-		LogFormat:            "text",
-		LogLevel:             "debug",
-		CacheUsersTTL:        time.Second,
-	}
+	e.T().Setenv("APP_ENV", "test")
+	e.T().Setenv("APP_URL", "localhost")
+	e.T().Setenv("PASSWORD_SALT", "salty-password")
+	e.T().Setenv("NOTE_PASSWORD_SALT", "salty-noted-password")
+	e.T().Setenv("JWT_SIGNING_KEY", "jwt-key")
+	e.T().Setenv("LOG_SHOW_LINE", "true")
+	e.T().Setenv("LOG_FORMAT", "text")
+	e.T().Setenv("LOG_LEVEL", "debug")
+
+	return config.NewConfig()
 }
