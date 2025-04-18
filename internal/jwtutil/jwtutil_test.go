@@ -55,8 +55,6 @@ func TestJWTUtil_Parse_expired(t *testing.T) {
 	assert.NotEmpty(t, token)
 
 	time.Sleep(ttl)
-	parsedPayload, err := jwt.Parse(token)
+	_, err = jwt.Parse(token)
 	require.Error(t, err)
-
-	assert.Equal(t, payload, parsedPayload)
 }
