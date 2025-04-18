@@ -10,15 +10,28 @@ type Server struct {
 	http *http.Server
 }
 
-func NewServer(port string, handler http.Handler) *Server {
-	// TODO: add those settings to the config module
+type Config struct {
+	// Port http server port
+	Port string
+
+	// ReadTimeout read timeout
+	ReadTimeout time.Duration
+
+	// WriteTimeout write timeout
+	WriteTimeout time.Duration
+
+	// MaxHeaderSizeMb max size of headers in megabytes
+	MaxHeaderSizeMb int
+}
+
+func NewServer(handler http.Handler, cfg Config) *Server {
 	return &Server{
 		http: &http.Server{
-			Addr:           ":" + port,
+			Addr:           ":" + cfg.Port,
 			Handler:        handler,
-			ReadTimeout:    10 * time.Second,
-			WriteTimeout:   10 * time.Second,
-			MaxHeaderBytes: 1 << 20, // 1mb
+			ReadTimeout:    cfg.ReadTimeout,
+			WriteTimeout:   cfg.WriteTimeout,
+			MaxHeaderBytes: cfg.MaxHeaderSizeMb << 20,
 		},
 	}
 }

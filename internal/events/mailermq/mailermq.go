@@ -17,8 +17,6 @@ type MailerMQ struct {
 	nc *nats.Conn
 }
 
-const sendMailSubject = "mailer.send"
-
 func New(nc *nats.Conn) *MailerMQ {
 	return &MailerMQ{
 		nc: nc,
@@ -53,7 +51,7 @@ func (m MailerMQ) SendVerificationEmail(
 		return err
 	}
 
-	resp, err := m.nc.RequestWithContext(ctx, sendMailSubject, req)
+	resp, err := m.nc.RequestWithContext(ctx, "mailer.send", req)
 	if err != nil {
 		return err
 	}

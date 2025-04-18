@@ -61,7 +61,7 @@ func (e *AppTestSuite) uuid() string {
 	return u.String()
 }
 
-// parseJwtToken util func that parses jwt token and returns payload
+// parseJwtToken gets payload from the jwt token
 func (e *AppTestSuite) parseJwtToken(t string) jwtutil.Payload {
 	r, err := e.jwtTokenizer.Parse(t)
 	e.require.NoError(err)

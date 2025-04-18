@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/dtos"
-	"github.com/olexsmir/onasty/internal/models"
 )
 
 type signUpRequest struct {
@@ -22,25 +21,12 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	user := models.User{ //nolint:exhaustruct
+	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.SignUp{
 		Username:    req.Username,
 		Email:       req.Email,
 		Password:    req.Password,
 		CreatedAt:   time.Now(),
 		LastLoginAt: time.Now(),
-	}
-	if err := user.Validate(); err != nil {
-		// TODO: find a way to return all errors at once
-		newErrorStatus(c, http.StatusBadRequest, err.Error())
-		return
-	}
-
-	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.CreateUserDTO{
-		Username:    user.Username,
-		Email:       user.Email,
-		Password:    user.Password,
-		CreatedAt:   user.CreatedAt,
-		LastLoginAt: user.LastLoginAt,
 	}); err != nil {
 		errorResponse(c, err)
 		return
@@ -66,7 +52,7 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 		return
 	}
 
-	toks, err := a.usersrv.SignIn(c.Request.Context(), dtos.SignInDTO{
+	toks, err := a.usersrv.SignIn(c.Request.Context(), dtos.SignIn{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -120,10 +106,12 @@ func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 		return
 	}
 
-	if err := a.usersrv.ResendVerificationEmail(c.Request.Context(), dtos.SignInDTO{
-		Email:    req.Email,
-		Password: req.Password,
-	}); err != nil {
+	if err := a.usersrv.ResendVerificationEmail(
+		c.Request.Context(),
+		dtos.SignIn{
+			Email:    req.Email,
+			Password: req.Password,
+		}); err != nil {
 		errorResponse(c, err)
 		return
 	}
@@ -155,7 +143,7 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	if err := a.usersrv.ChangePassword(
 		c.Request.Context(),
 		a.getUserID(c),
-		dtos.ResetUserPasswordDTO{
+		dtos.ChangeUserPassword{
 			CurrentPassword: req.CurrentPassword,
 			NewPassword:     req.NewPassword,
 		}); err != nil {

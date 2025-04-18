@@ -19,15 +19,15 @@ import (
 )
 
 type UserServicer interface {
-	SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error)
-	SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error)
-	RefreshTokens(ctx context.Context, refreshToken string) (dtos.TokensDTO, error)
+	SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error)
+	SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, error)
+	RefreshTokens(ctx context.Context, refreshToken string) (dtos.Tokens, error)
 	Logout(ctx context.Context, userID uuid.UUID) error
 
-	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ResetUserPasswordDTO) error
+	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
 
 	Verify(ctx context.Context, verificationKey string) error
-	ResendVerificationEmail(ctx context.Context, credentials dtos.SignInDTO) error
+	ResendVerificationEmail(ctx context.Context, credentials dtos.SignIn) error
 
 	ParseJWTToken(token string) (jwtutil.Payload, error)
 
@@ -73,66 +73,78 @@ func New(
 	}
 }
 
-func (u *UserSrv) SignUp(ctx context.Context, inp dtos.CreateUserDTO) (uuid.UUID, error) {
+func (u *UserSrv) SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error) {
 	hashedPassword, err := u.hasher.Hash(inp.Password)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
-	uid, err := u.userstore.Create(ctx, dtos.CreateUserDTO{
+	user := models.User{
+		ID:          uuid.Nil, // nil, because it does not get used here
 		Username:    inp.Username,
 		Email:       inp.Email,
+		Activated:   false,
 		Password:    hashedPassword,
 		CreatedAt:   inp.CreatedAt,
 		LastLoginAt: inp.LastLoginAt,
-	})
+	}
+	if err = user.Validate(); err != nil {
+		return uuid.Nil, err
+	}
+
+	userID, err := u.userstore.Create(ctx, user)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
-	vtok := uuid.Must(uuid.NewV4()).String()
-	if err := u.vertokrepo.Create(ctx, vtok, uid, time.Now(), time.Now().Add(u.verificationTokenTTL)); err != nil {
+	verificationToken := uuid.Must(uuid.NewV4()).String()
+	if err := u.vertokrepo.Create(
+		ctx,
+		verificationToken,
+		userID,
+		time.Now(),
+		time.Now().Add(u.verificationTokenTTL),
+	); err != nil {
 		return uuid.Nil, err
 	}
 
 	if err := u.mailermq.SendVerificationEmail(ctx, mailermq.SendVerificationEmailRequest{
 		Receiver: inp.Email,
-		Token:    vtok,
+		Token:    verificationToken,
 	}); err != nil {
 		return uuid.Nil, err
 	}
 
-	return uid, nil
+	return userID, nil
 }
 
-func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignInDTO) (dtos.TokensDTO, error) {
-	hashedPassword, err := u.hasher.Hash(inp.Password)
+func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, error) {
+	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
-	user, err := u.userstore.GetUserByCredentials(ctx, inp.Email, hashedPassword)
-	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
-			return dtos.TokensDTO{}, models.ErrUserWrongCredentials
+	if err = u.hasher.Compare(user.Password, inp.Password); err != nil {
+		if errors.Is(err, hasher.ErrMismatchedHashes) {
+			return dtos.Tokens{}, models.ErrUserWrongCredentials
 		}
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
-	if !user.Activated {
-		return dtos.TokensDTO{}, models.ErrUserIsNotActivated
+	if !user.IsActivated() {
+		return dtos.Tokens{}, models.ErrUserIsNotActivated
 	}
 
-	tokens, err := u.getTokens(user.ID)
+	tokens, err := u.createTokens(user.ID)
 	if err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
 	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, time.Now().Add(u.refreshTokenTTL)); err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
-	return dtos.TokensDTO{
+	return dtos.Tokens{
 		Access:  tokens.Access,
 		Refresh: tokens.Refresh,
 	}, nil
@@ -142,22 +154,22 @@ func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID) error {
 	return u.sessionstore.Delete(ctx, userID)
 }
 
-func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.TokensDTO, error) {
+func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens, error) {
 	userID, err := u.sessionstore.GetUserIDByRefreshToken(ctx, rtoken)
 	if err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
-	tokens, err := u.getTokens(userID)
+	tokens, err := u.createTokens(userID)
 	if err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
 	if err := u.sessionstore.Update(ctx, userID, rtoken, tokens.Refresh); err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
-	return dtos.TokensDTO{
+	return dtos.Tokens{
 		Access:  tokens.Access,
 		Refresh: tokens.Refresh,
 	}, nil
@@ -166,8 +178,10 @@ func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens
 func (u *UserSrv) ChangePassword(
 	ctx context.Context,
 	userID uuid.UUID,
-	inp dtos.ResetUserPasswordDTO,
+	inp dtos.ChangeUserPassword,
 ) error {
+	// TODO: compare current password with providede, and assert on mismatch
+
 	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
 	if err != nil {
 		return err
@@ -194,22 +208,18 @@ func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
 	return u.userstore.MarkUserAsActivated(ctx, uid)
 }
 
-func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignInDTO) error {
-	hashedPassword, err := u.hasher.Hash(inp.Password)
+func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignIn) error {
+	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
 		return err
 	}
 
-	user, err := u.userstore.GetUserByCredentials(ctx, inp.Email, hashedPassword)
-	if err != nil {
-		if errors.Is(err, models.ErrUserNotFound) {
-			return models.ErrUserWrongCredentials
-		}
-		return err
+	if err = u.hasher.Compare(user.Password, inp.Password); err != nil {
+		return models.ErrUserWrongCredentials
 	}
 
 	if user.Activated {
-		return models.ErrUserIsAlreeadyVerified
+		return models.ErrUserIsAlreadyVerified
 	}
 
 	token, err := u.vertokrepo.GetTokenOrUpdateTokenByUserID(
@@ -236,11 +246,12 @@ func (u *UserSrv) ParseJWTToken(token string) (jwtutil.Payload, error) {
 }
 
 func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetIsExists(ctx, id.String()); err == nil {
+	r, err := u.cache.GetIsExists(ctx, id.String())
+	if err == nil {
 		return r, nil
-	} else { //nolint:revive
-		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
+
+	slog.ErrorContext(ctx, "usercache", "err", err)
 
 	isExists, err := u.userstore.CheckIfUserExists(ctx, id)
 	if err != nil {
@@ -248,43 +259,44 @@ func (u UserSrv) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, err
 	}
 
 	if err := u.cache.SetIsExists(ctx, id.String(), isExists); err != nil {
-		slog.Error("usercache", "err", err)
+		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
 	return isExists, nil
 }
 
-func (u UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
-	if r, err := u.cache.GetIsActivated(ctx, userID.String()); err == nil {
+func (u *UserSrv) CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error) {
+	r, err := u.cache.GetIsActivated(ctx, userID.String())
+	if err == nil {
 		return r, nil
-	} else { //nolint:revive
-		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
-	isActivated, err := u.userstore.CheckIfUserExists(ctx, userID)
+	slog.ErrorContext(ctx, "usercache", "err", err)
+
+	isActivated, err := u.userstore.CheckIfUserIsActivated(ctx, userID)
 	if err != nil {
 		return false, err
 	}
 
 	if err := u.cache.SetIsActivated(ctx, userID.String(), isActivated); err != nil {
-		slog.Error("usercache", "err", err)
+		slog.ErrorContext(ctx, "usercache", "err", err)
 	}
 
 	return isActivated, nil
 }
 
-func (u UserSrv) getTokens(userID uuid.UUID) (dtos.TokensDTO, error) {
+func (u UserSrv) createTokens(userID uuid.UUID) (dtos.Tokens, error) {
 	accessToken, err := u.jwtTokenizer.AccessToken(jwtutil.Payload{UserID: userID.String()})
 	if err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
 	refreshToken, err := u.jwtTokenizer.RefreshToken()
 	if err != nil {
-		return dtos.TokensDTO{}, err
+		return dtos.Tokens{}, err
 	}
 
-	return dtos.TokensDTO{
+	return dtos.Tokens{
 		Access:  accessToken,
 		Refresh: refreshToken,
 	}, err

@@ -82,7 +82,7 @@ func (r *VerificationTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	}
 
 	if isUsed {
-		return uuid.Nil, models.ErrUserIsAlreeadyVerified
+		return uuid.Nil, models.ErrUserIsAlreadyVerified
 	}
 
 	query := `--sql
