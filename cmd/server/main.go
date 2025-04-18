@@ -16,6 +16,7 @@ import (
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
+	"github.com/olexsmir/onasty/internal/metrics"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -124,7 +125,7 @@ func run(ctx context.Context) error {
 
 	// metrics
 	if cfg.MetricsEnabled {
-		mSrv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.MetricsPort, cfg))
+		mSrv := httpserver.NewServer(metrics.Handler(), httpConfig(cfg.MetricsPort, cfg))
 		go func() {
 			slog.Info("starting metrics server", "port", cfg.MetricsPort)
 			if err := mSrv.Start(); !errors.Is(err, http.ErrServerClosed) {
