@@ -19,7 +19,7 @@ type Config struct {
 
 	PostgresDSN      string
 	PasswordSalt     string
-	NotePassowrdSalt string
+	NotePasswordSalt string
 
 	RedisAddr     string
 	RedisPassword string
@@ -59,7 +59,7 @@ func NewConfig() *Config {
 
 		PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
 		PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),
-		NotePassowrdSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
+		NotePasswordSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
 
 		RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
 		RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),

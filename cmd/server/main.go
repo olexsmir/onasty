@@ -75,7 +75,7 @@ func run(ctx context.Context) error {
 	}
 
 	userPasswordHasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
-	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePassowrdSalt)
+	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 
 	mailermq := mailermq.New(nc)
