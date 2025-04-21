@@ -8,14 +8,18 @@ import (
 )
 
 type Config struct {
-	AppEnv     string
-	AppURL     string
-	ServerPort string
-	NatsURL    string
+	AppEnv  string
+	AppURL  string
+	NatsURL string
+
+	HTTPPort            string
+	HTTPWriteTimeout    time.Duration
+	HTTPReadTimeout     time.Duration
+	HTTPHeaderMaxSizeMb int
 
 	PostgresDSN      string
 	PasswordSalt     string
-	NotePassowrdSalt string
+	NotePasswordSalt string
 
 	RedisAddr     string
 	RedisPassword string
@@ -44,14 +48,18 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		AppEnv:     getenvOrDefault("APP_ENV", "debug"),
-		AppURL:     getenvOrDefault("APP_URL", ""),
-		ServerPort: getenvOrDefault("SERVER_PORT", "3000"),
-		NatsURL:    getenvOrDefault("NATS_URL", ""),
+		AppEnv:  getenvOrDefault("APP_ENV", "debug"),
+		AppURL:  getenvOrDefault("APP_URL", ""),
+		NatsURL: getenvOrDefault("NATS_URL", ""),
+
+		HTTPPort:            getenvOrDefault("HTTP_PORT", "3000"),
+		HTTPWriteTimeout:    mustParseDuration(getenvOrDefault("HTTP_WRITE_TIMEOUT", "10s")),
+		HTTPReadTimeout:     mustParseDuration(getenvOrDefault("HTTP_READ_TIMEOUT", "10s")),
+		HTTPHeaderMaxSizeMb: mustGetenvOrDefaultInt("HTTP_HEADER_MAX_SIZE_MB", 1),
 
 		PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
 		PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),
-		NotePassowrdSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
+		NotePasswordSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
 
 		RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
 		RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),

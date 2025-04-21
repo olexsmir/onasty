@@ -16,7 +16,7 @@ func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 	var body apiv1NoteCreateResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-	dbNote := e.getNoteFromDBbySlug(body.Slug)
+	dbNote := e.getNoteBySlug(body.Slug)
 	dbNoteAuthor := e.getLastNoteAuthorsRecordByAuthorID(uid)
 
 	e.Equal(http.StatusCreated, httpResp.Code)

@@ -28,7 +28,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP() {
 		}),
 	)
 
-	dbUser := e.getUserFromDBByUsername(username)
+	dbUser := e.getUserByUsername(username)
 	hashedPasswd, err := e.hasher.Hash(password)
 	e.require.NoError(err)
 
@@ -100,12 +100,12 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 
 	e.Equal(http.StatusCreated, httpResp.Code)
 
-	user := e.getLastInsertedUserByEmail(email)
+	user := e.getLastUserByEmail(email)
 	token := e.getVerificationTokenByUserID(user.ID)
 	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/verify/"+token.Token, nil)
 	e.Equal(http.StatusOK, httpResp.Code)
 
-	user = e.getLastInsertedUserByEmail(email)
+	user = e.getLastUserByEmail(email)
 	e.Equal(user.Activated, true)
 }
 
@@ -140,7 +140,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 	email, password := e.uuid()+"@"+e.uuid()+".com", "password"
-	e.insertUserIntoDB(e.uuid(), email, password, true)
+	e.insertUser(e.uuid(), email, password, true)
 
 	tests := []struct {
 		name         string
@@ -173,8 +173,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 
 		e.Equal(httpResp.Code, t.expectedCode)
 
-		// no email should be sent
-		// e.Empty(e.mailer.GetLastSentEmailToEmail(t.email))
+		// TODO: no email should be sent
 	}
 }
 
@@ -182,7 +181,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"
 	password := "qwerty"
 
-	uid := e.insertUserIntoDB("test", email, password, true)
+	uid := e.insertUser("test", email, password, true)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -196,7 +195,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 	var body apiv1AuthSignInResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-	session := e.getLastUserSessionByUserID(uid)
+	session := e.getLastSessionByUserID(uid)
 	parsedToken := e.parseJwtToken(body.AccessToken)
 
 	e.Equal(http.StatusOK, httpResp.Code)
@@ -207,10 +206,10 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 	password := "password"
 	email := e.uuid() + "@test.com"
-	e.insertUserIntoDB(e.uuid(), email, "password", true)
+	e.insertUser(e.uuid(), email, "password", true)
 
 	unactivatedEmail := e.uuid() + "@test.com"
-	e.insertUserIntoDB(e.uuid(), unactivatedEmail, password, false)
+	e.insertUser(e.uuid(), unactivatedEmail, password, false)
 
 	//exhaustruct:ignore
 	tests := []struct {
@@ -223,7 +222,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 		expectedMsg string
 	}{
 		{
-			name:         "unactivated user",
+			name:         "inactivated user",
 			email:        unactivatedEmail,
 			password:     password,
 			expectedCode: http.StatusBadRequest,
@@ -234,7 +233,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 			name:         "wrong email",
 			email:        "wrong@email.com",
 			password:     password,
-			expectedCode: http.StatusUnauthorized,
+			expectedCode: http.StatusBadRequest,
 		},
 		{
 			name:         "wrong password",
@@ -282,7 +281,7 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 	var body apiv1AuthSignInResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
-	sessionDB := e.getLastUserSessionByUserID(uid)
+	sessionDB := e.getLastSessionByUserID(uid)
 	e.Equal(e.parseJwtToken(body.AccessToken).UserID, uid.String())
 
 	e.Equal(httpResp.Code, http.StatusOK)
@@ -307,13 +306,13 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
 func (e *AppTestSuite) TestAuthV1_Logout() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
 
-	sessionDB := e.getLastUserSessionByUserID(uid)
+	sessionDB := e.getLastSessionByUserID(uid)
 	e.NotEmpty(sessionDB.RefreshToken)
 
 	httpResp := e.httpRequest(http.MethodPost, "/api/v1/auth/logout", nil, toks.AccessToken)
 	e.Equal(httpResp.Code, http.StatusNoContent)
 
-	sessionDB = e.getLastUserSessionByUserID(uid)
+	sessionDB = e.getLastSessionByUserID(uid)
 	e.Empty(sessionDB.RefreshToken)
 }
 
@@ -340,17 +339,17 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 
 	e.Equal(httpResp.Code, http.StatusOK)
 
-	userDB := e.getUserFromDBByUsername(username)
-	hashedNewPassword, err := e.hasher.Hash(newPassword)
-	e.require.NoError(err)
-
-	e.Equal(userDB.Password, hashedNewPassword)
+	userDB := e.getUserByUsername(username)
+	e.Equal(userDB.Username, username)
+	e.NoError(e.hasher.Compare(userDB.Password, newPassword))
 }
 
+// createAndSingIn creates an activated username, logs them in,
+// and returns their userID along with access and refresh tokens.
 func (e *AppTestSuite) createAndSingIn(
 	email, username, password string,
 ) (uuid.UUID, apiv1AuthSignInResponse) {
-	uid := e.insertUserIntoDB(username, email, password, true)
+	uid := e.insertUser(username, email, password, true)
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/signin",

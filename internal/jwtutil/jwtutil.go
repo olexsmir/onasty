@@ -12,16 +12,17 @@ import (
 var ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
 
 type JWTTokenizer interface {
-	// AccessToken generates a new access token with the given payload
+	// AccessToken generates a new access token with the given [Payload].
 	AccessToken(pl Payload) (string, error)
 
-	// RefreshToken generates a new refresh token
+	// RefreshToken generates a random string of 64 chars.
 	RefreshToken() (string, error)
 
-	// Parse parses the token and returns the payload
+	// Parse parses the token and returns its [Payload].
 	Parse(token string) (Payload, error)
 }
 
+// Payload the access token payload
 type Payload struct {
 	UserID string
 }

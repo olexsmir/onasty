@@ -18,10 +18,14 @@ type response struct {
 func errorResponse(c *gin.Context, err error) {
 	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
-		errors.Is(err, models.ErrNoteContentIsEmpty) ||
-		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) ||
+		errors.Is(err, models.ErrUserIsAlreadyVerified) ||
 		errors.Is(err, models.ErrUserIsNotActivated) ||
-		errors.Is(err, models.ErrUserIsAlreeadyVerified) {
+		errors.Is(err, models.ErrUserInvalidEmail) ||
+		errors.Is(err, models.ErrUserInvalidPassword) ||
+		errors.Is(err, models.ErrUserInvalidUsername) ||
+		// notes
+		errors.Is(err, models.ErrNoteContentIsEmpty) ||
+		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {
 		newError(c, http.StatusBadRequest, err.Error())
 		return
 	}

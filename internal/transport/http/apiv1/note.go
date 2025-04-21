@@ -45,7 +45,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
-	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNoteDTO{
+	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNote{
 		Content:              note.Content,
 		UserID:               a.getUserID(c),
 		Slug:                 note.Slug,
@@ -67,10 +67,10 @@ type getNoteBySlugRequest struct {
 }
 
 type getNoteBySlugResponse struct {
-	Content   string     `json:"content,omitempty"`
-	ReadAt    *time.Time `json:"read_at,omitempty"`
-	CratedAt  time.Time  `json:"crated_at"`
-	ExpiresAt time.Time  `json:"expires_at"`
+	Content   string    `json:"content,omitempty"`
+	ReadAt    time.Time `json:"read_at"`
+	CratedAt  time.Time `json:"crated_at"`
+	ExpiresAt time.Time `json:"expires_at"`
 }
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
@@ -80,11 +80,10 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		return
 	}
 
-	slug := c.Param("slug")
 	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(
 		c.Request.Context(),
 		notesrv.GetNoteBySlugInput{
-			Slug:     slug,
+			Slug:     c.Param("slug"),
 			Password: req.Password,
 		},
 	)
@@ -94,7 +93,7 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	}
 
 	status := http.StatusOK
-	if note.ReadAt != nil && !note.ReadAt.IsZero() {
+	if !note.ReadAt.IsZero() {
 		status = http.StatusNotFound
 	}
 

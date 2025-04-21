@@ -11,8 +11,6 @@ const (
 	natsHeaderErrorMsg  = "Nats-Service-Error"
 )
 
-var _ error = (*Error)(nil)
-
 type Error struct {
 	Code    string
 	Message string

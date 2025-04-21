@@ -76,7 +76,7 @@ func run(ctx context.Context) error {
 	}
 
 	userPasswordHasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
-	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePassowrdSalt)
+	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 
 	mailermq := mailermq.New(nc)
@@ -115,9 +115,9 @@ func run(ctx context.Context) error {
 	)
 
 	// http server
-	srv := httpserver.NewServer(cfg.ServerPort, handler.Handler())
+	srv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.HTTPPort, cfg))
 	go func() {
-		slog.Info("starting http server", "port", cfg.ServerPort)
+		slog.Info("starting http server", "port", cfg.HTTPPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("failed to start http server", "error", err)
 		}
@@ -125,7 +125,7 @@ func run(ctx context.Context) error {
 
 	// metrics
 	if cfg.MetricsEnabled {
-		mSrv := httpserver.NewServer(cfg.MetricsPort, metrics.Handler())
+		mSrv := httpserver.NewServer(metrics.Handler(), httpConfig(cfg.MetricsPort, cfg))
 		go func() {
 			slog.Info("starting metrics server", "port", cfg.MetricsPort)
 			if err := mSrv.Start(); !errors.Is(err, http.ErrServerClosed) {
@@ -152,4 +152,13 @@ func run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func httpConfig(port string, cfg *config.Config) httpserver.Config {
+	return httpserver.Config{
+		Port:            port,
+		ReadTimeout:     cfg.HTTPReadTimeout,
+		WriteTimeout:    cfg.HTTPWriteTimeout,
+		MaxHeaderSizeMb: cfg.HTTPHeaderMaxSizeMb,
+	}
 }
