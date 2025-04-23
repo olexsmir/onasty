@@ -115,7 +115,12 @@ func run(ctx context.Context) error {
 	)
 
 	// http server
-	srv := httpserver.NewServer(handler.Handler(), httpConfig(cfg.HTTPPort, cfg))
+	srv := httpserver.NewServer(handler.Handler(), httpserver.Config{
+		Port:            cfg.HTTPPort,
+		ReadTimeout:     cfg.HTTPReadTimeout,
+		WriteTimeout:    cfg.HTTPWriteTimeout,
+		MaxHeaderSizeMb: cfg.HTTPHeaderMaxSizeMb,
+	})
 	go func() {
 		slog.Info("starting http server", "port", cfg.HTTPPort)
 		if err := srv.Start(); !errors.Is(err, http.ErrServerClosed) {
@@ -125,7 +130,7 @@ func run(ctx context.Context) error {
 
 	// metrics
 	if cfg.MetricsEnabled {
-		mSrv := httpserver.NewServer(metrics.Handler(), httpConfig(cfg.MetricsPort, cfg))
+		mSrv := httpserver.NewDefaultServer(metrics.Handler(), cfg.MetricsPort)
 		go func() {
 			slog.Info("starting metrics server", "port", cfg.MetricsPort)
 			if err := mSrv.Start(); !errors.Is(err, http.ErrServerClosed) {
@@ -152,13 +157,4 @@ func run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func httpConfig(port string, cfg *config.Config) httpserver.Config {
-	return httpserver.Config{
-		Port:            port,
-		ReadTimeout:     cfg.HTTPReadTimeout,
-		WriteTimeout:    cfg.HTTPWriteTimeout,
-		MaxHeaderSizeMb: cfg.HTTPHeaderMaxSizeMb,
-	}
 }

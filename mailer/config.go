@@ -1,6 +1,9 @@
 package main
 
-import "os"
+import (
+	"os"
+	"strconv"
+)
 
 type Config struct {
 	AppURL        string
@@ -14,7 +17,7 @@ type Config struct {
 	LogShowLine bool
 
 	MetricsEnabled bool
-	MetricsPort    string
+	MetricsPort    int
 }
 
 func NewConfig() *Config {
@@ -27,7 +30,7 @@ func NewConfig() *Config {
 		LogLevel:       getenvOrDefault("LOG_LEVEL", "debug"),
 		LogFormat:      getenvOrDefault("LOG_FORMAT", "json"),
 		LogShowLine:    getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
-		MetricsPort:    getenvOrDefault("METRICS_PORT", ""),
+		MetricsPort:    mustGetenvOrDefaultInt("METRICS_PORT", 8001),
 		MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",
 	}
 }
@@ -35,6 +38,17 @@ func NewConfig() *Config {
 func getenvOrDefault(key, def string) string {
 	if v, ok := os.LookupEnv(key); ok {
 		return v
+	}
+	return def
+}
+
+func mustGetenvOrDefaultInt(key string, def int) int {
+	if v, ok := os.LookupEnv(key); ok {
+		r, err := strconv.Atoi(v)
+		if err != nil {
+			panic(err)
+		}
+		return r
 	}
 	return def
 }
