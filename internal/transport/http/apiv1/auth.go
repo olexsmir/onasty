@@ -165,12 +165,18 @@ func (a *APIV1) googleLoginHandler(c *gin.Context) {
 }
 
 func (a *APIV1) googleCallbackHandler(c *gin.Context) {
-	code := c.Query("code")
-	u, err := a.usersrv.HandleOatuhLogin(c.Request.Context(), "google", code)
+	tokens, err := a.usersrv.HandleOatuhLogin(
+		c.Request.Context(),
+		"google",
+		c.Query("code"),
+	)
 	if err != nil {
 		errorResponse(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, u)
+	c.JSON(http.StatusOK, signInResponse{
+		AccessToken:  tokens.Access,
+		RefreshToken: tokens.Refresh,
+	})
 }
