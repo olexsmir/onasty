@@ -80,7 +80,7 @@ func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
 			us, err := u.userstore.Create(ctx, models.User{
-				ID:          uuid.Nil, // nil, because it does not get used here
+				ID:          uuid.Nil,
 				Username:    getUsernameFromEmail(info.Email),
 				Email:       info.Email,
 				Activated:   true,
