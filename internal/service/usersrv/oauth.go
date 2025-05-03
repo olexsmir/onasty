@@ -14,10 +14,10 @@ import (
 
 var ErrProviderNotSupported = errors.New("oauth2 provider not supported")
 
-func (u *UserSrv) GetOauthURL(_ context.Context, providerName string) (string, error) {
+func (u *UserSrv) GetOauthURL(providerName string) (string, error) {
 	switch providerName {
 	case "google":
-		return u.googleOauth.GetAuthURL("randomstate"), nil
+		return u.googleOauth.GetAuthURL(""), nil
 	case "github":
 		fallthrough
 	default:

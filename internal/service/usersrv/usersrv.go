@@ -28,7 +28,7 @@ type UserServicer interface {
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
 
 	HandleOatuhLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
-	GetOauthURL(ctx context.Context, providerName string) (string, error)
+	GetOauthURL(providerName string) (string, error)
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignIn) error
