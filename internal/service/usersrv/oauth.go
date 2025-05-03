@@ -79,7 +79,7 @@ func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 	user, err := u.userstore.GetByOAuthID(ctx, info.Provider, info.ProviderID)
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
-			us, err := u.userstore.Create(ctx, models.User{
+			uid, cerr := u.userstore.Create(ctx, models.User{
 				ID:          uuid.Nil,
 				Username:    getUsernameFromEmail(info.Email),
 				Email:       info.Email,
@@ -88,11 +88,12 @@ func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 				CreatedAt:   time.Now(),
 				LastLoginAt: time.Now(),
 			})
-			if err != nil {
-				return uuid.Nil, err
+			if cerr != nil {
+				return uuid.Nil, cerr
 			}
-			user.ID = us
+			user.ID = uid
 		}
+		return uuid.Nil, err
 	}
 
 	return user.ID, nil
