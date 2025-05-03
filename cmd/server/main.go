@@ -17,6 +17,7 @@ import (
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/metrics"
+	"github.com/olexsmir/onasty/internal/oauth"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
@@ -79,6 +80,12 @@ func run(ctx context.Context) error {
 	notePasswordHasher := hasher.NewSHA256Hasher(cfg.NotePasswordSalt)
 	jwtTokenizer := jwtutil.NewJWTUtil(cfg.JwtSigningKey, cfg.JwtAccessTokenTTL)
 
+	googleOauth := oauth.NewGoogleProvider(
+		cfg.GoogleClientID,
+		cfg.GoogleSecret,
+		cfg.GoogleRedirectURL,
+	)
+
 	mailermq := mailermq.New(nc)
 
 	sessionrepo := sessionrepo.New(psqlDB)
@@ -94,6 +101,7 @@ func run(ctx context.Context) error {
 		jwtTokenizer,
 		mailermq,
 		usercache,
+		googleOauth,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 	)

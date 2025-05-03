@@ -12,6 +12,7 @@ import (
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/oauth"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
@@ -25,6 +26,9 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
+
+	HandleOatuhLogin(ctx context.Context, providerName, code string) (oauth.UserInfo, error)
+	GetOauthUrl(ctx context.Context, providerName string) (string, error)
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignIn) error
@@ -45,6 +49,7 @@ type UserSrv struct {
 	jwtTokenizer jwtutil.JWTTokenizer
 	mailermq     mailermq.Mailer
 	cache        usercache.UserCacheer
+	googleOauth  oauth.Provider
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
@@ -58,6 +63,7 @@ func New(
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
+	googleOauth oauth.Provider,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 ) *UserSrv {
 	return &UserSrv{
@@ -68,6 +74,7 @@ func New(
 		jwtTokenizer:         jwtTokenizer,
 		mailermq:             mailermq,
 		cache:                cache,
+		googleOauth:          googleOauth,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
 	}
@@ -197,6 +204,30 @@ func (u *UserSrv) ChangePassword(
 	}
 
 	return nil
+}
+
+func (u *UserSrv) HandleOatuhLogin(
+	ctx context.Context,
+	providerName, code string,
+) (oauth.UserInfo, error) {
+	switch providerName {
+	case "google":
+		return u.googleOauth.ExchangeCode(ctx, code)
+	default:
+		return oauth.UserInfo{}, ErrProviderNotSupported
+
+	}
+}
+
+var ErrProviderNotSupported = errors.New("oauth2 provider not supported")
+
+func (u *UserSrv) GetOauthUrl(ctx context.Context, providerName string) (string, error) {
+	switch providerName {
+	case "google":
+		return u.googleOauth.GetAuthURL("randomstate"), nil
+	default:
+		return "", ErrProviderNotSupported
+	}
 }
 
 func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
