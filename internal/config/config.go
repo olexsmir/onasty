@@ -32,6 +32,10 @@ type Config struct {
 	JwtAccessTokenTTL  time.Duration
 	JwtRefreshTokenTTL time.Duration
 
+	GoogleClientID    string
+	GoogleSecret      string
+	GoogleRedirectURL string
+
 	VerificationTokenTTL time.Duration
 
 	MetricsEnabled bool
@@ -75,6 +79,10 @@ func NewConfig() *Config {
 		JwtRefreshTokenTTL: mustParseDuration(
 			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
 		),
+
+		GoogleClientID:    getenvOrDefault("GOOGLE_CLIENTID", ""),
+		GoogleSecret:      getenvOrDefault("GOOGLE_SECRET", ""),
+		GoogleRedirectURL: getenvOrDefault("GOGGLE_REDITRECTURL", ""),
 
 		VerificationTokenTTL: mustParseDuration(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
