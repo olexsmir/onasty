@@ -33,7 +33,7 @@ func NewGoogleProvider(clientID, secret, redirectURL string) GoogleProvider {
 }
 
 func (g GoogleProvider) GetAuthURL(state string) string {
-	return g.config.AuthCodeURL(state, oauth2.AccessTypeOffline)
+	return g.config.AuthCodeURL(state)
 }
 
 func (g GoogleProvider) ExchangeCode(ctx context.Context, code string) (UserInfo, error) {
