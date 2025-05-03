@@ -39,8 +39,8 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 
 		oauth := r.Group("/oauth")
 		{
-			oauth.GET("/google", a.googleLoginHandler)
-			oauth.GET("/google/callback", a.googleCallbackHandler)
+			oauth.GET("/:provider", a.oauthLoginHandler)
+			oauth.GET("/:provider/callback", a. oauthCallbackHandler)
 		}
 	}
 

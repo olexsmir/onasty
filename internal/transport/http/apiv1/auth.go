@@ -154,8 +154,8 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (a *APIV1) googleLoginHandler(c *gin.Context) {
-	url, err := a.usersrv.GetOauthURL(c.Request.Context(), "google")
+func (a *APIV1) oauthLoginHandler(c *gin.Context) {
+	url, err := a.usersrv.GetOauthURL(c.Request.Context(), c.Param("provider"))
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -164,10 +164,10 @@ func (a *APIV1) googleLoginHandler(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, url)
 }
 
-func (a *APIV1) googleCallbackHandler(c *gin.Context) {
+func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
 	tokens, err := a.usersrv.HandleOatuhLogin(
 		c.Request.Context(),
-		"google",
+		c.Param("provider"),
 		c.Query("code"),
 	)
 	if err != nil {
