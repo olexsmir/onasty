@@ -154,17 +154,8 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// get deta on login
-// create new user if needed, verify by default
-// link user if the email is already in db
-
-const (
-	googleOatuhProvider = "google"
-	githubOatuhProvider = "github"
-)
-
 func (a *APIV1) googleLoginHandler(c *gin.Context) {
-	url, err := a.usersrv.GetOauthUrl(c.Request.Context(), "google")
+	url, err := a.usersrv.GetOauthURL(c.Request.Context(), "google")
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -180,18 +171,6 @@ func (a *APIV1) googleCallbackHandler(c *gin.Context) {
 		errorResponse(c, err)
 		return
 	}
-}
 
-func (a *APIV1) githubLoginHandler(c *gin.Context) {
-	url, err := a.usersrv.GetOauthUrl(c.Request.Context(), "github")
-	if err != nil {
-		errorResponse(c, err)
-		return
-	}
-
-	c.Redirect(http.StatusSeeOther, url)
-}
-
-func (a *APIV1) githubCallbackHandler(c *gin.Context) {
-	c.Status(http.StatusNotImplemented)
+	c.JSON(http.StatusOK, u)
 }

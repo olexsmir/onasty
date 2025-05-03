@@ -27,8 +27,8 @@ type UserServicer interface {
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
 
-	HandleOatuhLogin(ctx context.Context, providerName, code string) (oauth.UserInfo, error)
-	GetOauthUrl(ctx context.Context, providerName string) (string, error)
+	HandleOatuhLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
+	GetOauthURL(ctx context.Context, providerName string) (string, error)
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignIn) error
@@ -142,19 +142,8 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, err
 		return dtos.Tokens{}, models.ErrUserIsNotActivated
 	}
 
-	tokens, err := u.createTokens(user.ID)
-	if err != nil {
-		return dtos.Tokens{}, err
-	}
-
-	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, time.Now().Add(u.refreshTokenTTL)); err != nil {
-		return dtos.Tokens{}, err
-	}
-
-	return dtos.Tokens{
-		Access:  tokens.Access,
-		Refresh: tokens.Refresh,
-	}, nil
+	tokens, err := u.issueTokens(ctx, user.ID)
+	return tokens, err
 }
 
 func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID) error {
@@ -204,30 +193,6 @@ func (u *UserSrv) ChangePassword(
 	}
 
 	return nil
-}
-
-func (u *UserSrv) HandleOatuhLogin(
-	ctx context.Context,
-	providerName, code string,
-) (oauth.UserInfo, error) {
-	switch providerName {
-	case "google":
-		return u.googleOauth.ExchangeCode(ctx, code)
-	default:
-		return oauth.UserInfo{}, ErrProviderNotSupported
-
-	}
-}
-
-var ErrProviderNotSupported = errors.New("oauth2 provider not supported")
-
-func (u *UserSrv) GetOauthUrl(ctx context.Context, providerName string) (string, error) {
-	switch providerName {
-	case "google":
-		return u.googleOauth.GetAuthURL("randomstate"), nil
-	default:
-		return "", ErrProviderNotSupported
-	}
 }
 
 func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
@@ -331,4 +296,17 @@ func (u UserSrv) createTokens(userID uuid.UUID) (dtos.Tokens, error) {
 		Access:  accessToken,
 		Refresh: refreshToken,
 	}, err
+}
+
+func (u UserSrv) issueTokens(ctx context.Context, userID uuid.UUID) (dtos.Tokens, error) {
+	toks, err := u.createTokens(userID)
+	if err != nil {
+		return dtos.Tokens{}, err
+	}
+
+	if err := u.sessionstore.Set(ctx, userID, toks.Refresh, time.Now().Add(u.refreshTokenTTL)); err != nil {
+		return dtos.Tokens{}, err
+	}
+
+	return toks, nil
 }
