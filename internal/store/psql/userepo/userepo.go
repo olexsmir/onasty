@@ -123,10 +123,10 @@ func (r *UserRepo) GetByOAuthID(
 	query := `--sql
 	select u.id, u.username, u.email, u.password, u.activated, u.created_at, u.last_login_at
 	from users u
-	where id = (
-		select user_id from oauth_identities
-		where provider = $1 and provider_id = $2
-	)`
+	join oauth_identities oi on u.id = oi.user_id
+	where oi.provider = $1
+		and oi.provider_id = $2
+	limit 1`
 
 	var user models.User
 	err := r.db.QueryRow(ctx, query, provider, providerID).
