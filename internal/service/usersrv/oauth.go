@@ -96,7 +96,7 @@ func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 			if cerr != nil {
 				return uuid.Nil, cerr
 			}
-			user.ID = uid
+			return uid, nil
 		}
 		return uuid.Nil, err
 	}
