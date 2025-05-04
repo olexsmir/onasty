@@ -85,6 +85,11 @@ func run(ctx context.Context) error {
 		cfg.GoogleSecret,
 		cfg.GoogleRedirectURL,
 	)
+	githubOauth := oauth.NewGithubProvider(
+		cfg.GitHubClientID,
+		cfg.GitHubSecret,
+		cfg.GitHubRedirectURL,
+	)
 
 	mailermq := mailermq.New(nc)
 
@@ -102,6 +107,7 @@ func run(ctx context.Context) error {
 		mailermq,
 		usercache,
 		googleOauth,
+		githubOauth,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 	)

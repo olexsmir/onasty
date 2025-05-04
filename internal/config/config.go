@@ -36,6 +36,10 @@ type Config struct {
 	GoogleSecret      string
 	GoogleRedirectURL string
 
+	GitHubClientID    string
+	GitHubSecret      string
+	GitHubRedirectURL string
+
 	VerificationTokenTTL time.Duration
 
 	MetricsEnabled bool
@@ -82,7 +86,11 @@ func NewConfig() *Config {
 
 		GoogleClientID:    getenvOrDefault("GOOGLE_CLIENTID", ""),
 		GoogleSecret:      getenvOrDefault("GOOGLE_SECRET", ""),
-		GoogleRedirectURL: getenvOrDefault("GOGGLE_REDITRECTURL", ""),
+		GoogleRedirectURL: getenvOrDefault("GOOGLE_REDITRECTURL", ""),
+
+		GitHubClientID:    getenvOrDefault("GITHUB_CLIENTID", ""),
+		GitHubSecret:      getenvOrDefault("GITHUB_SECRET", ""),
+		GitHubRedirectURL: getenvOrDefault("GITHUB_REDITRECTURL", ""),
 
 		VerificationTokenTTL: mustParseDuration(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),

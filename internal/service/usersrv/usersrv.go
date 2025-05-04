@@ -50,6 +50,7 @@ type UserSrv struct {
 	mailermq     mailermq.Mailer
 	cache        usercache.UserCacheer
 	googleOauth  oauth.Provider
+	githubOauth  oauth.Provider
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
@@ -63,7 +64,7 @@ func New(
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
-	googleOauth oauth.Provider,
+	googleOauth, githubOauth oauth.Provider,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 ) *UserSrv {
 	return &UserSrv{
@@ -75,6 +76,7 @@ func New(
 		mailermq:             mailermq,
 		cache:                cache,
 		googleOauth:          googleOauth,
+		githubOauth:          githubOauth,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
 	}

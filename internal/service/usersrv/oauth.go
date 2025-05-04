@@ -24,7 +24,7 @@ func (u *UserSrv) GetOauthURL(providerName string) (string, error) {
 	case googleProvider:
 		return u.googleOauth.GetAuthURL(""), nil
 	case githubProvider:
-		fallthrough
+		return u.githubOauth.GetAuthURL(""), nil
 	default:
 		return "", ErrProviderNotSupported
 	}
@@ -64,7 +64,7 @@ func (u *UserSrv) getUserInfoBasedOnProvider(
 	case "google":
 		userInfo, err = u.googleOauth.ExchangeCode(ctx, code)
 	case "github":
-		fallthrough
+		userInfo, err = u.githubOauth.ExchangeCode(ctx, code)
 	default:
 		return oauth.UserInfo{}, ErrProviderNotSupported
 	}
