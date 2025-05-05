@@ -20,7 +20,9 @@ func (o *oauthProviderMock) GetAuthURL(_ string) string {
 
 func (o *oauthProviderMock) ExchangeCode(_ context.Context, _ string) (oauth.UserInfo, error) {
 	return oauth.UserInfo{
-		Provider:   "google",
-		ProviderID: "1234567890",
+		Provider:      "google",
+		ProviderID:    "1234567890",
+		Email:         "testing@mail.org",
+		EmailVerified: false,
 	}, nil
 }
