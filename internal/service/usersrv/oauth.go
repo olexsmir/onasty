@@ -63,9 +63,9 @@ func (u *UserSrv) getUserInfoBasedOnProvider(
 	var err error
 
 	switch providerName {
-	case "google":
+	case googleProvider:
 		userInfo, err = u.googleOauth.ExchangeCode(ctx, code)
-	case "github":
+	case githubProvider:
 		userInfo, err = u.githubOauth.ExchangeCode(ctx, code)
 	default:
 		return oauth.UserInfo{}, ErrProviderNotSupported
@@ -95,10 +95,7 @@ func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 				CreatedAt:   time.Now(),
 				LastLoginAt: time.Now(),
 			})
-			if cerr != nil {
-				return uuid.Nil, cerr
-			}
-			return uid, nil
+			return uid, cerr
 		}
 		return uuid.Nil, err
 	}
