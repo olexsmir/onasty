@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"log/slog"
 	"strconv"
 
 	"golang.org/x/oauth2"
@@ -58,15 +57,9 @@ func (g GitHubProvider) ExchangeCode(ctx context.Context, code string) (UserInfo
 		return UserInfo{}, err
 	}
 
-	slog.Debug("github oauth",
-		"tok", tok,
-		"body", b,
-		"scopes", resp.Header.Get("X-OAuth-Scopes"))
-
 	var data struct {
 		ID    int    `json:"id"`
 		Email string `json:"email"`
-		Login string `json:"login"`
 	}
 
 	if err := json.NewDecoder(bytes.NewReader(b)).Decode(&data); err != nil {
