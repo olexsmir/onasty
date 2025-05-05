@@ -3,6 +3,7 @@ package usersrv
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -45,6 +46,7 @@ func (u *UserSrv) HandleOAuthLogin(
 	}
 
 	if err = u.userstore.LinkOAuthIdentity(ctx, userID, userInfo.Provider, userInfo.ProviderID); err != nil {
+		slog.ErrorContext(ctx, "failed to link user identity", "user_id", userID, "err", err)
 		return dtos.Tokens{}, err
 	}
 
