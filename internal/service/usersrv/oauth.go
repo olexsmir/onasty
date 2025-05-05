@@ -30,7 +30,7 @@ func (u *UserSrv) GetOAuthURL(providerName string) (string, error) {
 	}
 }
 
-func (u *UserSrv) HandleOAtuhLogin(
+func (u *UserSrv) HandleOAuthLogin(
 	ctx context.Context,
 	providerName, code string,
 ) (dtos.Tokens, error) {

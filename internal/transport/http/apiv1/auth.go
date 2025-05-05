@@ -165,7 +165,7 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 }
 
 func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
-	tokens, err := a.usersrv.HandleOAtuhLogin(
+	tokens, err := a.usersrv.HandleOAuthLogin(
 		c.Request.Context(),
 		c.Param("provider"),
 		c.Query("code"),
