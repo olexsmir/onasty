@@ -28,7 +28,6 @@ func NewGithubProvider(clientID, secret, redirectURL string) GitHubProvider {
 			RedirectURL:  redirectURL,
 			Endpoint:     github.Endpoint,
 			Scopes: []string{
-				"user",
 				"user:email",
 			},
 		},

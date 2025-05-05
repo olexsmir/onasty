@@ -20,7 +20,7 @@ func TestGitHubProvider_GetAuthURL(t *testing.T) {
 
 	assert.Contains(t, url, "client_id=client.id")
 	assert.Contains(t, url, "state=test")
-	assert.Contains(t, url, "scope=user+user%3Aemail")
+	assert.Contains(t, url, "scope=user%3Aemail")
 }
 
 type mockClient func(*http.Request) (*http.Response, error)
