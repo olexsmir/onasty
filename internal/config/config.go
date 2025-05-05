@@ -86,11 +86,11 @@ func NewConfig() *Config {
 
 		GoogleClientID:    getenvOrDefault("GOOGLE_CLIENTID", ""),
 		GoogleSecret:      getenvOrDefault("GOOGLE_SECRET", ""),
-		GoogleRedirectURL: getenvOrDefault("GOOGLE_REDITRECTURL", ""),
+		GoogleRedirectURL: getenvOrDefault("GOOGLE_REDIRECTURL", ""),
 
 		GitHubClientID:    getenvOrDefault("GITHUB_CLIENTID", ""),
 		GitHubSecret:      getenvOrDefault("GITHUB_SECRET", ""),
-		GitHubRedirectURL: getenvOrDefault("GITHUB_REDITRECTURL", ""),
+		GitHubRedirectURL: getenvOrDefault("GITHUB_REDIRECTURL", ""),
 
 		VerificationTokenTTL: mustParseDuration(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
