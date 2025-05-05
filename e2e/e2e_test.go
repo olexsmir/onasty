@@ -104,7 +104,7 @@ func (e *AppTestSuite) initDeps() {
 	sessionrepo := sessionrepo.New(e.postgresDB)
 	vertokrepo := vertokrepo.New(e.postgresDB)
 
-	oatuhProvider := newOauthProviderMock()
+	oauthProvider := newOauthProviderMock()
 
 	userepo := userepo.New(e.postgresDB)
 	usercache := usercache.New(e.redisDB, cfg.CacheUsersTTL)
@@ -116,8 +116,8 @@ func (e *AppTestSuite) initDeps() {
 		e.jwtTokenizer,
 		newMailerMockService(),
 		usercache,
-		oatuhProvider,
-		oatuhProvider,
+		oauthProvider,
+		oauthProvider,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 	)
