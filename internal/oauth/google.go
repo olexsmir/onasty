@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net/http"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -43,7 +44,12 @@ func (g GoogleProvider) ExchangeCode(ctx context.Context, code string) (UserInfo
 	}
 
 	client := g.config.Client(ctx, tok)
-	resp, err := client.Get(googleUserInfoEndpoint)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, googleUserInfoEndpoint, nil)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return UserInfo{}, err
 	}
