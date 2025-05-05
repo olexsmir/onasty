@@ -19,7 +19,7 @@ const (
 	githubProvider = "github"
 )
 
-func (u *UserSrv) GetOauthURL(providerName string) (string, error) {
+func (u *UserSrv) GetOAuthURL(providerName string) (string, error) {
 	switch providerName {
 	case googleProvider:
 		return u.googleOauth.GetAuthURL(""), nil
@@ -30,7 +30,7 @@ func (u *UserSrv) GetOauthURL(providerName string) (string, error) {
 	}
 }
 
-func (u *UserSrv) HandleOatuhLogin(
+func (u *UserSrv) HandleOAtuhLogin(
 	ctx context.Context,
 	providerName, code string,
 ) (dtos.Tokens, error) {

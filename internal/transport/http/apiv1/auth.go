@@ -155,7 +155,7 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 }
 
 func (a *APIV1) oauthLoginHandler(c *gin.Context) {
-	url, err := a.usersrv.GetOauthURL(c.Param("provider"))
+	url, err := a.usersrv.GetOAuthURL(c.Param("provider"))
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -165,7 +165,7 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 }
 
 func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
-	tokens, err := a.usersrv.HandleOatuhLogin(
+	tokens, err := a.usersrv.HandleOAtuhLogin(
 		c.Request.Context(),
 		c.Param("provider"),
 		c.Query("code"),
