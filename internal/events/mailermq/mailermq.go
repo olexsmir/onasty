@@ -9,6 +9,8 @@ import (
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
+const sendTopic = "mailer.send"
+
 type Mailer interface {
 	SendVerificationEmail(ctx context.Context, input SendVerificationEmailRequest) error
 	SendPasswordResetEmail(ctx context.Context, input SendPasswordResetEmailRequest) error
@@ -52,7 +54,7 @@ func (m MailerMQ) SendVerificationEmail(
 		return err
 	}
 
-	resp, err := m.nc.RequestWithContext(ctx, "mailer.send", req)
+	resp, err := m.nc.RequestWithContext(ctx, sendTopic, req)
 	if err != nil {
 		return err
 	}
@@ -81,7 +83,7 @@ func (m MailerMQ) SendPasswordResetEmail(
 		return err
 	}
 
-	resp, err := m.nc.RequestWithContext(ctx, "mailer.send", req)
+	resp, err := m.nc.RequestWithContext(ctx, sendTopic, req)
 	if err != nil {
 		return err
 	}
