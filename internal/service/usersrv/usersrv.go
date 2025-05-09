@@ -88,7 +88,7 @@ func New(
 		githubOauth:           githubOauth,
 		refreshTokenTTL:       refreshTokenTTL,
 		verificationTokenTTL:  verificationTokenTTL,
-		resetPasswordTokenTTL: refreshTokenTTL,
+		resetPasswordTokenTTL: resetPasswordTokenTTL,
 	}
 }
 
