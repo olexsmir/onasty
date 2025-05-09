@@ -58,8 +58,9 @@ type UserSrv struct {
 	googleOauth oauth.Provider
 	githubOauth oauth.Provider
 
-	refreshTokenTTL      time.Duration
-	verificationTokenTTL time.Duration
+	refreshTokenTTL       time.Duration
+	verificationTokenTTL  time.Duration
+	resetPasswordTokenTTL time.Duration
 }
 
 func New(
@@ -72,21 +73,22 @@ func New(
 	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
 	googleOauth, githubOauth oauth.Provider,
-	refreshTokenTTL, verificationTokenTTL time.Duration,
+	refreshTokenTTL, verificationTokenTTL, resetPasswordTokenTTL time.Duration,
 ) *UserSrv {
 	return &UserSrv{
-		userstore:            userstore,
-		sessionstore:         sessionstore,
-		vertokrepo:           vertokrepo,
-		pwdtokrepo:           pwdtokrepo,
-		cache:                cache,
-		hasher:               hasher,
-		jwtTokenizer:         jwtTokenizer,
-		mailermq:             mailermq,
-		googleOauth:          googleOauth,
-		githubOauth:          githubOauth,
-		refreshTokenTTL:      refreshTokenTTL,
-		verificationTokenTTL: verificationTokenTTL,
+		userstore:             userstore,
+		sessionstore:          sessionstore,
+		vertokrepo:            vertokrepo,
+		pwdtokrepo:            pwdtokrepo,
+		cache:                 cache,
+		hasher:                hasher,
+		jwtTokenizer:          jwtTokenizer,
+		mailermq:              mailermq,
+		googleOauth:           googleOauth,
+		githubOauth:           githubOauth,
+		refreshTokenTTL:       refreshTokenTTL,
+		verificationTokenTTL:  verificationTokenTTL,
+		resetPasswordTokenTTL: refreshTokenTTL,
 	}
 }
 
@@ -217,7 +219,7 @@ func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.RequestRese
 		token,
 		user.ID,
 		time.Now(),
-		time.Now().Add(u.verificationTokenTTL), // TODO: add expiration time to config
+		time.Now().Add(u.resetPasswordTokenTTL),
 	); err != nil {
 		return err
 	}
