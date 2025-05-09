@@ -40,14 +40,17 @@ func (u User) Validate() error {
 		return ErrUserInvalidEmail
 	}
 
-	if len(u.Password) < 6 {
-		return ErrUserInvalidPassword
-	}
-
 	if len(u.Username) == 0 {
 		return ErrUserInvalidUsername
 	}
 
+	return u.ValidatePassword()
+}
+
+func (u User) ValidatePassword() error {
+	if len(u.Password) < 6 {
+		return ErrUserInvalidPassword
+	}
 	return nil
 }
 

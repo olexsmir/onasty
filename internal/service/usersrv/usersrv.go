@@ -190,6 +190,11 @@ func (u *UserSrv) ChangePassword(
 ) error {
 	// TODO: compare current password with providede, and assert on mismatch
 
+	//nolint:exhaustruct
+	if err := (models.User{Password: inp.NewPassword}).ValidatePassword(); err != nil {
+		return err
+	}
+
 	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
 	if err != nil {
 		return err
@@ -235,6 +240,11 @@ func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.RequestRese
 }
 
 func (u *UserSrv) ResetPassword(ctx context.Context, inp dtos.ResetPassword) error {
+	//nolint:exhaustruct
+	if err := (models.User{Password: inp.NewPassword}).ValidatePassword(); err != nil {
+		return err
+	}
+
 	uid, err := u.pwdtokrepo.GetUserIDByTokenAndMarkAsUsed(ctx, inp.Token, time.Now())
 	if err != nil {
 		return err
