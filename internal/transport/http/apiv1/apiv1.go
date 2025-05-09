@@ -36,6 +36,12 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 			authorized.POST("/logout", a.logOutHandler)
 			authorized.POST("/change-password", a.changePasswordHandler)
 		}
+
+		oauth := r.Group("/oauth")
+		{
+			oauth.GET("/:provider", a.oauthLoginHandler)
+			oauth.GET("/:provider/callback", a.oauthCallbackHandler)
+		}
 	}
 
 	note := r.Group("/note", a.couldBeAuthorizedMiddleware)

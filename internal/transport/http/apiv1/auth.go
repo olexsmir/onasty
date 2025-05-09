@@ -153,3 +153,30 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
+
+func (a *APIV1) oauthLoginHandler(c *gin.Context) {
+	url, err := a.usersrv.GetOAuthURL(c.Param("provider"))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Redirect(http.StatusSeeOther, url)
+}
+
+func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
+	tokens, err := a.usersrv.HandleOAuthLogin(
+		c.Request.Context(),
+		c.Param("provider"),
+		c.Query("code"),
+	)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, signInResponse{
+		AccessToken:  tokens.Access,
+		RefreshToken: tokens.Refresh,
+	})
+}

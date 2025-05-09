@@ -29,6 +29,9 @@ type UserStorer interface {
 	// password should be hashed
 	SetPassword(ctx context.Context, userID uuid.UUID, newPassword string) error
 
+	GetByOAuthID(ctx context.Context, provider, providerID string) (models.User, error)
+	LinkOAuthIdentity(ctx context.Context, userID uuid.UUID, provider, providerID string) error
+
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
 	CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error)
 }
@@ -111,6 +114,41 @@ func (r *UserRepo) GetUserIDByEmail(ctx context.Context, email string) (uuid.UUI
 	}
 
 	return id, err
+}
+
+func (r *UserRepo) GetByOAuthID(
+	ctx context.Context,
+	provider, providerID string,
+) (models.User, error) {
+	query := `--sql
+	select u.id, u.username, u.email, u.password, u.activated, u.created_at, u.last_login_at
+	from users u
+	join oauth_identities oi on u.id = oi.user_id
+	where oi.provider = $1
+		and oi.provider_id = $2
+	limit 1`
+
+	var user models.User
+	err := r.db.QueryRow(ctx, query, provider, providerID).
+		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.User{}, models.ErrUserNotFound
+	}
+
+	return user, err
+}
+
+func (r *UserRepo) LinkOAuthIdentity(
+	ctx context.Context,
+	userID uuid.UUID,
+	provider, providerID string,
+) error {
+	query := `--sql
+	insert into oauth_identities (user_id, provider, provider_id)
+	values ($1, $2, $3)`
+
+	_, err := r.db.Exec(ctx, query, userID, provider, providerID)
+	return err
 }
 
 func (r *UserRepo) MarkUserAsActivated(ctx context.Context, id uuid.UUID) error {

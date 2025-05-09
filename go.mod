@@ -17,10 +17,12 @@ require (
 	github.com/testcontainers/testcontainers-go v0.36.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.36.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.36.0
+	golang.org/x/oauth2 v0.29.0
 	golang.org/x/time v0.11.0
 )
 
 require (
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect

@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
 
 var ErrUnauthorized = errors.New("unauthorized")
@@ -16,7 +17,8 @@ type response struct {
 }
 
 func errorResponse(c *gin.Context, err error) {
-	if errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
+	if errors.Is(err, usersrv.ErrProviderNotSupported) ||
+		errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUserIsAlreadyVerified) ||
 		errors.Is(err, models.ErrUserIsNotActivated) ||

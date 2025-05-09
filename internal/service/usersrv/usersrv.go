@@ -12,6 +12,7 @@ import (
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/oauth"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
@@ -25,6 +26,9 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
+
+	GetOAuthURL(providerName string) (string, error)
+	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
 
 	Verify(ctx context.Context, verificationKey string) error
 	ResendVerificationEmail(ctx context.Context, credentials dtos.SignIn) error
@@ -45,6 +49,8 @@ type UserSrv struct {
 	jwtTokenizer jwtutil.JWTTokenizer
 	mailermq     mailermq.Mailer
 	cache        usercache.UserCacheer
+	googleOauth  oauth.Provider
+	githubOauth  oauth.Provider
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
@@ -58,6 +64,7 @@ func New(
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
+	googleOauth, githubOauth oauth.Provider,
 	refreshTokenTTL, verificationTokenTTL time.Duration,
 ) *UserSrv {
 	return &UserSrv{
@@ -68,6 +75,8 @@ func New(
 		jwtTokenizer:         jwtTokenizer,
 		mailermq:             mailermq,
 		cache:                cache,
+		googleOauth:          googleOauth,
+		githubOauth:          githubOauth,
 		refreshTokenTTL:      refreshTokenTTL,
 		verificationTokenTTL: verificationTokenTTL,
 	}
@@ -135,19 +144,8 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, err
 		return dtos.Tokens{}, models.ErrUserIsNotActivated
 	}
 
-	tokens, err := u.createTokens(user.ID)
-	if err != nil {
-		return dtos.Tokens{}, err
-	}
-
-	if err := u.sessionstore.Set(ctx, user.ID, tokens.Refresh, time.Now().Add(u.refreshTokenTTL)); err != nil {
-		return dtos.Tokens{}, err
-	}
-
-	return dtos.Tokens{
-		Access:  tokens.Access,
-		Refresh: tokens.Refresh,
-	}, nil
+	tokens, err := u.issueTokens(ctx, user.ID)
+	return tokens, err
 }
 
 func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID) error {
@@ -300,4 +298,17 @@ func (u UserSrv) createTokens(userID uuid.UUID) (dtos.Tokens, error) {
 		Access:  accessToken,
 		Refresh: refreshToken,
 	}, err
+}
+
+func (u UserSrv) issueTokens(ctx context.Context, userID uuid.UUID) (dtos.Tokens, error) {
+	toks, err := u.createTokens(userID)
+	if err != nil {
+		return dtos.Tokens{}, err
+	}
+
+	if err := u.sessionstore.Set(ctx, userID, toks.Refresh, time.Now().Add(u.refreshTokenTTL)); err != nil {
+		return dtos.Tokens{}, err
+	}
+
+	return toks, nil
 }

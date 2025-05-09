@@ -12,7 +12,7 @@ type Config struct {
 	AppURL  string
 	NatsURL string
 
-	HTTPPort            string
+	HTTPPort            int
 	HTTPWriteTimeout    time.Duration
 	HTTPReadTimeout     time.Duration
 	HTTPHeaderMaxSizeMb int
@@ -32,10 +32,18 @@ type Config struct {
 	JwtAccessTokenTTL  time.Duration
 	JwtRefreshTokenTTL time.Duration
 
+	GoogleClientID    string
+	GoogleSecret      string
+	GoogleRedirectURL string
+
+	GitHubClientID    string
+	GitHubSecret      string
+	GitHubRedirectURL string
+
 	VerificationTokenTTL time.Duration
 
 	MetricsEnabled bool
-	MetricsPort    string
+	MetricsPort    int
 
 	LogLevel    string
 	LogFormat   string
@@ -52,7 +60,7 @@ func NewConfig() *Config {
 		AppURL:  getenvOrDefault("APP_URL", ""),
 		NatsURL: getenvOrDefault("NATS_URL", ""),
 
-		HTTPPort:            getenvOrDefault("HTTP_PORT", "3000"),
+		HTTPPort:            mustGetenvOrDefaultInt("HTTP_PORT", 3000),
 		HTTPWriteTimeout:    mustParseDuration(getenvOrDefault("HTTP_WRITE_TIMEOUT", "10s")),
 		HTTPReadTimeout:     mustParseDuration(getenvOrDefault("HTTP_READ_TIMEOUT", "10s")),
 		HTTPHeaderMaxSizeMb: mustGetenvOrDefaultInt("HTTP_HEADER_MAX_SIZE_MB", 1),
@@ -76,11 +84,19 @@ func NewConfig() *Config {
 			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
 		),
 
+		GoogleClientID:    getenvOrDefault("GOOGLE_CLIENTID", ""),
+		GoogleSecret:      getenvOrDefault("GOOGLE_SECRET", ""),
+		GoogleRedirectURL: getenvOrDefault("GOOGLE_REDIRECTURL", ""),
+
+		GitHubClientID:    getenvOrDefault("GITHUB_CLIENTID", ""),
+		GitHubSecret:      getenvOrDefault("GITHUB_SECRET", ""),
+		GitHubRedirectURL: getenvOrDefault("GITHUB_REDIRECTURL", ""),
+
 		VerificationTokenTTL: mustParseDuration(
 			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
 		),
 
-		MetricsPort:    getenvOrDefault("METRICS_PORT", "3001"),
+		MetricsPort:    mustGetenvOrDefaultInt("METRICS_PORT", 3001),
 		MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",
 
 		LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
