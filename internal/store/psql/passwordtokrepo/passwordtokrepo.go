@@ -2,11 +2,11 @@ package passwordtokrepo
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
+	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
@@ -56,9 +56,6 @@ func (r *PasswordResetTokenRepo) Create(
 	return err
 }
 
-// TODO: move out this error
-var ErrTokenAlreadyUsed = errors.New("token already used")
-
 func (r *PasswordResetTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	ctx context.Context,
 	token string,
@@ -78,7 +75,7 @@ func (r *PasswordResetTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	}
 
 	if isUsed {
-		return uuid.Nil, ErrTokenAlreadyUsed
+		return uuid.Nil, models.ErrResetPasswordToeknAlreadyUsed
 	}
 
 	query := `--sql

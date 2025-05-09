@@ -18,6 +18,7 @@ type response struct {
 
 func errorResponse(c *gin.Context, err error) {
 	if errors.Is(err, usersrv.ErrProviderNotSupported) ||
+		errors.Is(err, models.ErrResetPasswordToeknAlreadyUsed) ||
 		errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUserIsAlreadyVerified) ||
