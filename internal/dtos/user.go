@@ -22,7 +22,7 @@ type ChangeUserPassword struct {
 	NewPassword     string
 }
 
-type ForgotPassowrd struct {
+type ResetPassword struct {
 	Email string
 }
 

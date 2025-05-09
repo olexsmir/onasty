@@ -119,18 +119,18 @@ func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-type forgetPasswordRequest struct {
+type resetPasswordRequest struct {
 	Email string `json:"email"`
 }
 
-func (a *APIV1) forgotPasswordHandler(c *gin.Context) {
-	var req forgetPasswordRequest
+func (a *APIV1) requestResetPasswordHandler(c *gin.Context) {
+	var req resetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		newError(c, http.StatusBadRequest, "invalid request")
 		return
 	}
 
-	if err := a.usersrv.ForgotPassowrd(c.Request.Context(), dtos.ForgotPassowrd{
+	if err := a.usersrv.RequestResetPassowrd(c.Request.Context(), dtos.ResetPassword{
 		Email: req.Email,
 	}); err != nil {
 		errorResponse(c, err)
@@ -138,6 +138,10 @@ func (a *APIV1) forgotPasswordHandler(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func (a *APIV1) resetPasswordHandler(c *gin.Context) {
+	c.Status(http.StatusNotImplemented)
 }
 
 func (a *APIV1) logOutHandler(c *gin.Context) {

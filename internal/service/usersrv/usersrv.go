@@ -13,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/oauth"
+	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
@@ -26,7 +27,8 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
-	ForgotPassowrd(ctx context.Context, inp dtos.ForgotPassowrd) error
+	RequestResetPassowrd(ctx context.Context, inp dtos.ResetPassword) error
+	// ResetPassword(ctx context.Context)
 
 	GetOAuthURL(providerName string) (string, error)
 	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
@@ -46,12 +48,15 @@ type UserSrv struct {
 	userstore    userepo.UserStorer
 	sessionstore sessionrepo.SessionStorer
 	vertokrepo   vertokrepo.VerificationTokenStorer
+	pwdtokrepo   passwordtokrepo.PasswordResetTokenStorer
+	cache        usercache.UserCacheer
+
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
 	mailermq     mailermq.Mailer
-	cache        usercache.UserCacheer
-	googleOauth  oauth.Provider
-	githubOauth  oauth.Provider
+
+	googleOauth oauth.Provider
+	githubOauth oauth.Provider
 
 	refreshTokenTTL      time.Duration
 	verificationTokenTTL time.Duration
@@ -61,6 +66,7 @@ func New(
 	userstore userepo.UserStorer,
 	sessionstore sessionrepo.SessionStorer,
 	vertokrepo vertokrepo.VerificationTokenStorer,
+	pwdtokrepo passwordtokrepo.PasswordResetTokenStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailermq mailermq.Mailer,
@@ -72,10 +78,11 @@ func New(
 		userstore:            userstore,
 		sessionstore:         sessionstore,
 		vertokrepo:           vertokrepo,
+		pwdtokrepo:           pwdtokrepo,
+		cache:                cache,
 		hasher:               hasher,
 		jwtTokenizer:         jwtTokenizer,
 		mailermq:             mailermq,
-		cache:                cache,
 		googleOauth:          googleOauth,
 		githubOauth:          githubOauth,
 		refreshTokenTTL:      refreshTokenTTL,
@@ -198,7 +205,30 @@ func (u *UserSrv) ChangePassword(
 	return nil
 }
 
-func (u *UserSrv) ForgotPassowrd(ctx context.Context, inp dtos.ForgotPassowrd) error {
+func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.ResetPassword) error {
+	user, err := u.userstore.GetByEmail(ctx, inp.Email)
+	if err != nil {
+		return err
+	}
+
+	token := uuid.Must(uuid.NewV4()).String()
+	if err := u.pwdtokrepo.Create(
+		ctx,
+		token,
+		user.ID,
+		time.Now(),
+		time.Now().Add(u.verificationTokenTTL),
+	); err != nil {
+		return err
+	}
+
+	if err := u.mailermq.SendPasswordResetEmail(ctx, mailermq.SendPasswordResetEmailRequest{
+		Receiver: inp.Email,
+		Token:    token,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
