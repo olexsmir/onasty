@@ -37,5 +37,5 @@ Example input
 #### Template specific options
 - `email_verification`
   - `token` the token that is used in verification link
-
-
+- `reset_password`
+  - `token` the token that is used in password reset link
