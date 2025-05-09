@@ -22,6 +22,10 @@ type ChangeUserPassword struct {
 	NewPassword     string
 }
 
+type ForgotPassowrd struct {
+	Email string
+}
+
 type Tokens struct {
 	Access  string
 	Refresh string

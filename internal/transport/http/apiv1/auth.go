@@ -119,6 +119,27 @@ func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+type forgetPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+func (a *APIV1) forgotPasswordHandler(c *gin.Context) {
+	var req forgetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.ForgotPassowrd(c.Request.Context(), dtos.ForgotPassowrd{
+		Email: req.Email,
+	}); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (a *APIV1) logOutHandler(c *gin.Context) {
 	if err := a.usersrv.Logout(c.Request.Context(), a.getUserID(c)); err != nil {
 		errorResponse(c, err)

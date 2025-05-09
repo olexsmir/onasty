@@ -26,6 +26,7 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
+	ForgotPassowrd(ctx context.Context, inp dtos.ForgotPassowrd) error
 
 	GetOAuthURL(providerName string) (string, error)
 	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
@@ -194,6 +195,10 @@ func (u *UserSrv) ChangePassword(
 		return err
 	}
 
+	return nil
+}
+
+func (u *UserSrv) ForgotPassowrd(ctx context.Context, inp dtos.ForgotPassowrd) error {
 	return nil
 }
 
