@@ -22,6 +22,15 @@ type ChangeUserPassword struct {
 	NewPassword     string
 }
 
+type RequestResetPassword struct {
+	Email string
+}
+
+type ResetPassword struct {
+	Token       string
+	NewPassword string
+}
+
 type Tokens struct {
 	Access  string
 	Refresh string

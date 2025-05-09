@@ -21,6 +21,7 @@ import (
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
+	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
@@ -95,6 +96,7 @@ func run(ctx context.Context) error {
 
 	sessionrepo := sessionrepo.New(psqlDB)
 	vertokrepo := vertokrepo.New(psqlDB)
+	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(psqlDB)
 
 	userepo := userepo.New(psqlDB)
 	usercache := usercache.New(redisDB, cfg.CacheUsersTTL)
@@ -102,6 +104,7 @@ func run(ctx context.Context) error {
 		userepo,
 		sessionrepo,
 		vertokrepo,
+		pwdtokrepo,
 		userPasswordHasher,
 		jwtTokenizer,
 		mailermq,
@@ -110,6 +113,7 @@ func run(ctx context.Context) error {
 		githubOauth,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
+		cfg.ResetPasswordTokenTTL,
 	)
 
 	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)
