@@ -113,7 +113,7 @@ func run(ctx context.Context) error {
 		githubOauth,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
-		cfg.ResetPasswrdTokenTTL,
+		cfg.ResetPasswordTokenTTL,
 	)
 
 	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)

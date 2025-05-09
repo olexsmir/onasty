@@ -123,7 +123,7 @@ func (e *AppTestSuite) initDeps() {
 		oauthProvider,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
-		cfg.ResetPasswrdTokenTTL,
+		cfg.ResetPasswordTokenTTL,
 	)
 
 	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)
