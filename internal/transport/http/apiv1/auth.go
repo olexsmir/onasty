@@ -130,7 +130,7 @@ func (a *APIV1) requestResetPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	if err := a.usersrv.RequestResetPassowrd(c.Request.Context(), dtos.RequestResetPassword{
+	if err := a.usersrv.RequestPasswordReset(c.Request.Context(), dtos.RequestResetPassword{
 		Email: req.Email,
 	}); err != nil {
 		errorResponse(c, err)

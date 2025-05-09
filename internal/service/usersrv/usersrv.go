@@ -27,7 +27,7 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
-	RequestResetPassowrd(ctx context.Context, inp dtos.RequestResetPassword) error
+	RequestPasswordReset(ctx context.Context, inp dtos.RequestResetPassword) error
 	ResetPassword(ctx context.Context, inp dtos.ResetPassword) error
 
 	GetOAuthURL(providerName string) (string, error)
@@ -212,7 +212,7 @@ func (u *UserSrv) ChangePassword(
 	return nil
 }
 
-func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.RequestResetPassword) error {
+func (u *UserSrv) RequestPasswordReset(ctx context.Context, inp dtos.RequestResetPassword) error {
 	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
 		return err

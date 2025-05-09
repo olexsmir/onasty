@@ -17,7 +17,7 @@ func getTemplate(appURL string, templateName string) (TemplateFunc, error) {
 	case "email_verification":
 		return emailVerificationTemplate(appURL), nil
 	case "reset_password":
-		return passwordResetTemplete(appURL), nil
+		return passwordResetTemplate(appURL), nil
 	default:
 		return nil, errors.New("failed to get template") //nolint:err113
 	}
@@ -36,7 +36,7 @@ This link will expire after 24 hours.`, appURL, opts["token"]),
 	}
 }
 
-func passwordResetTemplete(appURL string) TemplateFunc {
+func passwordResetTemplate(appURL string) TemplateFunc {
 	return func(opts map[string]string) Template {
 		return Template{
 			Subject: "Onasty: reset your password",

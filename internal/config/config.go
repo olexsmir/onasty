@@ -40,8 +40,8 @@ type Config struct {
 	GitHubSecret      string
 	GitHubRedirectURL string
 
-	VerificationTokenTTL time.Duration
-	ResetPasswrdTokenTTL time.Duration
+	VerificationTokenTTL  time.Duration
+	ResetPasswordTokenTTL time.Duration
 
 	MetricsEnabled bool
 	MetricsPort    int
