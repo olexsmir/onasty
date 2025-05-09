@@ -27,8 +27,8 @@ type UserServicer interface {
 	Logout(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
-	RequestResetPassowrd(ctx context.Context, inp dtos.ResetPassword) error
-	// ResetPassword(ctx context.Context)
+	RequestResetPassowrd(ctx context.Context, inp dtos.RequestResetPassword) error
+	ResetPassword(ctx context.Context, inp dtos.ResetPassword) error
 
 	GetOAuthURL(providerName string) (string, error)
 	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
@@ -205,7 +205,7 @@ func (u *UserSrv) ChangePassword(
 	return nil
 }
 
-func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.ResetPassword) error {
+func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.RequestResetPassword) error {
 	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
 		return err
@@ -217,7 +217,7 @@ func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.ResetPasswo
 		token,
 		user.ID,
 		time.Now(),
-		time.Now().Add(u.verificationTokenTTL),
+		time.Now().Add(u.verificationTokenTTL), // TODO: add expiration time to config
 	); err != nil {
 		return err
 	}
@@ -230,6 +230,20 @@ func (u *UserSrv) RequestResetPassowrd(ctx context.Context, inp dtos.ResetPasswo
 	}
 
 	return nil
+}
+
+func (u *UserSrv) ResetPassword(ctx context.Context, inp dtos.ResetPassword) error {
+	uid, err := u.pwdtokrepo.GetUserIDByTokenAndMarkAsUsed(ctx, inp.Token, time.Now())
+	if err != nil {
+		return err
+	}
+
+	hashedPassword, err := u.hasher.Hash(inp.NewPassword)
+	if err != nil {
+		return err
+	}
+
+	return u.userstore.SetPassword(ctx, uid, hashedPassword)
 }
 
 func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {

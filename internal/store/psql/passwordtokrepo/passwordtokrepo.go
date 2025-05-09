@@ -2,6 +2,7 @@ package passwordtokrepo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -16,6 +17,12 @@ type PasswordResetTokenStorer interface {
 		userID uuid.UUID,
 		createdAt, expiresAt time.Time,
 	) error
+
+	GetUserIDByTokenAndMarkAsUsed(
+		ctx context.Context,
+		token string,
+		usedAT time.Time,
+	) (uuid.UUID, error)
 }
 
 var _ PasswordResetTokenStorer = (*PasswordResetTokenRepo)(nil)
@@ -47,4 +54,44 @@ func (r *PasswordResetTokenRepo) Create(
 
 	_, err = r.db.Exec(ctx, query, aggs...)
 	return err
+}
+
+// TODO: move out this error
+var ErrTokenAlreadyUsed = errors.New("token already used")
+
+func (r *PasswordResetTokenRepo) GetUserIDByTokenAndMarkAsUsed(
+	ctx context.Context,
+	token string,
+	usedAt time.Time,
+) (uuid.UUID, error) {
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return uuid.Nil, err
+	}
+	defer tx.Rollback(ctx) //nolint:errcheck
+
+	var isUsed bool
+	err = tx.QueryRow(ctx, "select used_at is not null from password_reset_tokens  where token = $1", token).
+		Scan(&isUsed)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if isUsed {
+		return uuid.Nil, ErrTokenAlreadyUsed
+	}
+
+	query := `--sql
+update password_reset_tokens
+set used_at = $1
+where token = $2
+returning user_id`
+
+	var userID uuid.UUID
+	err = tx.QueryRow(ctx, query, usedAt, token).Scan(&userID)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return userID, tx.Commit(ctx)
 }
