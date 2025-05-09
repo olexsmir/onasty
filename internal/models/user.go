@@ -13,7 +13,7 @@ var (
 	ErrUsernameIsAlreadyInUse  = errors.New("user: username is already in use")
 	ErrUserIsAlreadyVerified   = errors.New("user: user is already verified")
 
-	ErrResetPasswordToeknAlreadyUsed = errors.New("reset password token is already used")
+	ErrResetPasswordTokenAlreadyUsed = errors.New("reset password token is already used")
 	ErrVerificationTokenNotFound     = errors.New("user: verification token not found")
 	ErrUserIsNotActivated            = errors.New("user: user is not activated")
 

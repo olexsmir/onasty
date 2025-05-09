@@ -75,7 +75,7 @@ func (r *PasswordResetTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	}
 
 	if isUsed {
-		return uuid.Nil, models.ErrResetPasswordToeknAlreadyUsed
+		return uuid.Nil, models.ErrResetPasswordTokenAlreadyUsed
 	}
 
 	query := `--sql
