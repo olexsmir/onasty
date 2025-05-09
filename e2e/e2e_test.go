@@ -19,6 +19,7 @@ import (
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
+	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psql/vertokrepo"
@@ -103,6 +104,7 @@ func (e *AppTestSuite) initDeps() {
 
 	sessionrepo := sessionrepo.New(e.postgresDB)
 	vertokrepo := vertokrepo.New(e.postgresDB)
+	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(e.postgresDB)
 
 	oauthProvider := newOauthProviderMock()
 
@@ -112,6 +114,7 @@ func (e *AppTestSuite) initDeps() {
 		userepo,
 		sessionrepo,
 		vertokrepo,
+		pwdtokrepo,
 		e.hasher,
 		e.jwtTokenizer,
 		newMailerMockService(),

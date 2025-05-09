@@ -20,3 +20,10 @@ func (m mailerMockService) SendVerificationEmail(
 ) error {
 	return nil
 }
+
+func (m mailerMockService) SendPasswordResetEmail(
+	_ context.Context,
+	_ mailermq.SendPasswordResetEmailRequest,
+) error {
+	return nil
+}
