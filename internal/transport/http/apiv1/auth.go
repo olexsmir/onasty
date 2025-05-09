@@ -151,8 +151,6 @@ func (a *APIV1) resetPasswordHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: validate password
-
 	if err := a.usersrv.ResetPassword(
 		c.Request.Context(),
 		dtos.ResetPassword{
