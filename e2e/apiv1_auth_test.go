@@ -2,7 +2,6 @@ package e2e_test
 
 import (
 	"net/http"
-	"testing"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/models"
@@ -345,6 +344,65 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	userDB := e.getUserByUsername(username)
 	e.Equal(userDB.Username, username)
 	e.NoError(e.hasher.Compare(userDB.Password, newPassword))
+}
+
+type (
+	apiV1AuthResetPasswordRequest struct {
+		Email string `json:"email"`
+	}
+	apiV1AuthSetPasswordRequest struct {
+		Password string `json:"password"`
+	}
+)
+
+func (e *AppTestSuite) TestAuthV1_ResetPassword() {
+	email := e.uuid() + "@test.com"
+	uname := e.uuid()
+	uid, _ := e.createAndSingIn(email, uname, "password")
+
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/reset-password",
+		e.jsonify(apiV1AuthResetPasswordRequest{
+			Email: email,
+		}),
+	)
+
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	token := e.getResetPasswordTokenByUserID(uid)
+	e.Empty(token.UsedAt)
+	e.Equal(mockMailStore[email], token.Token)
+
+	// set new password
+	password := e.uuid()
+	httpResp = e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/reset-password/"+token.Token,
+		e.jsonify(apiV1AuthSetPasswordRequest{
+			Password: password,
+		}),
+	)
+
+	dbUser := e.getUserByUsername(uname)
+	e.Equal(httpResp.Code, http.StatusOK)
+	e.NoError(e.hasher.Compare(dbUser.Password, password))
+
+	token = e.getResetPasswordTokenByUserID(uid)
+	e.NotEmpty(token.UsedAt)
+}
+
+func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
+	_, _ = e.createAndSingIn(e.uuid()+"@test.comd", e.uuid(), "password")
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/reset-password",
+		e.jsonify(apiV1AuthResetPasswordRequest{
+			Email: e.uuid() + "@testing.com",
+		}),
+	)
+
+	e.Equal(httpResp.Code, http.StatusBadRequest)
 }
 
 // createAndSingIn creates an activated username, logs them in,
