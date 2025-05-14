@@ -219,13 +219,12 @@ func (u *UserSrv) RequestPasswordReset(ctx context.Context, inp dtos.RequestRese
 	}
 
 	token := uuid.Must(uuid.NewV4()).String()
-	if err := u.pwdtokrepo.Create(
-		ctx,
-		token,
-		user.ID,
-		time.Now(),
-		time.Now().Add(u.resetPasswordTokenTTL),
-	); err != nil {
+	if err := u.pwdtokrepo.Create(ctx, models.ResetPasswordToken{
+		UserID:    user.ID,
+		Token:     token,
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(u.refreshTokenTTL),
+	}); err != nil {
 		return err
 	}
 

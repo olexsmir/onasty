@@ -2,21 +2,18 @@ package passwordtokrepo
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/henvic/pgq"
+	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
 type PasswordResetTokenStorer interface {
-	Create(
-		ctx context.Context,
-		token string,
-		userID uuid.UUID,
-		createdAt, expiresAt time.Time,
-	) error
+	Create(ctx context.Context, input models.ResetPasswordToken) error
 
 	GetUserIDByTokenAndMarkAsUsed(
 		ctx context.Context,
@@ -37,16 +34,12 @@ func NewPasswordResetTokenRepo(db *psqlutil.DB) *PasswordResetTokenRepo {
 	}
 }
 
-func (r *PasswordResetTokenRepo) Create(
-	ctx context.Context,
-	token string,
-	userID uuid.UUID,
-	createdAt, expiresAt time.Time,
+func (r *PasswordResetTokenRepo) Create(ctx context.Context, token models.ResetPasswordToken,
 ) error {
 	query, aggs, err := pgq.
 		Insert("password_reset_tokens").
 		Columns("user_id", "token", "created_at", "expires_at").
-		Values(userID, token, createdAt, expiresAt).
+		Values(token.UserID, token.Token, token.CreatedAt, token.ExpiresAt).
 		SQL()
 	if err != nil {
 		return err
