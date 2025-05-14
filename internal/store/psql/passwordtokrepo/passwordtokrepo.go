@@ -61,14 +61,22 @@ func (r *PasswordResetTokenRepo) GetUserIDByTokenAndMarkAsUsed(
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	var isUsed bool
-	err = tx.QueryRow(ctx, "select used_at is not null from password_reset_tokens  where token = $1", token).
-		Scan(&isUsed)
+	var expiresAt time.Time
+	err = tx.QueryRow(ctx, "select (used_at is not null), expires_at from password_reset_tokens where token = $1", token).
+		Scan(&isUsed, &expiresAt)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return uuid.Nil, models.ErrResetPasswordTokenNotFound
+		}
 		return uuid.Nil, err
 	}
 
 	if isUsed {
 		return uuid.Nil, models.ErrResetPasswordTokenAlreadyUsed
+	}
+
+	if time.Now().After(expiresAt) {
+		return uuid.Nil, models.ErrResetPasswordTokenExpired
 	}
 
 	query := `--sql
