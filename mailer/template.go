@@ -40,7 +40,7 @@ func passwordResetTemplate(appURL string) TemplateFunc {
 	return func(opts map[string]string) Template {
 		return Template{
 			Subject: "Onasty: reset your password",
-			// TODO: change the link after making frontend
+			// TODO: when ui is ready, change the link to the ui
 			Body: fmt.Sprintf(`To reset your password, use this api:
 <a href="%[1]s/api/v1/auth/reset-password/%[2]s">%[1]s/api/v1/auth/reset-password/%[2]s</a>
 <br />
