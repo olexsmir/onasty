@@ -166,3 +166,18 @@ func (e *AppTestSuite) getVerificationTokenByUserID(u uuid.UUID) userVerificatio
 	e.require.NoError(err)
 	return r
 }
+
+func (e *AppTestSuite) getResetPasswordTokenByUserID(u uuid.UUID) userVerificationToken {
+	query, args, err := pgq.
+		Select("token", "used_at").
+		From("password_reset_tokens ").
+		Where(pgq.Eq{"user_id": u.String()}).
+		Limit(1).
+		SQL()
+
+	e.require.NoError(err)
+	var r userVerificationToken
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).Scan(&r.Token, &r.UsedAt)
+	e.require.NoError(err)
+	return r
+}

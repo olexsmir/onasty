@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"net/http"
+	"testing"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/models"
@@ -102,6 +103,8 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 
 	user := e.getLastUserByEmail(email)
 	token := e.getVerificationTokenByUserID(user.ID)
+	e.Equal(token.Token, mockMailStore[email])
+
 	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/verify/"+token.Token, nil)
 	e.Equal(http.StatusOK, httpResp.Code)
 
@@ -136,6 +139,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	)
 
 	e.Equal(http.StatusOK, httpResp.Code)
+	e.NotEmpty(mockMailStore[email])
 }
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
@@ -172,8 +176,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 			}))
 
 		e.Equal(httpResp.Code, t.expectedCode)
-
-		// TODO: no email should be sent
+		e.Empty(mockMailStore[t.email])
 	}
 }
 
