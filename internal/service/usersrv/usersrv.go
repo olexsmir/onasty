@@ -223,7 +223,7 @@ func (u *UserSrv) RequestPasswordReset(ctx context.Context, inp dtos.RequestRese
 		UserID:    user.ID,
 		Token:     token,
 		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(u.refreshTokenTTL),
+		ExpiresAt: time.Now().Add(u.resetPasswordTokenTTL),
 	}); err != nil {
 		return err
 	}
