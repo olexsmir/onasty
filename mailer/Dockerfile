@@ -13,7 +13,6 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/go/pkg/mod \
     go build -trimpath -ldflags='-w -s' -o /mailer ./mailer
 
-FROM alpine:3.21
+FROM onasty:runtime
 COPY --from=builder /mailer /mailer
-RUN apk --no-cache add ca-certificates
 ENTRYPOINT ["/mailer"]
