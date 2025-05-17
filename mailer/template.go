@@ -13,11 +13,14 @@ type Template struct {
 type TemplateFunc func(args map[string]string) Template
 
 func getTemplate(appURL string, templateName string) (TemplateFunc, error) {
-	if templateName == "email_verification" {
+	switch templateName {
+	case "email_verification":
 		return emailVerificationTemplate(appURL), nil
+	case "reset_password":
+		return passwordResetTemplate(appURL), nil
+	default:
+		return nil, errors.New("failed to get template") //nolint:err113
 	}
-
-	return nil, errors.New("failed to get template") //nolint:err113
 }
 
 func emailVerificationTemplate(appURL string) TemplateFunc {
@@ -29,6 +32,20 @@ func emailVerificationTemplate(appURL string) TemplateFunc {
 <br />
 <br />
 This link will expire after 24 hours.`, appURL, opts["token"]),
+		}
+	}
+}
+
+func passwordResetTemplate(appURL string) TemplateFunc {
+	return func(opts map[string]string) Template {
+		return Template{
+			Subject: "Onasty: reset your password",
+			// TODO: when ui is ready, change the link to the ui
+			Body: fmt.Sprintf(`To reset your password, use this api:
+<a href="%[1]s/api/v1/auth/reset-password/%[2]s">%[1]s/api/v1/auth/reset-password/%[2]s</a>
+<br />
+<br />
+This link will expire after an hour.`, appURL, opts["token"]),
 		}
 	}
 }

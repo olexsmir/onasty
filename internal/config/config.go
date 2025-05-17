@@ -40,7 +40,8 @@ type Config struct {
 	GitHubSecret      string
 	GitHubRedirectURL string
 
-	VerificationTokenTTL time.Duration
+	VerificationTokenTTL  time.Duration
+	ResetPasswordTokenTTL time.Duration
 
 	MetricsEnabled bool
 	MetricsPort    int
@@ -92,9 +93,8 @@ func NewConfig() *Config {
 		GitHubSecret:      getenvOrDefault("GITHUB_SECRET", ""),
 		GitHubRedirectURL: getenvOrDefault("GITHUB_REDIRECTURL", ""),
 
-		VerificationTokenTTL: mustParseDuration(
-			getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
-		),
+		VerificationTokenTTL:  mustParseDuration(getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h")),
+		ResetPasswordTokenTTL: mustParseDuration(getenvOrDefault("RESET_PASSWORD_TOKEN_TTL", "1h")),
 
 		MetricsPort:    mustGetenvOrDefaultInt("METRICS_PORT", 3001),
 		MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",

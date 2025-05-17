@@ -102,6 +102,8 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 
 	user := e.getLastUserByEmail(email)
 	token := e.getVerificationTokenByUserID(user.ID)
+	e.Equal(token.Token, mockMailStore[email])
+
 	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/verify/"+token.Token, nil)
 	e.Equal(http.StatusOK, httpResp.Code)
 
@@ -136,6 +138,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	)
 
 	e.Equal(http.StatusOK, httpResp.Code)
+	e.NotEmpty(mockMailStore[email])
 }
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
@@ -172,8 +175,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 			}))
 
 		e.Equal(httpResp.Code, t.expectedCode)
-
-		// TODO: no email should be sent
+		e.Empty(mockMailStore[t.email])
 	}
 }
 
@@ -342,6 +344,65 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	userDB := e.getUserByUsername(username)
 	e.Equal(userDB.Username, username)
 	e.NoError(e.hasher.Compare(userDB.Password, newPassword))
+}
+
+type (
+	apiV1AuthResetPasswordRequest struct {
+		Email string `json:"email"`
+	}
+	apiV1AuthSetPasswordRequest struct {
+		Password string `json:"password"`
+	}
+)
+
+func (e *AppTestSuite) TestAuthV1_ResetPassword() {
+	email := e.uuid() + "@test.com"
+	uname := e.uuid()
+	uid, _ := e.createAndSingIn(email, uname, "password")
+
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/reset-password",
+		e.jsonify(apiV1AuthResetPasswordRequest{
+			Email: email,
+		}),
+	)
+
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	token := e.getResetPasswordTokenByUserID(uid)
+	e.Empty(token.UsedAt)
+	e.Equal(mockMailStore[email], token.Token)
+
+	// set new password
+	password := e.uuid()
+	httpResp = e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/reset-password/"+token.Token,
+		e.jsonify(apiV1AuthSetPasswordRequest{
+			Password: password,
+		}),
+	)
+
+	dbUser := e.getUserByUsername(uname)
+	e.Equal(httpResp.Code, http.StatusOK)
+	e.NoError(e.hasher.Compare(dbUser.Password, password))
+
+	token = e.getResetPasswordTokenByUserID(uid)
+	e.NotEmpty(token.UsedAt)
+}
+
+func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
+	_, _ = e.createAndSingIn(e.uuid()+"@test.comd", e.uuid(), "password")
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/reset-password",
+		e.jsonify(apiV1AuthResetPasswordRequest{
+			Email: e.uuid() + "@testing.com",
+		}),
+	)
+
+	e.Equal(httpResp.Code, http.StatusBadRequest)
 }
 
 // createAndSingIn creates an activated username, logs them in,

@@ -119,6 +119,52 @@ func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+type requestResetPasswordRequest struct {
+	Email string `json:"email"`
+}
+
+func (a *APIV1) requestResetPasswordHandler(c *gin.Context) {
+	var req requestResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.RequestPasswordReset(c.Request.Context(), dtos.RequestResetPassword{
+		Email: req.Email,
+	}); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+type resetPasswordRequest struct {
+	Password string `json:"password"`
+}
+
+func (a *APIV1) resetPasswordHandler(c *gin.Context) {
+	var req resetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.ResetPassword(
+		c.Request.Context(),
+		dtos.ResetPassword{
+			Token:       c.Param("token"),
+			NewPassword: req.Password,
+		},
+	); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
 func (a *APIV1) logOutHandler(c *gin.Context) {
 	if err := a.usersrv.Logout(c.Request.Context(), a.getUserID(c)); err != nil {
 		errorResponse(c, err)

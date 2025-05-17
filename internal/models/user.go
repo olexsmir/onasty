@@ -13,8 +13,9 @@ var (
 	ErrUsernameIsAlreadyInUse  = errors.New("user: username is already in use")
 	ErrUserIsAlreadyVerified   = errors.New("user: user is already verified")
 
-	ErrVerificationTokenNotFound = errors.New("user: verification token not found")
-	ErrUserIsNotActivated        = errors.New("user: user is not activated")
+	ErrResetPasswordTokenAlreadyUsed = errors.New("reset password token is already used")
+	ErrVerificationTokenNotFound     = errors.New("user: verification token not found")
+	ErrUserIsNotActivated            = errors.New("user: user is not activated")
 
 	ErrUserNotFound         = errors.New("user: not found")
 	ErrUserWrongCredentials = errors.New("user: wrong credentials")
@@ -40,14 +41,17 @@ func (u User) Validate() error {
 		return ErrUserInvalidEmail
 	}
 
-	if len(u.Password) < 6 {
-		return ErrUserInvalidPassword
-	}
-
 	if len(u.Username) == 0 {
 		return ErrUserInvalidUsername
 	}
 
+	return u.ValidatePassword()
+}
+
+func (u User) ValidatePassword() error {
+	if len(u.Password) < 6 {
+		return ErrUserInvalidPassword
+	}
 	return nil
 }
 
