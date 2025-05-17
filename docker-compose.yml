@@ -1,4 +1,10 @@
 services:
+  runtime:
+    image: onasty:runtime
+    build:
+      context: .
+      dockerfile: runtime.dockerfile
+
   core:
     image: onasty:core
     container_name: onasty-core
@@ -9,6 +15,12 @@ services:
     ports:
       - 8000:8000
       - 8001:8001
+    depends_on:
+      - runtime
+      - mailer
+      - postgres
+      - redis
+      - nats
 
   mailer:
     image: onasty:mailer
@@ -17,6 +29,9 @@ services:
       context: .
       dockerfile: ./mailer/Dockerfile
     env_file: ./mailer/.env
+    depends_on:
+      - runtime
+      - nats
 
   postgres:
     image: postgres:16-alpine
