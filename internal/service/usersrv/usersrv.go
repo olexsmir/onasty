@@ -100,7 +100,6 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error
 
 	user := models.User{
 		ID:          uuid.Nil, // nil, because it does not get used here
-		Username:    inp.Username,
 		Email:       inp.Email,
 		Activated:   false,
 		Password:    hashedPassword,

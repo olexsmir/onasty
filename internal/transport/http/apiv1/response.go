@@ -21,12 +21,10 @@ func errorResponse(c *gin.Context, err error) {
 		errors.Is(err, models.ErrResetPasswordTokenAlreadyUsed) ||
 		errors.Is(err, models.ErrResetPasswordTokenExpired) ||
 		errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
-		errors.Is(err, models.ErrUsernameIsAlreadyInUse) ||
 		errors.Is(err, models.ErrUserIsAlreadyVerified) ||
 		errors.Is(err, models.ErrUserIsNotActivated) ||
 		errors.Is(err, models.ErrUserInvalidEmail) ||
 		errors.Is(err, models.ErrUserInvalidPassword) ||
-		errors.Is(err, models.ErrUserInvalidUsername) ||
 		// notes
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
 		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {

@@ -10,7 +10,6 @@ import (
 
 var (
 	ErrUserEmailIsAlreadyInUse = errors.New("user: email is already in use")
-	ErrUsernameIsAlreadyInUse  = errors.New("user: username is already in use")
 	ErrUserIsAlreadyVerified   = errors.New("user: user is already verified")
 
 	ErrResetPasswordTokenAlreadyUsed = errors.New("reset password token is already used")
@@ -22,12 +21,10 @@ var (
 
 	ErrUserInvalidEmail    = errors.New("user: invalid email")
 	ErrUserInvalidPassword = errors.New("user: password too short, minimum 6 chars")
-	ErrUserInvalidUsername = errors.New("user: username is required")
 )
 
 type User struct {
 	ID          uuid.UUID
-	Username    string
 	Email       string
 	Activated   bool
 	Password    string
@@ -39,10 +36,6 @@ func (u User) Validate() error {
 	_, err := mail.ParseAddress(u.Email)
 	if err != nil {
 		return ErrUserInvalidEmail
-	}
-
-	if len(u.Username) == 0 {
-		return ErrUserInvalidUsername
 	}
 
 	return u.ValidatePassword()

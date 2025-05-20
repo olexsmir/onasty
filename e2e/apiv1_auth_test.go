@@ -8,12 +8,12 @@ import (
 )
 
 type apiv1AuthSignUpRequest struct {
-	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (e *AppTestSuite) TestAuthV1_SignUP() {
+	// TODO: deal with me
 	username := "test" + e.uuid()
 	email := e.uuid() + "test@test.com"
 	password := "password"
@@ -22,7 +22,6 @@ func (e *AppTestSuite) TestAuthV1_SignUP() {
 		http.MethodPost,
 		"/api/v1/auth/signup",
 		e.jsonify(apiv1AuthSignUpRequest{
-			Username: username,
 			Email:    email,
 			Password: password,
 		}),
@@ -40,6 +39,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP() {
 func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 	tests := []struct {
 		name     string
+		// TODO: deal with me
 		username string
 		email    string
 		password string
@@ -63,7 +63,6 @@ func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 			http.MethodPost,
 			"/api/v1/auth/signup",
 			e.jsonify(apiv1AuthSignUpRequest{
-				Username: t.username,
 				Email:    t.email,
 				Password: t.password,
 			}),
@@ -92,7 +91,6 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 		http.MethodPost,
 		"/api/v1/auth/signup",
 		e.jsonify(apiv1AuthSignUpRequest{
-			Username: e.uuid(),
 			Email:    email,
 			Password: password,
 		}),
@@ -119,7 +117,6 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 		http.MethodPost,
 		"/api/v1/auth/signup",
 		e.jsonify(apiv1AuthSignUpRequest{
-			Username: e.uuid(),
 			Email:    email,
 			Password: password,
 		}),

@@ -9,7 +9,6 @@ import (
 )
 
 type signUpRequest struct {
-	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -22,7 +21,6 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 	}
 
 	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.SignUp{
-		Username:    req.Username,
 		Email:       req.Email,
 		Password:    req.Password,
 		CreatedAt:   time.Now(),
