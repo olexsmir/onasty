@@ -5,7 +5,6 @@ import (
 )
 
 type SignUp struct {
-	Username    string
 	Email       string
 	Password    string
 	CreatedAt   time.Time

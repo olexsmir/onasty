@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -74,11 +73,6 @@ func (u *UserSrv) getUserInfoBasedOnProvider(
 	return userInfo, err
 }
 
-func getUsernameFromEmail(email string) string {
-	p := strings.Split(email, "@")
-	return p[0]
-}
-
 func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 	ctx context.Context,
 	info oauth.UserInfo,
@@ -88,7 +82,6 @@ func (u *UserSrv) getUserByOAuthIDOrCreateOne(
 		if errors.Is(err, models.ErrUserNotFound) {
 			uid, cerr := u.userstore.Create(ctx, models.User{
 				ID:          uuid.Nil,
-				Username:    getUsernameFromEmail(info.Email),
 				Email:       info.Email,
 				Activated:   true,
 				Password:    "",

@@ -51,8 +51,8 @@ func New(db *psqlutil.DB) *UserRepo {
 func (r *UserRepo) Create(ctx context.Context, inp models.User) (uuid.UUID, error) {
 	query, args, err := pgq.
 		Insert("users").
-		Columns("username", "email", "password", "activated", "created_at", "last_login_at").
-		Values(inp.Username, inp.Email, inp.Password, inp.Activated, inp.CreatedAt, inp.LastLoginAt).
+		Columns("email", "password", "activated", "created_at", "last_login_at").
+		Values(inp.Email, inp.Password, inp.Activated, inp.CreatedAt, inp.LastLoginAt).
 		Returning("id").
 		SQL()
 	if err != nil {
@@ -63,10 +63,6 @@ func (r *UserRepo) Create(ctx context.Context, inp models.User) (uuid.UUID, erro
 	err = r.db.QueryRow(ctx, query, args...).Scan(&id)
 
 	// FIXME: somehow this does return errors but i can't errors.Is them in api layer
-	if psqlutil.IsDuplicateErr(err, "users_username_key") {
-		return uuid.UUID{}, models.ErrUsernameIsAlreadyInUse
-	}
-
 	if psqlutil.IsDuplicateErr(err, "users_email_key") {
 		return uuid.UUID{}, models.ErrUserEmailIsAlreadyInUse
 	}
@@ -79,7 +75,7 @@ func (r *UserRepo) GetByEmail(
 	email string,
 ) (models.User, error) {
 	query, args, err := pgq.
-		Select("id", "username", "email", "password", "activated", "created_at", "last_login_at").
+		Select("id", "email", "password", "activated", "created_at", "last_login_at").
 		From("users").
 		Where(pgq.Eq{"email": email}).
 		SQL()
@@ -89,7 +85,7 @@ func (r *UserRepo) GetByEmail(
 
 	var user models.User
 	err = r.db.QueryRow(ctx, query, args...).
-		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
+		Scan(&user.ID, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.User{}, models.ErrUserNotFound
 	}
@@ -121,7 +117,7 @@ func (r *UserRepo) GetByOAuthID(
 	provider, providerID string,
 ) (models.User, error) {
 	query := `--sql
-	select u.id, u.username, u.email, u.password, u.activated, u.created_at, u.last_login_at
+	select u.id, u.email, u.password, u.activated, u.created_at, u.last_login_at
 	from users u
 	join oauth_identities oi on u.id = oi.user_id
 	where oi.provider = $1
@@ -130,7 +126,7 @@ func (r *UserRepo) GetByOAuthID(
 
 	var user models.User
 	err := r.db.QueryRow(ctx, query, provider, providerID).
-		Scan(&user.ID, &user.Username, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
+		Scan(&user.ID, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.User{}, models.ErrUserNotFound
 	}
