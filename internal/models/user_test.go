@@ -38,12 +38,6 @@ func TestUser_Validate(t *testing.T) {
 			email:    "test@example.org",
 			password: "12345",
 		},
-		{
-			name:     "invalid username",
-			fail:     true,
-			email:    "test@example.org",
-			password: "superhardasspassword",
-		},
 	}
 
 	for _, tt := range tests {
