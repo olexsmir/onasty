@@ -13,8 +13,6 @@ type apiv1AuthSignUpRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_SignUP() {
-	// TODO: deal with me
-	username := "test" + e.uuid()
 	email := e.uuid() + "test@test.com"
 	password := "password"
 
@@ -27,7 +25,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP() {
 		}),
 	)
 
-	dbUser := e.getUserByUsername(username)
+	dbUser := e.getUserByEmail(email)
 	hashedPasswd, err := e.hasher.Hash(password)
 	e.require.NoError(err)
 
@@ -39,24 +37,12 @@ func (e *AppTestSuite) TestAuthV1_SignUP() {
 func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 	tests := []struct {
 		name     string
-		// TODO: deal with me
-		username string
 		email    string
 		password string
 	}{
-		{name: "all fields empty", email: "", password: "", username: ""},
-		{
-			name:     "non valid email",
-			username: "testing",
-			email:    "email",
-			password: "password",
-		},
-		{
-			name:     "non valid password",
-			email:    "test@test.com",
-			password: "12345",
-			username: "test",
-		},
+		{name: "all fields empty", email: "", password: ""},
+		{name: "non valid email", email: "email", password: "password"},
+		{name: "non valid password", email: "test@test.com", password: "12345"},
 	}
 	for _, t := range tests {
 		httpResp := e.httpRequest(
@@ -140,7 +126,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 	email, password := e.uuid()+"@"+e.uuid()+".com", "password"
-	e.insertUser(e.uuid(), email, password, true)
+	e.insertUser(email, password, true)
 
 	tests := []struct {
 		name         string
@@ -179,8 +165,7 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 func (e *AppTestSuite) TestAuthV1_SignIn() {
 	email := e.uuid() + "email@email.com"
 	password := "qwerty"
-
-	uid := e.insertUser("test", email, password, true)
+	uid := e.insertUser(email, password, true)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -205,10 +190,10 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 	password := "password"
 	email := e.uuid() + "@test.com"
-	e.insertUser(e.uuid(), email, "password", true)
+	e.insertUser(email, "password", true)
 
 	unactivatedEmail := e.uuid() + "@test.com"
-	e.insertUser(e.uuid(), unactivatedEmail, password, false)
+	e.insertUser(unactivatedEmail, password, false)
 
 	//exhaustruct:ignore
 	tests := []struct {
@@ -268,7 +253,7 @@ type apiv1AuthRefreshTokensRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
+	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/refresh-tokens",
@@ -303,7 +288,7 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
 }
 
 func (e *AppTestSuite) TestAuthV1_Logout() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
+	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 
 	sessionDB := e.getLastSessionByUserID(uid)
 	e.NotEmpty(sessionDB.RefreshToken)
@@ -323,8 +308,8 @@ type apiv1AtuhChangePasswordRequest struct {
 func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	password := e.uuid()
 	newPassword := e.uuid()
-	username := e.uuid()
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", username, password)
+	email := e.uuid() + "@test.com"
+	_, toks := e.createAndSingIn(email, password)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -338,8 +323,7 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 
 	e.Equal(httpResp.Code, http.StatusOK)
 
-	userDB := e.getUserByUsername(username)
-	e.Equal(userDB.Username, username)
+	userDB := e.getUserByEmail(email)
 	e.NoError(e.hasher.Compare(userDB.Password, newPassword))
 }
 
@@ -354,8 +338,7 @@ type (
 
 func (e *AppTestSuite) TestAuthV1_ResetPassword() {
 	email := e.uuid() + "@test.com"
-	uname := e.uuid()
-	uid, _ := e.createAndSingIn(email, uname, "password")
+	uid, _ := e.createAndSingIn(email, "password")
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -381,7 +364,7 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword() {
 		}),
 	)
 
-	dbUser := e.getUserByUsername(uname)
+	dbUser := e.getUserByEmail(email)
 	e.Equal(httpResp.Code, http.StatusOK)
 	e.NoError(e.hasher.Compare(dbUser.Password, password))
 
@@ -390,7 +373,7 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword() {
 }
 
 func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
-	_, _ = e.createAndSingIn(e.uuid()+"@test.comd", e.uuid(), "password")
+	_, _ = e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/reset-password",
@@ -402,12 +385,12 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
 	e.Equal(httpResp.Code, http.StatusBadRequest)
 }
 
-// createAndSingIn creates an activated username, logs them in,
+// createAndSingIn creates an activated user, logs them in,
 // and returns their userID along with access and refresh tokens.
 func (e *AppTestSuite) createAndSingIn(
-	email, username, password string,
+	email, password string,
 ) (uuid.UUID, apiv1AuthSignInResponse) {
-	uid := e.insertUser(username, email, password, true)
+	uid := e.insertUser(email, password, true)
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/signin",

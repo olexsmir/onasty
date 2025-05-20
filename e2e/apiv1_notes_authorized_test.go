@@ -3,7 +3,7 @@ package e2e_test
 import "net/http"
 
 func (e *AppTestSuite) TestNoteV1_Create_authorized() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", e.uuid(), "password")
+	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/note",
