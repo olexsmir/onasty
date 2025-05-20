@@ -93,22 +93,24 @@ func New(
 }
 
 func (u *UserSrv) SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error) {
+	user := models.User{
+		ID:          uuid.Nil, // nil, because it does not get used here
+		Email:       inp.Email,
+		Activated:   false,
+		Password:    inp.Password,
+		CreatedAt:   inp.CreatedAt,
+		LastLoginAt: inp.LastLoginAt,
+	}
+	if err := user.Validate(); err != nil {
+		return uuid.Nil, err
+	}
+
 	hashedPassword, err := u.hasher.Hash(inp.Password)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
-	user := models.User{
-		ID:          uuid.Nil, // nil, because it does not get used here
-		Email:       inp.Email,
-		Activated:   false,
-		Password:    hashedPassword,
-		CreatedAt:   inp.CreatedAt,
-		LastLoginAt: inp.LastLoginAt,
-	}
-	if err = user.Validate(); err != nil {
-		return uuid.Nil, err
-	}
+	user.Password = hashedPassword
 
 	userID, err := u.userstore.Create(ctx, user)
 	if err != nil {
