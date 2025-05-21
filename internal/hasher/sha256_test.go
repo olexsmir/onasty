@@ -27,7 +27,7 @@ func TestSHA256Hasher_Compared(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	t.Run("hashes mismatch", func(t *testing.T) {
+	t.Run("mismatch", func(t *testing.T) {
 		hashed, err := hasher.Hash(input + "4")
 		require.NoError(t, err)
 		require.NotEmpty(t, hashed)

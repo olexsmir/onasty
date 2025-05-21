@@ -22,3 +22,10 @@ type ResetPasswordToken struct {
 func (p ResetPasswordToken) IsExpired() bool {
 	return p.ExpiresAt.Before(time.Now())
 }
+
+type VerificationToken struct {
+	UserID    uuid.UUID
+	Token     string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}

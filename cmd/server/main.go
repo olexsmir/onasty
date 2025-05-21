@@ -158,9 +158,9 @@ func run(ctx context.Context) error {
 	}
 
 	// graceful shutdown
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
-	<-quit
+	quitCh := make(chan os.Signal, 1)
+	signal.Notify(quitCh, os.Interrupt)
+	<-quitCh
 
 	if err := srv.Stop(ctx); err != nil {
 		return errors.Join(errors.New("failed to stop http server"), err)

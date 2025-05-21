@@ -11,12 +11,7 @@ import (
 )
 
 type VerificationTokenStorer interface {
-	Create(
-		ctx context.Context,
-		token string,
-		userID uuid.UUID,
-		createdAt, expiresAt time.Time,
-	) error
+	Create(ctx context.Context, token models.VerificationToken) error
 
 	GetUserIDByTokenAndMarkAsUsed(
 		ctx context.Context,
@@ -46,14 +41,12 @@ func New(db *psqlutil.DB) *VerificationTokenRepo {
 
 func (r *VerificationTokenRepo) Create(
 	ctx context.Context,
-	token string,
-	userID uuid.UUID,
-	createdAt, expiresAt time.Time,
+	token models.VerificationToken,
 ) error {
 	query, aggs, err := pgq.
 		Insert("verification_tokens").
 		Columns("user_id", "token", "created_at", "expires_at").
-		Values(userID, token, createdAt, expiresAt).
+		Values(token.UserID, token.Token, token.CreatedAt, token.ExpiresAt).
 		SQL()
 	if err != nil {
 		return err

@@ -118,13 +118,12 @@ func (u *UserSrv) SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error
 	}
 
 	verificationToken := uuid.Must(uuid.NewV4()).String()
-	if err := u.vertokrepo.Create(
-		ctx,
-		verificationToken,
-		userID,
-		time.Now(),
-		time.Now().Add(u.verificationTokenTTL),
-	); err != nil {
+	if err := u.vertokrepo.Create(ctx, models.VerificationToken{
+		UserID:    userID,
+		Token:     verificationToken,
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(u.verificationTokenTTL),
+	}); err != nil {
 		return uuid.Nil, err
 	}
 
