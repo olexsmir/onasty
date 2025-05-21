@@ -274,8 +274,6 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
 }
 
 func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
-	// requests a new token pair with a wrong refresh token
-
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/refresh-tokens",
