@@ -63,14 +63,14 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 }
 
 type getNoteBySlugRequest struct {
-	Password string `json:"password,omitempty"`
+	Password string `json:"password"`
 }
 
 type getNoteBySlugResponse struct {
-	Content   string    `json:"content,omitempty"`
-	ReadAt    time.Time `json:"read_at"`
-	CratedAt  time.Time `json:"crated_at"`
-	ExpiresAt time.Time `json:"expires_at"`
+	Content   string    `json:"content"`
+	ReadAt    time.Time `json:"read_at,omitzero"`
+	CreatedAt time.Time `json:"created_at"`
+	ExpiresAt time.Time `json:"expires_at,omitzero"`
 }
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
@@ -100,7 +100,7 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	c.JSON(status, getNoteBySlugResponse{
 		Content:   note.Content,
 		ReadAt:    note.ReadAt,
-		CratedAt:  note.CreatedAt,
+		CreatedAt: note.CreatedAt,
 		ExpiresAt: note.ExpiresAt,
 	})
 }
