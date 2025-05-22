@@ -70,11 +70,6 @@ func (a *APIV1) metricsMiddleware(c *gin.Context) {
 	}
 }
 
-//nolint:unused
-func (a *APIV1) isUserAuthorized(c *gin.Context) bool {
-	return !a.getUserID(c).IsNil()
-}
-
 func getTokenFromAuthHeaders(c *gin.Context) (token string, ok bool) { //nolint:nonamedreturns
 	header := c.GetHeader("Authorization")
 	if header == "" {
