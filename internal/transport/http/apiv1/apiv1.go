@@ -33,22 +33,26 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		auth.POST("/reset-password", a.requestResetPasswordHandler)
 		auth.POST("/reset-password/:token", a.resetPasswordHandler)
 
-		authorized := auth.Group("/", a.authorizedMiddleware)
-		{
-			authorized.POST("/logout", a.logOutHandler)
-			authorized.POST("/change-password", a.changePasswordHandler)
-		}
-
 		oauth := r.Group("/oauth")
 		{
 			oauth.GET("/:provider", a.oauthLoginHandler)
 			oauth.GET("/:provider/callback", a.oauthCallbackHandler)
 		}
+
+		authorized := auth.Group("/", a.authorizedMiddleware)
+		{
+			authorized.POST("/logout", a.logOutHandler)
+			authorized.POST("/change-password", a.changePasswordHandler)
+		}
 	}
 
-	note := r.Group("/note", a.couldBeAuthorizedMiddleware)
+	note := r.Group("/note")
 	{
 		note.GET("/:slug", a.getNoteBySlugHandler)
-		note.POST("", a.createNoteHandler)
+
+		possiblyAuthorized := note.Group("", a.couldBeAuthorizedMiddleware)
+		{
+			possiblyAuthorized.POST("", a.createNoteHandler)
+		}
 	}
 }
