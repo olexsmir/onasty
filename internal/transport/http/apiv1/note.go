@@ -69,7 +69,7 @@ type getNoteBySlugRequest struct {
 type getNoteBySlugResponse struct {
 	Content   string    `json:"content"`
 	ReadAt    time.Time `json:"read_at,omitzero"`
-	CratedAt  time.Time `json:"crated_at"`
+	CreatedAt time.Time `json:"created_at"`
 	ExpiresAt time.Time `json:"expires_at,omitzero"`
 }
 
@@ -100,7 +100,7 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	c.JSON(status, getNoteBySlugResponse{
 		Content:   note.Content,
 		ReadAt:    note.ReadAt,
-		CratedAt:  note.CreatedAt,
+		CreatedAt: note.CreatedAt,
 		ExpiresAt: note.ExpiresAt,
 	})
 }
