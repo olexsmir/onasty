@@ -2,6 +2,7 @@ package http
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
@@ -15,18 +16,24 @@ type Transport struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
 
-	ratelimitCfg ratelimit.Config
+	corsAllowedOrigins []string
+	corsMaxAge         time.Duration
+	ratelimitCfg       ratelimit.Config
 }
 
 func NewTransport(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
+	corsAllowedOrigins []string,
+	corsMaxAge time.Duration,
 	ratelimitCfg ratelimit.Config,
 ) *Transport {
 	return &Transport{
-		usersrv:      us,
-		notesrv:      ns,
-		ratelimitCfg: ratelimitCfg,
+		usersrv:            us,
+		notesrv:            ns,
+		corsAllowedOrigins: corsAllowedOrigins,
+		corsMaxAge:         corsMaxAge,
+		ratelimitCfg:       ratelimitCfg,
 	}
 }
 
@@ -35,7 +42,8 @@ func (t *Transport) Handler() http.Handler {
 	r.Use(
 		gin.Recovery(),
 		reqid.Middleware(),
-		t.logger(),
+		t.loggerMiddleware(),
+		t.corsMiddleware(),
 		ratelimit.MiddlewareWithConfig(t.ratelimitCfg),
 	)
 

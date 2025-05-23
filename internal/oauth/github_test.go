@@ -35,10 +35,10 @@ func TestGitHubProvider_ExchangeCode(t *testing.T) {
 	userLogin := "testing"
 
 	resp := fmt.Sprintf(`{"id":%s, "email":"%s", "login":"%s"}`, userID, userEmail, userLogin)
-	client := &http.Client{ //nolint:exhaustruct
+	client := &http.Client{
 		Transport: mockClient(func(req *http.Request) (*http.Response, error) {
 			if req.Method == http.MethodPost {
-				return &http.Response{ //nolint:exhaustruct
+				return &http.Response{
 					StatusCode: http.StatusOK,
 					Header:     http.Header{"Content-Type": []string{"application/json"}},
 					Body: io.NopCloser(
@@ -48,7 +48,7 @@ func TestGitHubProvider_ExchangeCode(t *testing.T) {
 					),
 				}, nil
 			}
-			return &http.Response{ //nolint:exhaustruct
+			return &http.Response{
 				StatusCode: http.StatusOK,
 				Header:     http.Header{"Content-Type": []string{"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(resp)),
@@ -67,10 +67,10 @@ func TestGitHubProvider_ExchangeCode(t *testing.T) {
 }
 
 func TestGitHubProvider_ExchangeCode_tokenExcahnge_error(t *testing.T) {
-	client := &http.Client{ //nolint:exhaustruct
+	client := &http.Client{
 		Transport: mockClient(func(req *http.Request) (*http.Response, error) {
 			if req.Method == http.MethodPost {
-				return &http.Response{ //nolint:exhaustruct
+				return &http.Response{
 					StatusCode: http.StatusBadRequest,
 					Body:       io.NopCloser(strings.NewReader("")),
 				}, nil

@@ -137,7 +137,13 @@ func (e *AppTestSuite) initDeps() {
 		Burst: 1000,
 	}
 
-	handler := httptransport.NewTransport(usersrv, notesrv, ratelimitCfg)
+	handler := httptransport.NewTransport(
+		usersrv,
+		notesrv,
+		cfg.CORSAllowedOrigins,
+		cfg.CORSMaxAge,
+		ratelimitCfg,
+	)
 	e.router = handler.Handler()
 }
 

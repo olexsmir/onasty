@@ -28,10 +28,10 @@ func TestGoogleProvider_ExchangeCode(t *testing.T) {
 	sub := "1234567890"
 	email := "testemail@mail.com"
 	resp := fmt.Sprintf(`{"sub":"%s", "email":"%s","email_verified":true}`, sub, email)
-	client := &http.Client{ //nolint:exhaustruct
+	client := &http.Client{
 		Transport: mockClient(func(req *http.Request) (*http.Response, error) {
 			if req.Method == http.MethodPost {
-				return &http.Response{ //nolint:exhaustruct
+				return &http.Response{
 					StatusCode: http.StatusOK,
 					Header:     http.Header{"Content-Type": []string{"application/json"}},
 					Body: io.NopCloser(
@@ -41,7 +41,7 @@ func TestGoogleProvider_ExchangeCode(t *testing.T) {
 					),
 				}, nil
 			}
-			return &http.Response{ //nolint:exhaustruct
+			return &http.Response{
 				StatusCode: http.StatusOK,
 				Header:     http.Header{"Content-Type": []string{"application/json"}},
 				Body:       io.NopCloser(strings.NewReader(resp)),
