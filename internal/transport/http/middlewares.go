@@ -14,7 +14,7 @@ func (t *Transport) corsMiddleware() gin.HandlerFunc {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowHeaders:     []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+		MaxAge:           t.corsMaxAge,
 	})
 }
 
