@@ -4,10 +4,21 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
-func (t *Transport) logger() gin.HandlerFunc {
+func (t *Transport) corsMiddleware() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		AllowOrigins:     t.corsAllowedOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowHeaders:     []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	})
+}
+
+func (t *Transport) loggerMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path

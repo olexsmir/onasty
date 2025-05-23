@@ -129,6 +129,8 @@ func run(ctx context.Context) error {
 	handler := httptransport.NewTransport(
 		usersrv,
 		notesrv,
+		cfg.CORSAllowedOrigins,
+		cfg.CORSMaxAge,
 		rateLimiterConfig,
 	)
 
