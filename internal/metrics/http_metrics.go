@@ -8,19 +8,19 @@ import (
 )
 
 var (
-	successfulHTTPRequest = promauto.NewCounterVec(prometheus.CounterOpts{ //nolint:exhaustruct
+	successfulHTTPRequest = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name:        "http_successful_requests_total",
 		Help:        "the total number of successful http requests",
 		ConstLabels: map[string]string{"status": "success"},
 	}, []string{"method", "uri"})
 
-	failedHTTPRequest = promauto.NewCounterVec(prometheus.CounterOpts{ //nolint:exhaustruct
+	failedHTTPRequest = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name:        "http_failed_requests_total",
 		Help:        "the total number of failed http requests",
 		ConstLabels: map[string]string{"status": "failure"},
 	}, []string{"method", "uri"})
 
-	latencyHTTPRequest = promauto.NewHistogramVec(prometheus.HistogramOpts{ //nolint:exhaustruct
+	latencyHTTPRequest = promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    "http_request_latency_seconds",
 		Help:    "the latency of http requests in seconds",
 		Buckets: prometheus.DefBuckets,
