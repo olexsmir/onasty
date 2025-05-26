@@ -1,0 +1,6 @@
+version: "3"
+tasks:
+  run:
+    desc: seeds the database
+    dir: ./cmd/seed/
+    cmd: go run *.go
