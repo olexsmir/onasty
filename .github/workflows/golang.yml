@@ -24,7 +24,7 @@ jobs:
         run: go build -o .bin/onasty ./cmd/api/
 
       - name: Build mailer service
-        run: go build -o .bin/mailer ./cmd/mailer/
+        run: go build -o .bin/mailer ./mailer/
 
       - name: Unit tests
         run: go test -v --short ./...
