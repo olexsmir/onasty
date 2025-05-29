@@ -15,12 +15,12 @@ var usersData = []struct {
 	password  string
 	activated bool
 }{
-	{
+	{ //nolint:exhaustruct
 		email:     "admin@onasty.local",
 		password:  "adminadmin",
 		activated: true,
 	},
-	{
+	{ //nolint:exhaustruct
 		email:     "users@onasty.local",
 		activated: false,
 		password:  "qwerty123",

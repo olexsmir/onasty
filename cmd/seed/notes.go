@@ -19,25 +19,25 @@ var notesData = []struct {
 	hasAuthor            bool
 	authorID             int
 }{
-	{
+	{ //nolint:exhaustruct
 		content:              "that test note one",
 		slug:                 "one",
 		burnBeforeExpiration: false,
 	},
-	{
+	{ //nolint:exhaustruct
 		content:              "that test note two",
 		slug:                 "two",
 		burnBeforeExpiration: true,
 		password:             "",
 		expiresAt:            time.Now().Add(24 * time.Hour),
 	},
-	{
+	{ //nolint:exhaustruct
 		content:              "that passworded note",
 		slug:                 "passwd",
 		burnBeforeExpiration: false,
 		password:             "pass",
 	},
-	{
+	{ //nolint:exhaustruct
 		content:              "that note with author",
 		slug:                 "user",
 		burnBeforeExpiration: false,
