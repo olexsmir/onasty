@@ -5,6 +5,7 @@ dotenv:
 
 includes:
   migrate: ./migrations/Taskfile.yml
+  seed: ./cmd/seed/Taskfile.yml
 
 env:
   DOCKER_BUILDKIT: 1
