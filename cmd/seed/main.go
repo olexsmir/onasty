@@ -9,8 +9,6 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/logger"
-	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
-	"github.com/olexsmir/onasty/internal/store/psql/userepo"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
@@ -36,17 +34,16 @@ func run(ctx context.Context) error {
 		return err
 	}
 
-	hasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
-	userrepo := userepo.New(psql)
-	noterepo := noterepo.New(psql)
+	userHasher := hasher.NewSHA256Hasher(cfg.PasswordSalt)
+	noteHasher := hasher.NewSHA256Hasher(cfg.NotePasswordSalt)
 
-	if err := seedUsers(ctx, hasher, userrepo); err != nil {
+	if err := seedUsers(ctx, userHasher, psql); err != nil {
 		return fmt.Errorf("failed to seed users: %w", err)
 	}
 
 	slog.Info("Users seeded successfully")
 
-	if err := seedNotes(ctx, noterepo); err != nil {
+	if err := seedNotes(ctx, noteHasher, psql); err != nil {
 		return fmt.Errorf("failed to seed notes: %w", err)
 	}
 

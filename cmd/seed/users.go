@@ -2,46 +2,57 @@ package main
 
 import (
 	"context"
-	"errors"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/olexsmir/onasty/internal/hasher"
-	"github.com/olexsmir/onasty/internal/models"
-	"github.com/olexsmir/onasty/internal/store/psql/userepo"
+	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
-func seedUsers(ctx context.Context, hash hasher.Hasher, repo userepo.UserStorer) error {
-	var errs error
+var usersData = []struct {
+	id        string
+	email     string
+	password  string
+	activated bool
+}{
+	{
+		email:     "admin@onasty.local",
+		password:  "adminadmin",
+		activated: true,
+	},
+	{
+		email:     "users@onasty.local",
+		activated: false,
+		password:  "qwerty123",
+	},
+}
 
-	adminPassword, err := hash.Hash("admin")
-	if err != nil {
-		return errors.Join(errs, err)
-	}
-	_, err = repo.Create(ctx, models.User{ //nolint:exhaustruct
-		Email:       "admin@onasty.local",
-		Activated:   true,
-		Password:    adminPassword,
-		CreatedAt:   time.Now(),
-		LastLoginAt: time.Now(),
-	})
-	if err != nil {
-		errs = errors.Join(errs, err)
+func seedUsers(
+	ctx context.Context,
+	hash hasher.Hasher,
+	db *psqlutil.DB,
+) error {
+	for i, user := range usersData {
+		passwrd, err := hash.Hash(user.password)
+		if err != nil {
+			return err
+		}
+
+		var id pgtype.UUID
+		err = db.QueryRow(ctx, `
+			insert into users (email, password, activated, created_at, last_login_at)
+			values ($1, $2, $3, $4, $5)
+				on conflict (email) do update
+				set password = excluded.password
+			returning id::text
+		`, user.email, passwrd, user.activated, time.Now(), time.Now()).
+			Scan(&id)
+		if err != nil {
+			return err
+		}
+
+		usersData[i].id = id.String()
 	}
 
-	userPassword, err := hash.Hash("qwerty")
-	if err != nil {
-		return errors.Join(errs, err)
-	}
-	_, err = repo.Create(ctx, models.User{ //nolint:exhaustruct
-		Email:       "user@onasty.local",
-		Activated:   false,
-		Password:    userPassword,
-		CreatedAt:   time.Now(),
-		LastLoginAt: time.Now(),
-	})
-	if err != nil {
-		errs = errors.Join(errs, err)
-	}
-
-	return errs
+	return nil
 }
