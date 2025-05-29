@@ -21,7 +21,10 @@ jobs:
           cache-dependency-path: go.mod
 
       - name: Build API
-        run: go build -o .bin/onasty ./cmd/server/
+        run: go build -o .bin/onasty ./cmd/api/
+
+      - name: Build mailer service
+        run: go build -o .bin/mailer ./cmd/mailer/
 
       - name: Unit tests
         run: go test -v --short ./...
