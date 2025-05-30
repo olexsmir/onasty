@@ -76,8 +76,6 @@ func seedNotes(
 			}
 		}
 
-		slog.Info("note", "slug", note.slug, "author", note.authorID)
-
 		err := db.QueryRow(
 			ctx, `
 		insert into notes (content, slug, burn_before_expiration, password, expires_at)

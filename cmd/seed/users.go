@@ -44,7 +44,7 @@ func seedUsers(
 			values ($1, $2, $3, $4, $5)
 				on conflict (email) do update
 				set password = excluded.password
-			returning id::text
+			returning id
 		`, user.email, passwrd, user.activated, time.Now(), time.Now()).
 			Scan(&id)
 		if err != nil {
