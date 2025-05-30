@@ -82,7 +82,6 @@ func seedNotes(
 		values ($1, $2, $3, $4, $5)
 		on conflict (slug) do update set
 			content = excluded.content,
-			slug = excluded.slug,
 			burn_before_expiration = excluded.burn_before_expiration,
 			password = excluded.password,
 			expires_at = excluded.expires_at
