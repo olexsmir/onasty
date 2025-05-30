@@ -104,3 +104,40 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		ExpiresAt: note.ExpiresAt,
 	})
 }
+
+type getNotesResponse struct {
+	Content              string    `json:"content"`
+	Slug                 string    `json:"slug"`
+	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	HasPassword          bool      `json:"has_password"`
+	CreatedAt            time.Time `json:"created_at"`
+	ExpiresAt            time.Time `json:"expires_at,omitzero"`
+	ReadAt               time.Time `json:"read_at,omitzero"`
+}
+
+func (a *APIV1) getNotesHandler(c *gin.Context) {
+	notes, err := a.notesrv.GetAllNotesByAuthorID(c.Request.Context(), a.getUserID(c))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	var response []getNotesResponse
+	for _, note := range notes {
+		response = append(response, getNotesResponse{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.HasPassword,
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (a *APIV1) updateNoteHandler(c *gin.Context) {
+	c.Status(http.StatusNotImplemented)
+}

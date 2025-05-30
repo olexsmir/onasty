@@ -21,6 +21,8 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
+	GetNotesByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
+
 	// GetBySlugAndPassword gets a note by slug and password.
 	// the "password" should be hashed.
 	//
@@ -88,6 +90,36 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.No
 	}
 
 	return note, err
+}
+
+func (s *NoteRepo) GetNotesByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]models.Note, error) {
+	query := `--sql
+	select n.content, n.slug, n.burn_before_expiration, n.read_at, n.created_at, n.expires_at
+	from notes n
+	right join notes_authors na on n.id = na.note_id
+	where na.user_id = $1`
+
+	rows, err := s.db.Query(ctx, query, authorID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var notes []models.Note
+	for rows.Next() {
+		var note models.Note
+		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration,
+			&note.ReadAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, rows.Err()
 }
 
 func (s *NoteRepo) GetBySlugAndPassword(

@@ -54,5 +54,11 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		{
 			possiblyAuthorized.POST("", a.createNoteHandler)
 		}
+
+		authorized := note.Group("", a.authorizedMiddleware)
+		{
+			authorized.GET("", a.getNotesHandler)
+			authorized.PUT("", a.updateNoteHandler)
+		}
 	}
 }

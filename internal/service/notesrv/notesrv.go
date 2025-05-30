@@ -24,6 +24,12 @@ type NoteServicer interface {
 		ctx context.Context,
 		input GetNoteBySlugInput,
 	) (dtos.GetNote, error)
+
+	// GetAllNotesByAuthorID returns all notes by author id
+	GetAllNotesByAuthorID(
+		ctx context.Context,
+		authorID uuid.UUID,
+	) ([]dtos.NoteDtailed, error)
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -114,6 +120,31 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	return respNote, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
+}
+
+func (n *NoteSrv) GetAllNotesByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]dtos.NoteDtailed, error) {
+	notes, err := n.noterepo.GetNotesByAuthorID(ctx, authorID)
+	if err != nil {
+		return nil, err
+	}
+
+	var resNotes []dtos.NoteDtailed
+	for _, note := range notes {
+		resNotes = append(resNotes, dtos.NoteDtailed{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.Password != "",
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	return resNotes, nil
 }
 
 func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (models.Note, error) {
