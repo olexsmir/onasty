@@ -44,6 +44,21 @@ var notesData = []struct {
 		hasAuthor:            true,
 		authorID:             0,
 	},
+	{ //nolint:exhaustruct
+		content:              "that another authored note",
+		slug:                 "user2",
+		burnBeforeExpiration: false,
+		hasAuthor:            true,
+		authorID:             0,
+	},
+	{ //nolint:exhaustruct
+		content:              "that another authored note",
+		slug:                 "user2",
+		password:             "passwd",
+		burnBeforeExpiration: false,
+		hasAuthor:            true,
+		authorID:             0,
+	},
 }
 
 func seedNotes(
