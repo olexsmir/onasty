@@ -53,7 +53,7 @@ var notesData = []struct {
 	},
 	{ //nolint:exhaustruct
 		content:              "that another authored note",
-		slug:                 "user2",
+		slug:                 "user3",
 		password:             "passwd",
 		burnBeforeExpiration: false,
 		hasAuthor:            true,
