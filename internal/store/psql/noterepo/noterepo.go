@@ -97,7 +97,7 @@ func (s *NoteRepo) GetNotesByAuthorID(
 	authorID uuid.UUID,
 ) ([]models.Note, error) {
 	query := `--sql
-	select n.content, n.slug, n.burn_before_expiration, n.read_at, n.created_at, n.expires_at
+	select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
 	from notes n
 	right join notes_authors na on n.id = na.note_id
 	where na.user_id = $1`
@@ -112,7 +112,7 @@ func (s *NoteRepo) GetNotesByAuthorID(
 	var notes []models.Note
 	for rows.Next() {
 		var note models.Note
-		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration,
+		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
 			&note.ReadAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
 			return nil, err
 		}
