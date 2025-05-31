@@ -9,7 +9,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+var (
+	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+	ErrTokenExpired            = errors.New("token expired")
+)
 
 type JWTTokenizer interface {
 	// AccessToken generates a new access token with the given [Payload].
@@ -65,6 +68,11 @@ func (j *JWTUtil) Parse(token string) (Payload, error) {
 		}
 		return []byte(j.signingKey), nil
 	})
+
+	if errors.Is(err, jwt.ErrTokenExpired) {
+		return Payload{}, ErrTokenExpired
+	}
+
 	return Payload{
 		UserID: claims.Subject,
 	}, err
