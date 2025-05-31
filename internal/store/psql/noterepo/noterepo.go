@@ -21,6 +21,7 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
+	// GetNotesByAuthorID returns all notes with specified author.
 	GetNotesByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
 
 	// GetBySlugAndPassword gets a note by slug and password.
@@ -36,6 +37,10 @@ type NoteStorer interface {
 	// RemoveBySlug marks note as read, deletes it's content, and keeps meta data
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	RemoveBySlug(ctx context.Context, slug dtos.NoteSlug, readAt time.Time) error
+
+	// DeleteNoteBySlug deletes(unlike [RemoveBySlug]) note by slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	DeleteNoteBySlug(ctx context.Context, slug dtos.NoteSlug, authorID uuid.UUID) error
 
 	// SetAuthorIDBySlug assigns author to note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
@@ -170,6 +175,25 @@ func (s *NoteRepo) RemoveBySlug(
 
 	_, err = s.db.Exec(ctx, query, args...)
 	if errors.Is(err, pgx.ErrNoRows) {
+		return models.ErrNoteNotFound
+	}
+
+	return err
+}
+
+func (s *NoteRepo) DeleteNoteBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	authorID uuid.UUID,
+) error {
+	query := `--sql
+delete from notes n
+using notes_authors na
+where n.slug = $1
+	and na.user_id = $2`
+
+	ct, err := s.db.Exec(ctx, query, slug, authorID.String())
+	if ct.RowsAffected() == 0 {
 		return models.ErrNoteNotFound
 	}
 

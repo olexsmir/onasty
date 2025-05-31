@@ -30,6 +30,9 @@ type NoteServicer interface {
 		ctx context.Context,
 		authorID uuid.UUID,
 	) ([]dtos.NoteDtailed, error)
+
+	// DeleteNoteBySlug deletes note by slug
+	DeleteNoteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -145,6 +148,14 @@ func (n *NoteSrv) GetAllNotesByAuthorID(
 	}
 
 	return resNotes, nil
+}
+
+func (n *NoteSrv) DeleteNoteBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	authorID uuid.UUID,
+) error {
+	return n.noterepo.DeleteNoteBySlug(ctx, slug, authorID)
 }
 
 func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (models.Note, error) {

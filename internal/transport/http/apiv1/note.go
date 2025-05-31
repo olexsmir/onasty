@@ -141,3 +141,16 @@ func (a *APIV1) getNotesHandler(c *gin.Context) {
 func (a *APIV1) updateNoteHandler(c *gin.Context) {
 	c.Status(http.StatusNotImplemented)
 }
+
+func (a *APIV1) deleteNoteHandler(c *gin.Context) {
+	if err := a.notesrv.DeleteNoteBySlug(
+		c.Request.Context(),
+		c.Param("slug"),
+		a.getUserID(c),
+	); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
