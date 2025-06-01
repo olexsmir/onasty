@@ -58,7 +58,7 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		authorized := note.Group("", a.authorizedMiddleware)
 		{
 			authorized.GET("", a.getNotesHandler)
-			authorized.PUT("", a.updateNoteHandler)
+			authorized.PATCH(":slug", a.updateNoteHandler)
 			authorized.DELETE(":slug/delete", a.deleteNoteHandler)
 		}
 	}

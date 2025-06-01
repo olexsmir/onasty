@@ -138,8 +138,31 @@ func (a *APIV1) getNotesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+type updateNoteRequest struct {
+	ExpiresAt            *time.Time `json:"expires_at,omitempty"`
+	BurnBeforeExpiration *bool      `json:"burn_before_expiration,omitempty"`
+}
+
 func (a *APIV1) updateNoteHandler(c *gin.Context) {
-	c.Status(http.StatusNotImplemented)
+	var req updateNoteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.notesrv.PatchNoteBySlug(c.Request.Context(),
+		dtos.PatchNote{
+			BurnBeforeExpiration: req.BurnBeforeExpiration,
+			ExpiresAt:            req.ExpiresAt,
+		},
+		c.Param("slug"),
+		a.getUserID(c),
+	); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 func (a *APIV1) deleteNoteHandler(c *gin.Context) {

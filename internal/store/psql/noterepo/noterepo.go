@@ -34,6 +34,15 @@ type NoteStorer interface {
 		password string,
 	) (models.Note, error)
 
+	// PatchNote patches note by updating expiresAt and burnBeforeExpiration if one is passwd
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	PatchNote(
+		ctx context.Context,
+		slug dtos.NoteSlug,
+		patch dtos.PatchNote,
+		authorID uuid.UUID,
+	) error
+
 	// RemoveBySlug marks note as read, deletes it's content, and keeps meta data
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	RemoveBySlug(ctx context.Context, slug dtos.NoteSlug, readAt time.Time) error
@@ -155,6 +164,35 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	return note, err
 }
 
+func (s *NoteRepo) PatchNote(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	patch dtos.PatchNote,
+	authorID uuid.UUID,
+) error {
+	query := `--sql
+update notes n
+set burn_before_expiration = COALESCE($1, n.burn_before_expiration),
+    expires_at = COALESCE($2, n.expires_at)
+from notes_authors na
+where n.slug = $3
+	and na.user_id = $4
+	and na.note_id = n.id`
+
+	ct, err := s.db.Exec(ctx, query,
+		patch.BurnBeforeExpiration, patch.ExpiresAt,
+		slug, authorID.String())
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrNoteNotFound
+	}
+
+	return nil
+}
+
 func (s *NoteRepo) RemoveBySlug(
 	ctx context.Context,
 	slug dtos.NoteSlug,
@@ -193,11 +231,15 @@ where n.slug = $1
 	and na.user_id = $2`
 
 	ct, err := s.db.Exec(ctx, query, slug, authorID.String())
+	if err != nil {
+		return err
+	}
+
 	if ct.RowsAffected() == 0 {
 		return models.ErrNoteNotFound
 	}
 
-	return err
+	return nil
 }
 
 func (s *NoteRepo) SetAuthorIDBySlug(

@@ -34,3 +34,8 @@ type NoteDtailed struct {
 	ExpiresAt            time.Time
 	ReadAt               time.Time
 }
+
+type PatchNote struct {
+	ExpiresAt            *time.Time
+	BurnBeforeExpiration *bool
+}

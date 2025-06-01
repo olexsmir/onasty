@@ -31,6 +31,14 @@ type NoteServicer interface {
 		authorID uuid.UUID,
 	) ([]dtos.NoteDtailed, error)
 
+	// PatchNote patches expiresAt and burnBeforeExpiration
+	PatchNoteBySlug(
+		ctx context.Context,
+		patchData dtos.PatchNote,
+		slug dtos.NoteSlug,
+		userID uuid.UUID,
+	) error
+
 	// DeleteNoteBySlug deletes note by slug
 	DeleteNoteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
 }
@@ -148,6 +156,15 @@ func (n *NoteSrv) GetAllNotesByAuthorID(
 	}
 
 	return resNotes, nil
+}
+
+func (n *NoteSrv) PatchNoteBySlug(
+	ctx context.Context,
+	patchData dtos.PatchNote,
+	slug dtos.NoteSlug,
+	userID uuid.UUID,
+) error {
+	return n.noterepo.PatchNote(ctx, slug, patchData, userID)
 }
 
 func (n *NoteSrv) DeleteNoteBySlug(
