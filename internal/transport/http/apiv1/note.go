@@ -8,7 +8,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/dtos"
-	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 )
 
@@ -31,28 +30,15 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
-	note := models.Note{ //nolint:exhaustruct
-		Content:              req.Content,
-		Slug:                 req.Slug,
-		BurnBeforeExpiration: req.BurnBeforeExpiration,
-		CreatedAt:            time.Now(),
-		Password:             req.Password,
-		ExpiresAt:            req.ExpiresAt,
-	}
-
-	if err := note.Validate(); err != nil {
-		newErrorStatus(c, http.StatusBadRequest, err.Error())
-		return
-	}
 
 	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNote{
-		Content:              note.Content,
+		Content:              req.Content,
 		UserID:               a.getUserID(c),
-		Slug:                 note.Slug,
-		Password:             note.Password,
-		BurnBeforeExpiration: note.BurnBeforeExpiration,
-		CreatedAt:            note.CreatedAt,
-		ExpiresAt:            note.ExpiresAt,
+		Slug:                 req.Slug,
+		Password:             req.Password,
+		BurnBeforeExpiration: req.BurnBeforeExpiration,
+		CreatedAt:            time.Now(),
+		ExpiresAt:            req.ExpiresAt,
 	}, a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
