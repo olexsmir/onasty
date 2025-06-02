@@ -30,6 +30,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
+	// TODO: burn_before_expiration shoulbnt be set if user has not set or specified expires_at
 
 	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNote{
 		Content:              req.Content,
@@ -135,6 +136,8 @@ func (a *APIV1) updateNoteHandler(c *gin.Context) {
 		newError(c, http.StatusBadRequest, "invalid request")
 		return
 	}
+
+	// TODO: burn_before_expiration shoulbnt be set if user has not set or specified expires_at
 
 	if err := a.notesrv.PatchNoteBySlug(c.Request.Context(),
 		dtos.PatchNote{
