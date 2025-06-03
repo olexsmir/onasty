@@ -47,7 +47,7 @@ func (e *AppTestSuite) TestNoteV1_Delete() {
 
 	httpResp = e.httpRequest(
 		http.MethodDelete,
-		"/api/v1/note/"+body.Slug+"/delete",
+		"/api/v1/note/"+body.Slug,
 		nil,
 		toks.AccessToken,
 	)
