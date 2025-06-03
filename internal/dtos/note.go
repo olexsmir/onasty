@@ -25,7 +25,7 @@ type CreateNote struct {
 	ExpiresAt            time.Time
 }
 
-type NoteDtailed struct {
+type NoteDetailed struct {
 	Content              string
 	Slug                 NoteSlug
 	BurnBeforeExpiration bool

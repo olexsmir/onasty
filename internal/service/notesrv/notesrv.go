@@ -30,7 +30,7 @@ type NoteServicer interface {
 	GetAllNotesByAuthorID(
 		ctx context.Context,
 		authorID uuid.UUID,
-	) ([]dtos.NoteDtailed, error)
+	) ([]dtos.NoteDetailed, error)
 
 	// PatchNote patches expiresAt and burnBeforeExpiration.
 	// If notes is not found returns [models.ErrNoteNotFound].
@@ -142,15 +142,15 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 func (n *NoteSrv) GetAllNotesByAuthorID(
 	ctx context.Context,
 	authorID uuid.UUID,
-) ([]dtos.NoteDtailed, error) {
+) ([]dtos.NoteDetailed, error) {
 	notes, err := n.noterepo.GetNotesByAuthorID(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}
 
-	var resNotes []dtos.NoteDtailed
+	var resNotes []dtos.NoteDetailed
 	for _, note := range notes {
-		resNotes = append(resNotes, dtos.NoteDtailed{
+		resNotes = append(resNotes, dtos.NoteDetailed{
 			Content:              note.Content,
 			Slug:                 note.Slug,
 			BurnBeforeExpiration: note.BurnBeforeExpiration,
