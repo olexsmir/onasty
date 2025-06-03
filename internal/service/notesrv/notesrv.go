@@ -19,25 +19,31 @@ type NoteServicer interface {
 	// if userID is empty it means user isn't authorized so it will be used
 	Create(ctx context.Context, note dtos.CreateNote, userID uuid.UUID) (dtos.NoteSlug, error)
 
-	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed
+	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed.
+	// If notes is not found returns [models.ErrNoteNotFound].
 	GetBySlugAndRemoveIfNeeded(
 		ctx context.Context,
 		input GetNoteBySlugInput,
 	) (dtos.GetNote, error)
 
-	// GetAllNotesByAuthorID returns all notes by author id
+	// GetAllNotesByAuthorID returns all notes by author id.
 	GetAllNotesByAuthorID(
 		ctx context.Context,
 		authorID uuid.UUID,
 	) ([]dtos.NoteDtailed, error)
 
-	// PatchNote patches expiresAt and burnBeforeExpiration
+	// PatchNote patches expiresAt and burnBeforeExpiration.
+	// If notes is not found returns [models.ErrNoteNotFound].
 	PatchNoteBySlug(
 		ctx context.Context,
 		patchData dtos.PatchNote,
 		slug dtos.NoteSlug,
 		userID uuid.UUID,
 	) error
+
+	// SetPassword sets or updates notes password.
+	// If notes is not found returns [models.ErrNoteNotFound].
+	SetPassword(ctx context.Context, slug dtos.NoteSlug, passwd string, userID uuid.UUID) error
 
 	// DeleteNoteBySlug deletes note by slug
 	DeleteNoteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
@@ -165,6 +171,24 @@ func (n *NoteSrv) PatchNoteBySlug(
 	userID uuid.UUID,
 ) error {
 	return n.noterepo.PatchNote(ctx, slug, patchData, userID)
+}
+
+func (n *NoteSrv) SetPassword(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	passwd string,
+	userID uuid.UUID,
+) error {
+	if len(passwd) == 0 {
+		return models.ErrNoteInvalidPassword
+	}
+
+	hashedPassword, err := n.hasher.Hash(passwd)
+	if err != nil {
+		return err
+	}
+
+	return n.noterepo.SetPasswordBySlug(ctx, slug, userID, hashedPassword)
 }
 
 func (n *NoteSrv) DeleteNoteBySlug(

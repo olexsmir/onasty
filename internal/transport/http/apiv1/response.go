@@ -29,6 +29,7 @@ func errorResponse(c *gin.Context, err error) {
 		errors.Is(err, models.ErrUserNotFound) ||
 		// notes
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
+		errors.Is(err, models.ErrNoteInvalidPassword) ||
 		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {
 		newError(c, http.StatusBadRequest, err.Error())
 		return

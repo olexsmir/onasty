@@ -166,3 +166,27 @@ func (a *APIV1) deleteNoteHandler(c *gin.Context) {
 
 	c.Status(http.StatusNoContent)
 }
+
+type setNotePasswordRequest struct {
+	Password string `json:"password"`
+}
+
+func (a *APIV1) setNotePasswordHandler(c *gin.Context) {
+	var req setNotePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.notesrv.SetPassword(
+		c.Request.Context(),
+		c.Param("slug"),
+		req.Password,
+		a.getUserID(c),
+	); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}

@@ -54,6 +54,14 @@ type NoteStorer interface {
 	// SetAuthorIDBySlug assigns author to note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	SetAuthorIDBySlug(ctx context.Context, slug dtos.NoteSlug, authorID uuid.UUID) error
+
+	// SetPasswordBySlug
+	SetPasswordBySlug(
+		ctx context.Context,
+		slug dtos.NoteSlug,
+		authorID uuid.UUID,
+		passwd string,
+	) error
 }
 
 var _ NoteStorer = (*NoteRepo)(nil)
@@ -272,4 +280,30 @@ func (s *NoteRepo) SetAuthorIDBySlug(
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (s *NoteRepo) SetPasswordBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	authorID uuid.UUID,
+	passwd string,
+) error {
+	query := `--sql
+update notes n
+set n.password = $1
+from notes_authors na
+where n.slug = $2
+and na.user_id = $3
+and na.note_id = n.id`
+
+	ct, err := s.db.Exec(ctx, query, passwd, slug, authorID)
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrNoteNotFound
+	}
+
+	return nil
 }

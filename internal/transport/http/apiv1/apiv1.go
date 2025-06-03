@@ -60,6 +60,7 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 			authorized.GET("", a.getNotesHandler)
 			authorized.PATCH(":slug", a.updateNoteHandler)
 			authorized.DELETE(":slug", a.deleteNoteHandler)
+			authorized.PATCH(":slug/password", a.setNotePasswordHandler)
 		}
 	}
 }
