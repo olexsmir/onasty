@@ -1,6 +1,9 @@
 package e2e_test
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
@@ -52,4 +55,45 @@ func (e *AppTestSuite) TestNoteV1_Delete() {
 
 	dbNote = e.getNoteBySlug(body.Slug)
 	e.Empty(dbNote)
+}
+
+type apiV1NotePatchRequest struct {
+	ExpiresAt            time.Time `json:"expires_at"`
+	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+}
+
+func (e *AppTestSuite) TestNoteV1_Patch() {
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:              "some random ass content for the test",
+			ExpiresAt:            time.Now().Add(time.Minute),
+			BurnBeforeExpiration: false,
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusCreated)
+
+	var body apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	patchTime := time.Now().Add(time.Hour)
+	httpResp = e.httpRequest(
+		http.MethodPatch,
+		"/api/v1/note/"+body.Slug,
+		e.jsonify(apiV1NotePatchRequest{
+			ExpiresAt:            patchTime,
+			BurnBeforeExpiration: true,
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	dbNote := e.getNoteBySlug(body.Slug)
+	e.Equal(true, dbNote.BurnBeforeExpiration)
+	e.Equal(patchTime.Unix(), dbNote.ExpiresAt.Unix())
 }
