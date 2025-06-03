@@ -104,6 +104,7 @@ func (e *AppTestSuite) getNoteBySlug(slug string) models.Note {
 			"content",
 			"slug",
 			"burn_before_expiration",
+			"password",
 			"read_at",
 			"created_at",
 			"expires_at",
@@ -115,7 +116,7 @@ func (e *AppTestSuite) getNoteBySlug(slug string) models.Note {
 
 	var note models.Note
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
-		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{} //nolint:exhaustruct
 	}

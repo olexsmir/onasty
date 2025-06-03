@@ -97,3 +97,45 @@ func (e *AppTestSuite) TestNoteV1_Patch() {
 	e.Equal(true, dbNote.BurnBeforeExpiration)
 	e.Equal(patchTime.Unix(), dbNote.ExpiresAt.Unix())
 }
+
+type apiV1NoteSetPasswordRequest struct {
+	Password string `json:"password"`
+}
+
+func (e *AppTestSuite) TestNoteV1_SetPassword() {
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content: "content",
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusCreated)
+
+	var body apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	dbNoteOriginal := e.getNoteBySlug(body.Slug)
+	e.Empty(dbNoteOriginal.Password)
+
+	passwd := "new-password"
+	httpResp = e.httpRequest(
+		http.MethodPatch,
+		"/api/v1/note/"+body.Slug+"/password",
+		e.jsonify(apiV1NoteSetPasswordRequest{
+			Password: passwd,
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	dbNote := e.getNoteBySlug(body.Slug)
+	e.NotEmpty(dbNote.Password)
+
+	err := e.hasher.Compare(dbNote.Password, passwd)
+	e.require.NoError(err)
+}
