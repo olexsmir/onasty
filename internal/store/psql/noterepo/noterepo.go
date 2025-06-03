@@ -296,7 +296,7 @@ where n.slug = $2
 and na.user_id = $3
 and na.note_id = n.id`
 
-	ct, err := s.db.Exec(ctx, query, passwd, slug, authorID)
+	ct, err := s.db.Exec(ctx, query, passwd, slug, authorID.String())
 	if err != nil {
 		return err
 	}
