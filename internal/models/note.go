@@ -10,7 +10,7 @@ import (
 var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
-	ErrNoteInvalidPassword = errors.New("note: invalid password")
+	ErrNoteInvalidPassword    = errors.New("note: invalid password")
 	ErrNoteExpired            = errors.New("note: expired")
 	ErrNoteNotFound           = errors.New("note: not found")
 )
