@@ -290,7 +290,7 @@ func (s *NoteRepo) SetPasswordBySlug(
 ) error {
 	query := `--sql
 update notes n
-set n.password = $1
+set password = $1
 from notes_authors na
 where n.slug = $2
 and na.user_id = $3
