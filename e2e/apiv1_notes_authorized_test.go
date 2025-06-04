@@ -62,7 +62,7 @@ type apiV1NotePatchRequest struct {
 	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
 }
 
-func (e *AppTestSuite) TestNoteV1_Patch() {
+func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
