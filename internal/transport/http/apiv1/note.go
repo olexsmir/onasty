@@ -103,7 +103,7 @@ type getNotesResponse struct {
 }
 
 func (a *APIV1) getNotesHandler(c *gin.Context) {
-	notes, err := a.notesrv.GetAllNotesByAuthorID(c.Request.Context(), a.getUserID(c))
+	notes, err := a.notesrv.GetAllByAuthorID(c.Request.Context(), a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -156,7 +156,7 @@ func (a *APIV1) updateNoteHandler(c *gin.Context) {
 }
 
 func (a *APIV1) deleteNoteHandler(c *gin.Context) {
-	if err := a.notesrv.DeleteNoteBySlug(
+	if err := a.notesrv.DeleteBySlug(
 		c.Request.Context(),
 		c.Param("slug"),
 		a.getUserID(c),

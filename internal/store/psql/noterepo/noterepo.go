@@ -55,8 +55,8 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	SetAuthorIDBySlug(ctx context.Context, slug dtos.NoteSlug, authorID uuid.UUID) error
 
-	// SetPasswordBySlug
-	SetPasswordBySlug(
+	// UpdatePasswordBySlug updates or sets password on a note.
+	UpdatePasswordBySlug(
 		ctx context.Context,
 		slug dtos.NoteSlug,
 		authorID uuid.UUID,
@@ -184,8 +184,8 @@ set burn_before_expiration = COALESCE($1, n.burn_before_expiration),
     expires_at = COALESCE($2, n.expires_at)
 from notes_authors na
 where n.slug = $3
-	and na.user_id = $4
-	and na.note_id = n.id`
+  and na.user_id = $4
+  and na.note_id = n.id`
 
 	ct, err := s.db.Exec(ctx, query,
 		patch.BurnBeforeExpiration, patch.ExpiresAt,
@@ -236,7 +236,7 @@ func (s *NoteRepo) DeleteNoteBySlug(
 delete from notes n
 using notes_authors na
 where n.slug = $1
-	and na.user_id = $2`
+  and na.user_id = $2`
 
 	ct, err := s.db.Exec(ctx, query, slug, authorID.String())
 	if err != nil {
@@ -282,7 +282,7 @@ func (s *NoteRepo) SetAuthorIDBySlug(
 	return tx.Commit(ctx)
 }
 
-func (s *NoteRepo) SetPasswordBySlug(
+func (s *NoteRepo) UpdatePasswordBySlug(
 	ctx context.Context,
 	slug dtos.NoteSlug,
 	authorID uuid.UUID,
@@ -293,8 +293,8 @@ update notes n
 set password = $1
 from notes_authors na
 where n.slug = $2
-and na.user_id = $3
-and na.note_id = n.id`
+  and na.user_id = $3
+  and na.note_id = n.id`
 
 	ct, err := s.db.Exec(ctx, query, passwd, slug, authorID.String())
 	if err != nil {

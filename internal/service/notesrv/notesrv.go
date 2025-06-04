@@ -26,8 +26,8 @@ type NoteServicer interface {
 		input GetNoteBySlugInput,
 	) (dtos.GetNote, error)
 
-	// GetAllNotesByAuthorID returns all notes by author id.
-	GetAllNotesByAuthorID(
+	// GetAllByAuthorID returns all notes by author id.
+	GetAllByAuthorID(
 		ctx context.Context,
 		authorID uuid.UUID,
 	) ([]dtos.NoteDetailed, error)
@@ -45,8 +45,8 @@ type NoteServicer interface {
 	// If notes is not found returns [models.ErrNoteNotFound].
 	SetPassword(ctx context.Context, slug dtos.NoteSlug, passwd string, userID uuid.UUID) error
 
-	// DeleteNoteBySlug deletes note by slug
-	DeleteNoteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
+	// DeleteBySlug deletes note by slug
+	DeleteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -139,7 +139,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	return respNote, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
 }
 
-func (n *NoteSrv) GetAllNotesByAuthorID(
+func (n *NoteSrv) GetAllByAuthorID(
 	ctx context.Context,
 	authorID uuid.UUID,
 ) ([]dtos.NoteDetailed, error) {
@@ -188,10 +188,10 @@ func (n *NoteSrv) SetPassword(
 		return err
 	}
 
-	return n.noterepo.SetPasswordBySlug(ctx, slug, userID, hashedPassword)
+	return n.noterepo.UpdatePasswordBySlug(ctx, slug, userID, hashedPassword)
 }
 
-func (n *NoteSrv) DeleteNoteBySlug(
+func (n *NoteSrv) DeleteBySlug(
 	ctx context.Context,
 	slug dtos.NoteSlug,
 	authorID uuid.UUID,

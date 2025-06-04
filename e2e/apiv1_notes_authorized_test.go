@@ -98,7 +98,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 	e.Equal(patchTime.Unix(), dbNote.ExpiresAt.Unix())
 }
 
-func (e *AppTestSuite) TestNoteV1_Patch_not_foung() {
+func (e *AppTestSuite) TestNoteV1_updateExpirationTime_notFound() {
 	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPatch,
@@ -117,7 +117,7 @@ type apiV1NoteSetPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (e *AppTestSuite) TestNoteV1_SetPassword() {
+func (e *AppTestSuite) TestNoteV1_UpdatePassword() {
 	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
