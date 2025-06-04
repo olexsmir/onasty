@@ -21,8 +21,8 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
-	// GetNotesByAuthorID returns all notes with specified author.
-	GetNotesByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
+	// GetAllByAuthorID returns all notes with specified author.
+	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
 
 	// GetBySlugAndPassword gets a note by slug and password.
 	// the "password" should be hashed.
@@ -114,7 +114,7 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.No
 	return note, err
 }
 
-func (s *NoteRepo) GetNotesByAuthorID(
+func (s *NoteRepo) GetAllByAuthorID(
 	ctx context.Context,
 	authorID uuid.UUID,
 ) ([]models.Note, error) {

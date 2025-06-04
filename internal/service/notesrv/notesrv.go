@@ -143,7 +143,7 @@ func (n *NoteSrv) GetAllByAuthorID(
 	ctx context.Context,
 	authorID uuid.UUID,
 ) ([]dtos.NoteDetailed, error) {
-	notes, err := n.noterepo.GetNotesByAuthorID(ctx, authorID)
+	notes, err := n.noterepo.GetAllByAuthorID(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}
