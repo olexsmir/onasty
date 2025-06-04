@@ -1,2 +1,2 @@
 ALTER TABLE users
-     add column username varchar(255) NOT NULL UNIQUE;
+    ADD COLUMN username varchar(255) NOT NULL UNIQUE;
