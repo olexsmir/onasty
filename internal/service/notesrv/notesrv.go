@@ -2,6 +2,7 @@ package notesrv
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -12,6 +13,8 @@ import (
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/rdb/notecache"
 )
+
+var ErrNotePasswordNotProvided = errors.New("note: password was not provided")
 
 type NoteServicer interface {
 	// Create creates note
@@ -41,9 +44,9 @@ type NoteServicer interface {
 		userID uuid.UUID,
 	) error
 
-	// SetPassword sets or updates notes password.
+	// UpdatePassword sets or updates notes password.
 	// If notes is not found returns [models.ErrNoteNotFound].
-	SetPassword(ctx context.Context, slug dtos.NoteSlug, passwd string, userID uuid.UUID) error
+	UpdatePassword(ctx context.Context, slug dtos.NoteSlug, passwd string, userID uuid.UUID) error
 
 	// DeleteBySlug deletes note by slug
 	DeleteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
@@ -173,14 +176,14 @@ func (n *NoteSrv) UpdateExpirationTimeSettings(
 	return n.noterepo.UpdateExpirationTimeSettingsBySlug(ctx, slug, patchData, userID)
 }
 
-func (n *NoteSrv) SetPassword(
+func (n *NoteSrv) UpdatePassword(
 	ctx context.Context,
 	slug dtos.NoteSlug,
 	passwd string,
 	userID uuid.UUID,
 ) error {
 	if len(passwd) == 0 {
-		return models.ErrNoteInvalidPassword
+		return ErrNotePasswordNotProvided
 	}
 
 	hashedPassword, err := n.hasher.Hash(passwd)

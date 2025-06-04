@@ -155,7 +155,7 @@ func (e *AppTestSuite) TestNoteV1_UpdatePassword() {
 	e.require.NoError(err)
 }
 
-func (e *AppTestSuite) TestNoteV1_SetPassword_not_found() {
+func (e *AppTestSuite) TestNoteV1_UpdatePassword_notFound() {
 	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 	httpResp := e.httpRequest(
 		http.MethodPatch,
@@ -167,4 +167,35 @@ func (e *AppTestSuite) TestNoteV1_SetPassword_not_found() {
 	)
 
 	e.Equal(httpResp.Code, http.StatusNotFound)
+}
+
+func (e *AppTestSuite) TestNoteV1_UpdatePassword_passwordNotProvided() {
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content: "content",
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusCreated)
+
+	var body apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	dbNoteOriginal := e.getNoteBySlug(body.Slug)
+	e.Empty(dbNoteOriginal.Password)
+
+	httpResp = e.httpRequest(
+		http.MethodPatch,
+		"/api/v1/note/"+body.Slug+"/password",
+		e.jsonify(apiV1NoteSetPasswordRequest{
+			Password: "",
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(httpResp.Code, http.StatusBadRequest)
 }

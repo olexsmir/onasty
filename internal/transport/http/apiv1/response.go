@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
 
@@ -28,8 +29,8 @@ func errorResponse(c *gin.Context, err error) {
 		errors.Is(err, models.ErrUserInvalidPassword) ||
 		errors.Is(err, models.ErrUserNotFound) ||
 		// notes
+		errors.Is(err, notesrv.ErrNotePasswordNotProvided) ||
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
-		errors.Is(err, models.ErrNoteInvalidPassword) ||
 		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {
 		newError(c, http.StatusBadRequest, err.Error())
 		return

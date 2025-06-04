@@ -179,7 +179,7 @@ func (a *APIV1) setNotePasswordHandler(c *gin.Context) {
 		return
 	}
 
-	if err := a.notesrv.SetPassword(
+	if err := a.notesrv.UpdatePassword(
 		c.Request.Context(),
 		c.Param("slug"),
 		req.Password,
