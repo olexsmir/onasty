@@ -139,7 +139,8 @@ func (a *APIV1) updateNoteHandler(c *gin.Context) {
 
 	// TODO: burn_before_expiration shouldn't be set if user has not set or specified expires_at
 
-	if err := a.notesrv.PatchNoteBySlug(c.Request.Context(),
+	if err := a.notesrv.UpdateExpirationTimeSettings(
+		c.Request.Context(),
 		dtos.PatchNote{
 			BurnBeforeExpiration: req.BurnBeforeExpiration,
 			ExpiresAt:            req.ExpiresAt,

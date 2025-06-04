@@ -83,7 +83,7 @@ func (e *AppTestSuite) TestNoteV1_Patch() {
 	patchTime := time.Now().Add(time.Hour)
 	httpResp = e.httpRequest(
 		http.MethodPatch,
-		"/api/v1/note/"+body.Slug,
+		"/api/v1/note/"+body.Slug+"/expires",
 		e.jsonify(apiV1NotePatchRequest{
 			ExpiresAt:            patchTime,
 			BurnBeforeExpiration: true,

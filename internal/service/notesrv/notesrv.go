@@ -32,9 +32,9 @@ type NoteServicer interface {
 		authorID uuid.UUID,
 	) ([]dtos.NoteDetailed, error)
 
-	// PatchNote patches expiresAt and burnBeforeExpiration.
+	// UpdateExpirationTimeSettings updates expiresAt and burnBeforeExpiration.
 	// If notes is not found returns [models.ErrNoteNotFound].
-	PatchNoteBySlug(
+	UpdateExpirationTimeSettings(
 		ctx context.Context,
 		patchData dtos.PatchNote,
 		slug dtos.NoteSlug,
@@ -164,13 +164,13 @@ func (n *NoteSrv) GetAllNotesByAuthorID(
 	return resNotes, nil
 }
 
-func (n *NoteSrv) PatchNoteBySlug(
+func (n *NoteSrv) UpdateExpirationTimeSettings(
 	ctx context.Context,
 	patchData dtos.PatchNote,
 	slug dtos.NoteSlug,
 	userID uuid.UUID,
 ) error {
-	return n.noterepo.PatchNote(ctx, slug, patchData, userID)
+	return n.noterepo.UpdateExpirationTimeSettingsBySlug(ctx, slug, patchData, userID)
 }
 
 func (n *NoteSrv) SetPassword(

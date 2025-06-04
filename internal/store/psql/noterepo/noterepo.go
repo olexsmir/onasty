@@ -34,9 +34,9 @@ type NoteStorer interface {
 		password string,
 	) (models.Note, error)
 
-	// PatchNote patches note by updating expiresAt and burnBeforeExpiration if one is passwd
+	// UpdateExpirationTimeSettingsBySlug patches note by updating expiresAt and burnBeforeExpiration if one is passwd
 	// Returns [models.ErrNoteNotFound] if note is not found.
-	PatchNote(
+	UpdateExpirationTimeSettingsBySlug(
 		ctx context.Context,
 		slug dtos.NoteSlug,
 		patch dtos.PatchNote,
@@ -172,7 +172,7 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	return note, err
 }
 
-func (s *NoteRepo) PatchNote(
+func (s *NoteRepo) UpdateExpirationTimeSettingsBySlug(
 	ctx context.Context,
 	slug dtos.NoteSlug,
 	patch dtos.PatchNote,
