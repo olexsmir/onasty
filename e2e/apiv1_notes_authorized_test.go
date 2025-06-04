@@ -11,7 +11,7 @@ func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 		http.MethodPost,
 		"/api/v1/note",
 		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
-			Content: "some random ass content for the test",
+			Content: "sample content for the test",
 		}),
 		toks.AccessToken,
 	)
@@ -32,7 +32,7 @@ func (e *AppTestSuite) TestNoteV1_Delete() {
 		http.MethodPost,
 		"/api/v1/note",
 		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
-			Content: "some random ass content for the test",
+			Content: "sample content for the test",
 		}),
 		toks.AccessToken,
 	)
@@ -68,7 +68,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 		http.MethodPost,
 		"/api/v1/note",
 		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
-			Content:              "some random ass content for the test",
+			Content:              "sample content for the test",
 			ExpiresAt:            time.Now().Add(time.Minute),
 			BurnBeforeExpiration: false,
 		}),
