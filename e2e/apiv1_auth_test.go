@@ -347,7 +347,7 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword_wrongPassword() {
 	userDB := e.getUserByEmail(email)
 
 	err := e.hasher.Compare(userDB.Password, newPassword)
-	e.Error(hasher.ErrMismatchedHashes, err)
+	e.ErrorIs(err, hasher.ErrMismatchedHashes)
 }
 
 type (
