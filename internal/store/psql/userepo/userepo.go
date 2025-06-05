@@ -14,16 +14,17 @@ import (
 type UserStorer interface {
 	Create(ctx context.Context, inp models.User) (uuid.UUID, error)
 
-	// GetUserByCredentials returns user by email and password
+	// GetByEmail returns user by email and password
 	// the password should be hashed
 	GetByEmail(ctx context.Context, email string) (models.User, error)
-
 	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
+	GetByID(ctx context.Context, userID uuid.UUID) (models.User, error)
+
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
 
 	// ChangePassword changes user password from oldPassword to newPassword
 	// and oldPassword and newPassword should be hashed
-	ChangePassword(ctx context.Context, userID uuid.UUID, oldPassword, newPassword string) error
+	ChangePassword(ctx context.Context, userID uuid.UUID, newPassword string) error
 
 	// SetPassword sets new password for user by their id
 	// password should be hashed
@@ -112,6 +113,22 @@ func (r *UserRepo) GetUserIDByEmail(ctx context.Context, email string) (uuid.UUI
 	return id, err
 }
 
+func (r *UserRepo) GetByID(ctx context.Context, userID uuid.UUID) (models.User, error) {
+	query := `--sql
+select id, email, password, activated, created_at, last_login_at
+from users
+where id = $1`
+
+	var user models.User
+	err := r.db.QueryRow(ctx, query, userID).
+		Scan(&user.ID, &user.Email, &user.Password, &user.Activated, &user.CreatedAt, &user.LastLoginAt)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return models.User{}, models.ErrUserNotFound
+	}
+
+	return user, err
+}
+
 func (r *UserRepo) GetByOAuthID(
 	ctx context.Context,
 	provider, providerID string,
@@ -164,15 +181,12 @@ func (r *UserRepo) MarkUserAsActivated(ctx context.Context, id uuid.UUID) error 
 func (r *UserRepo) ChangePassword(
 	ctx context.Context,
 	userID uuid.UUID,
-	oldPass, newPass string,
+	newPasswd string,
 ) error {
 	query, args, err := pgq.
 		Update("users").
-		Set("password", newPass).
-		Where(pgq.Eq{
-			"id":       userID.String(),
-			"password": oldPass,
-		}).
+		Set("password", newPasswd).
+		Where(pgq.Eq{"id": userID.String()}).
 		SQL()
 	if err != nil {
 		return err
