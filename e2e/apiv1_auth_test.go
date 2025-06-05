@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/models"
 )
 
@@ -323,6 +324,30 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 
 	userDB := e.getUserByEmail(email)
 	e.NoError(e.hasher.Compare(userDB.Password, newPassword))
+}
+
+func (e *AppTestSuite) TestAuthV1_ChangePassword_wrongPassword() {
+	password := e.uuid()
+	newPassword := e.uuid()
+	email := e.uuid() + "@test.com"
+	_, toks := e.createAndSingIn(email, password)
+
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/change-password",
+		e.jsonify(apiv1AtuhChangePasswordRequest{
+			CurrentPassword: e.uuid(),
+			NewPassword:     newPassword,
+		}),
+		toks.AccessToken,
+	)
+
+	e.Equal(http.StatusBadRequest, httpResp.Code)
+
+	userDB := e.getUserByEmail(email)
+
+	err := e.hasher.Compare(userDB.Password, newPassword)
+	e.Error(hasher.ErrMismatchedHashes, err)
 }
 
 type (
