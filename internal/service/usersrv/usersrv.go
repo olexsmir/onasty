@@ -188,16 +188,18 @@ func (u *UserSrv) ChangePassword(
 	userID uuid.UUID,
 	inp dtos.ChangeUserPassword,
 ) error {
-	// TODO: compare current password with providede, and assert on mismatch
-
 	//nolint:exhaustruct
 	if err := (models.User{Password: inp.NewPassword}).ValidatePassword(); err != nil {
 		return err
 	}
 
-	oldPass, err := u.hasher.Hash(inp.CurrentPassword)
+	user, err := u.userstore.GetByID(ctx, userID)
 	if err != nil {
 		return err
+	}
+
+	if err = u.hasher.Compare(user.Password, inp.CurrentPassword); err != nil {
+		return errors.Join(err, models.ErrUserInvalidPassword)
 	}
 
 	newPass, err := u.hasher.Hash(inp.NewPassword)
@@ -205,7 +207,7 @@ func (u *UserSrv) ChangePassword(
 		return err
 	}
 
-	if err := u.userstore.ChangePassword(ctx, userID, oldPass, newPass); err != nil {
+	if err := u.userstore.ChangePassword(ctx, userID, newPass); err != nil {
 		return err
 	}
 
