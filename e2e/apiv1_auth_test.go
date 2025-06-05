@@ -299,7 +299,7 @@ func (e *AppTestSuite) TestAuthV1_Logout() {
 	e.Empty(sessionDB.RefreshToken)
 }
 
-type apiv1AtuhChangePasswordRequest struct {
+type apiv1AuthChangePasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
 	NewPassword     string `json:"new_password"`
 }
@@ -313,7 +313,7 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/change-password",
-		e.jsonify(apiv1AtuhChangePasswordRequest{
+		e.jsonify(apiv1AuthChangePasswordRequest{
 			CurrentPassword: password,
 			NewPassword:     newPassword,
 		}),
@@ -335,7 +335,7 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword_wrongPassword() {
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/change-password",
-		e.jsonify(apiv1AtuhChangePasswordRequest{
+		e.jsonify(apiv1AuthChangePasswordRequest{
 			CurrentPassword: e.uuid(),
 			NewPassword:     newPassword,
 		}),
