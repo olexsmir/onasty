@@ -21,6 +21,9 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
+	// GetAllByAuthorID returns all notes with specified author.
+	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
+
 	// GetBySlugAndPassword gets a note by slug and password.
 	// the "password" should be hashed.
 	//
@@ -31,13 +34,34 @@ type NoteStorer interface {
 		password string,
 	) (models.Note, error)
 
+	// UpdateExpirationTimeSettingsBySlug patches note by updating expiresAt and burnBeforeExpiration if one is passwd
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	UpdateExpirationTimeSettingsBySlug(
+		ctx context.Context,
+		slug dtos.NoteSlug,
+		patch dtos.PatchNote,
+		authorID uuid.UUID,
+	) error
+
 	// RemoveBySlug marks note as read, deletes it's content, and keeps meta data
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	RemoveBySlug(ctx context.Context, slug dtos.NoteSlug, readAt time.Time) error
 
+	// DeleteNoteBySlug deletes(unlike [RemoveBySlug]) note by slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	DeleteNoteBySlug(ctx context.Context, slug dtos.NoteSlug, authorID uuid.UUID) error
+
 	// SetAuthorIDBySlug assigns author to note by slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	SetAuthorIDBySlug(ctx context.Context, slug dtos.NoteSlug, authorID uuid.UUID) error
+
+	// UpdatePasswordBySlug updates or sets password on a note.
+	UpdatePasswordBySlug(
+		ctx context.Context,
+		slug dtos.NoteSlug,
+		authorID uuid.UUID,
+		passwd string,
+	) error
 }
 
 var _ NoteStorer = (*NoteRepo)(nil)
@@ -90,6 +114,36 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.No
 	return note, err
 }
 
+func (s *NoteRepo) GetAllByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]models.Note, error) {
+	query := `--sql
+	select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
+	from notes n
+	right join notes_authors na on n.id = na.note_id
+	where na.user_id = $1`
+
+	rows, err := s.db.Query(ctx, query, authorID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var notes []models.Note
+	for rows.Next() {
+		var note models.Note
+		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
+			&note.ReadAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
+			return nil, err
+		}
+		notes = append(notes, note)
+	}
+
+	return notes, rows.Err()
+}
+
 func (s *NoteRepo) GetBySlugAndPassword(
 	ctx context.Context,
 	slug dtos.NoteSlug,
@@ -118,6 +172,35 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	return note, err
 }
 
+func (s *NoteRepo) UpdateExpirationTimeSettingsBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	patch dtos.PatchNote,
+	authorID uuid.UUID,
+) error {
+	query := `--sql
+update notes n
+set burn_before_expiration = COALESCE($1, n.burn_before_expiration),
+    expires_at = COALESCE($2, n.expires_at)
+from notes_authors na
+where n.slug = $3
+  and na.user_id = $4
+  and na.note_id = n.id`
+
+	ct, err := s.db.Exec(ctx, query,
+		patch.BurnBeforeExpiration, patch.ExpiresAt,
+		slug, authorID.String())
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrNoteNotFound
+	}
+
+	return nil
+}
+
 func (s *NoteRepo) RemoveBySlug(
 	ctx context.Context,
 	slug dtos.NoteSlug,
@@ -142,6 +225,29 @@ func (s *NoteRepo) RemoveBySlug(
 	}
 
 	return err
+}
+
+func (s *NoteRepo) DeleteNoteBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	authorID uuid.UUID,
+) error {
+	query := `--sql
+delete from notes n
+using notes_authors na
+where n.slug = $1
+  and na.user_id = $2`
+
+	ct, err := s.db.Exec(ctx, query, slug, authorID.String())
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrNoteNotFound
+	}
+
+	return nil
 }
 
 func (s *NoteRepo) SetAuthorIDBySlug(
@@ -174,4 +280,30 @@ func (s *NoteRepo) SetAuthorIDBySlug(
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (s *NoteRepo) UpdatePasswordBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	authorID uuid.UUID,
+	passwd string,
+) error {
+	query := `--sql
+update notes n
+set password = $1
+from notes_authors na
+where n.slug = $2
+  and na.user_id = $3
+  and na.note_id = n.id`
+
+	ct, err := s.db.Exec(ctx, query, passwd, slug, authorID.String())
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrNoteNotFound
+	}
+
+	return nil
 }

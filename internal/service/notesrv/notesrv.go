@@ -2,6 +2,7 @@ package notesrv
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"time"
 
@@ -13,17 +14,42 @@ import (
 	"github.com/olexsmir/onasty/internal/store/rdb/notecache"
 )
 
+var ErrNotePasswordNotProvided = errors.New("note: password was not provided")
+
 type NoteServicer interface {
 	// Create creates note
 	// if slug is empty it will be generated, otherwise used as is
 	// if userID is empty it means user isn't authorized so it will be used
 	Create(ctx context.Context, note dtos.CreateNote, userID uuid.UUID) (dtos.NoteSlug, error)
 
-	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed
+	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed.
+	// If notes is not found returns [models.ErrNoteNotFound].
 	GetBySlugAndRemoveIfNeeded(
 		ctx context.Context,
 		input GetNoteBySlugInput,
 	) (dtos.GetNote, error)
+
+	// GetAllByAuthorID returns all notes by author id.
+	GetAllByAuthorID(
+		ctx context.Context,
+		authorID uuid.UUID,
+	) ([]dtos.NoteDetailed, error)
+
+	// UpdateExpirationTimeSettings updates expiresAt and burnBeforeExpiration.
+	// If notes is not found returns [models.ErrNoteNotFound].
+	UpdateExpirationTimeSettings(
+		ctx context.Context,
+		patchData dtos.PatchNote,
+		slug dtos.NoteSlug,
+		userID uuid.UUID,
+	) error
+
+	// UpdatePassword sets or updates notes password.
+	// If notes is not found returns [models.ErrNoteNotFound].
+	UpdatePassword(ctx context.Context, slug dtos.NoteSlug, passwd string, userID uuid.UUID) error
+
+	// DeleteBySlug deletes note by slug
+	DeleteBySlug(ctx context.Context, slug dtos.NoteSlug, userID uuid.UUID) error
 }
 
 var _ NoteServicer = (*NoteSrv)(nil)
@@ -114,6 +140,66 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	return respNote, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
+}
+
+func (n *NoteSrv) GetAllByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]dtos.NoteDetailed, error) {
+	notes, err := n.noterepo.GetAllByAuthorID(ctx, authorID)
+	if err != nil {
+		return nil, err
+	}
+
+	var resNotes []dtos.NoteDetailed
+	for _, note := range notes {
+		resNotes = append(resNotes, dtos.NoteDetailed{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.Password != "",
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	return resNotes, nil
+}
+
+func (n *NoteSrv) UpdateExpirationTimeSettings(
+	ctx context.Context,
+	patchData dtos.PatchNote,
+	slug dtos.NoteSlug,
+	userID uuid.UUID,
+) error {
+	return n.noterepo.UpdateExpirationTimeSettingsBySlug(ctx, slug, patchData, userID)
+}
+
+func (n *NoteSrv) UpdatePassword(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	passwd string,
+	userID uuid.UUID,
+) error {
+	if len(passwd) == 0 {
+		return ErrNotePasswordNotProvided
+	}
+
+	hashedPassword, err := n.hasher.Hash(passwd)
+	if err != nil {
+		return err
+	}
+
+	return n.noterepo.UpdatePasswordBySlug(ctx, slug, userID, hashedPassword)
+}
+
+func (n *NoteSrv) DeleteBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+	authorID uuid.UUID,
+) error {
+	return n.noterepo.DeleteNoteBySlug(ctx, slug, authorID)
 }
 
 func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (models.Note, error) {

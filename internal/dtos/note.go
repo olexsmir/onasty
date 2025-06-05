@@ -24,3 +24,18 @@ type CreateNote struct {
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
 }
+
+type NoteDetailed struct {
+	Content              string
+	Slug                 NoteSlug
+	BurnBeforeExpiration bool
+	HasPassword          bool
+	CreatedAt            time.Time
+	ExpiresAt            time.Time
+	ReadAt               time.Time
+}
+
+type PatchNote struct {
+	ExpiresAt            *time.Time
+	BurnBeforeExpiration *bool
+}

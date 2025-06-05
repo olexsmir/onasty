@@ -11,6 +11,10 @@ env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
+vars:
+  gotest:
+    sh: 'command -v gotest >/dev/null && echo gotest || echo "go test"'
+
 tasks:
   run:
     - docker compose up -d --build --remove-orphans core mailer
@@ -31,7 +35,7 @@ tasks:
     - task: test:e2e
 
   test:unit:
-    - go test --count=1 -v --short ./...
+    - '{{.gotest}} --count=1 -v --short ./...'
 
   test:e2e:
-    - go test --count=1 -v ./e2e/
+    - '{{.gotest}} --count=1 -v ./e2e/'
