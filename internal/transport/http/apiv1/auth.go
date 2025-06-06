@@ -219,6 +219,13 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 }
 
 func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
+	state := c.Query("state")
+	storedState, err := c.Cookie("oauth_state")
+	if err != nil || state != storedState {
+		newError(c, http.StatusBadRequest, "invalid oauth state")
+		return
+	}
+
 	tokens, err := a.usersrv.HandleOAuthLogin(
 		c.Request.Context(),
 		c.Param("provider"),
