@@ -30,7 +30,7 @@ func (u *UserSrv) GetOAuthURL(providerName string) (dtos.OAuthRedirect, error) {
 		}, nil
 	case githubProvider:
 		return dtos.OAuthRedirect{
-			URL:   u.githubOauth.GetAuthURL(""),
+			URL:   u.githubOauth.GetAuthURL(state),
 			State: state,
 		}, nil
 	default:
