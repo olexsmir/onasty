@@ -199,13 +199,23 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 }
 
 func (a *APIV1) oauthLoginHandler(c *gin.Context) {
-	url, err := a.usersrv.GetOAuthURL(c.Param("provider"))
+	redirectInfo, err := a.usersrv.GetOAuthURL(c.Param("provider"))
 	if err != nil {
 		errorResponse(c, err)
 		return
 	}
 
-	c.Redirect(http.StatusSeeOther, url)
+	c.SetCookie(
+		"oauth_state",
+		redirectInfo.State,
+		int(time.Hour.Seconds()),
+		"/",
+		"",
+		!a.env.IsDevMode(),
+		true,
+	)
+
+	c.Redirect(http.StatusSeeOther, redirectInfo.URL)
 }
 
 func (a *APIV1) oauthCallbackHandler(c *gin.Context) {

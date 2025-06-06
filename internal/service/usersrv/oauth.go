@@ -19,14 +19,22 @@ const (
 	githubProvider = "github"
 )
 
-func (u *UserSrv) GetOAuthURL(providerName string) (string, error) {
+func (u *UserSrv) GetOAuthURL(providerName string) (dtos.OAuthRedirect, error) {
+	state := uuid.Must(uuid.NewV4()).String()
+
 	switch providerName {
 	case googleProvider:
-		return u.googleOauth.GetAuthURL(""), nil
+		return dtos.OAuthRedirect{
+			URL:   u.googleOauth.GetAuthURL(state),
+			State: state,
+		}, nil
 	case githubProvider:
-		return u.githubOauth.GetAuthURL(""), nil
+		return dtos.OAuthRedirect{
+			URL:   u.githubOauth.GetAuthURL(""),
+			State: state,
+		}, nil
 	default:
-		return "", ErrProviderNotSupported
+		return dtos.OAuthRedirect{}, ErrProviderNotSupported
 	}
 }
 
