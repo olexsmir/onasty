@@ -41,6 +41,17 @@ services:
       - runtime
       - nats
 
+  seed:
+    image: onasty:seed
+    build:
+      context: .
+      dockerfile: seed.Dockerfile
+    entrypoint: ["/seed"]
+    env_file: .env
+    profiles: [manual]
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:16-alpine
     container_name: onasty-postgres
