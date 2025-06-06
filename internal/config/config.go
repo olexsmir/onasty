@@ -8,8 +8,14 @@ import (
 	"time"
 )
 
+type Environment string
+
+func (e Environment) IsDevMode() bool {
+	return e == "debug" || e == "test"
+}
+
 type Config struct {
-	AppEnv  string
+	AppEnv  Environment
 	AppURL  string
 	NatsURL string
 
@@ -61,7 +67,7 @@ type Config struct {
 
 func NewConfig() *Config {
 	return &Config{
-		AppEnv:  getenvOrDefault("APP_ENV", "debug"),
+		AppEnv:  Environment(getenvOrDefault("APP_ENV", "debug")),
 		AppURL:  getenvOrDefault("APP_URL", ""),
 		NatsURL: getenvOrDefault("NATS_URL", ""),
 
@@ -114,10 +120,6 @@ func NewConfig() *Config {
 		RateLimiterBurst: mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
 		RateLimiterTTL:   mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
 	}
-}
-
-func (c *Config) IsDevMode() bool {
-	return c.AppEnv == "debug" || c.AppEnv == "test"
 }
 
 func getenvOrDefault(key, def string) string {

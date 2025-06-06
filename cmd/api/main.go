@@ -57,7 +57,7 @@ func run(ctx context.Context) error {
 	slog.SetDefault(logger)
 
 	// semi dev mode
-	if !cfg.IsDevMode() {
+	if !cfg.AppEnv.IsDevMode() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
@@ -129,6 +129,7 @@ func run(ctx context.Context) error {
 	handler := httptransport.NewTransport(
 		usersrv,
 		notesrv,
+		cfg.AppEnv,
 		cfg.CORSAllowedOrigins,
 		cfg.CORSMaxAge,
 		rateLimiterConfig,

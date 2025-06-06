@@ -2,6 +2,7 @@ package apiv1
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
@@ -9,15 +10,18 @@ import (
 type APIV1 struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
+	env     config.Environment
 }
 
 func NewAPIV1(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
+	env config.Environment,
 ) *APIV1 {
 	return &APIV1{
 		usersrv: us,
 		notesrv: ns,
+		env:     env,
 	}
 }
 
