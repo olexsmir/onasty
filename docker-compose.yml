@@ -3,7 +3,7 @@ services:
     image: onasty:runtime
     build:
       context: .
-      dockerfile: runtime.dockerfile
+      dockerfile: runtime.Dockerfile
 
   core:
     image: onasty:core
