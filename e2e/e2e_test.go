@@ -140,6 +140,7 @@ func (e *AppTestSuite) initDeps() {
 	handler := httptransport.NewTransport(
 		usersrv,
 		notesrv,
+		cfg.AppEnv,
 		cfg.CORSAllowedOrigins,
 		cfg.CORSMaxAge,
 		ratelimitCfg,
