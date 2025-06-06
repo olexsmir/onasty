@@ -4,6 +4,14 @@ services:
     build:
       context: .
       dockerfile: runtime.Dockerfile
+    depends_on:
+      - builder
+
+  builder:
+    image: onasty:builder
+    build:
+      context: .
+      dockerfile: builder.Dockerfile
 
   core:
     image: onasty:core
