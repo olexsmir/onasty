@@ -314,7 +314,7 @@ func (e *AppTestSuite) TestAuthV1_LogoutAll() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 
 	var res int
-	query := " select count(*) from sessions where user_id = $1"
+	query := "select count(*) from sessions where user_id = $1"
 
 	err := e.postgresDB.QueryRow(e.ctx, query, uid).Scan(&res)
 	e.require.NoError(err)
