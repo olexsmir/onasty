@@ -24,7 +24,8 @@ type UserServicer interface {
 	SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error)
 	SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, error)
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.Tokens, error)
-	Logout(ctx context.Context, userID uuid.UUID) error
+	Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error
+	LogoutAll(ctx context.Context, userID uuid.UUID) error
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
 	RequestPasswordReset(ctx context.Context, inp dtos.RequestResetPassword) error
@@ -158,8 +159,12 @@ func (u *UserSrv) SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, err
 	return tokens, err
 }
 
-func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID) error {
-	return u.sessionstore.Delete(ctx, userID)
+func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
+	return u.sessionstore.Delete(ctx, userID, refreshToken)
+}
+
+func (u *UserSrv) LogoutAll(ctx context.Context, userID uuid.UUID) error {
+	return u.sessionstore.DeleteAllByUserID(ctx, userID)
 }
 
 func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens, error) {

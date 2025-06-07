@@ -163,8 +163,27 @@ func (a *APIV1) resetPasswordHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+type logoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 func (a *APIV1) logOutHandler(c *gin.Context) {
-	if err := a.usersrv.Logout(c.Request.Context(), a.getUserID(c)); err != nil {
+	var req logoutRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.Logout(c.Request.Context(), a.getUserID(c), req.RefreshToken); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+func (a *APIV1) logOutAllHandler(c *gin.Context) {
+	if err := a.usersrv.LogoutAll(c.Request.Context(), a.getUserID(c)); err != nil {
 		errorResponse(c, err)
 		return
 	}
