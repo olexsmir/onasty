@@ -17,6 +17,7 @@ type SessionStorer interface {
 	GetUserIDByRefreshToken(ctx context.Context, refreshToken string) (uuid.UUID, error)
 	Update(ctx context.Context, userID uuid.UUID, refreshToken string, newRefreshToken string) error
 	Delete(ctx context.Context, userID uuid.UUID, refreshToken string) error
+	DeleteAllByUserID(ctx context.Context, userID uuid.UUID) error
 }
 
 var _ SessionStorer = (*SessionRepo)(nil)
@@ -102,5 +103,14 @@ WHERE user_id = $1
   AND refresh_token = $2`
 
 	_, err := s.db.Exec(ctx, query, userID, refreshToken)
+	return err
+}
+
+func (s *SessionRepo) DeleteAllByUserID(ctx context.Context, userID uuid.UUID) error {
+	query := `--sql
+delete from sessions
+where user_id = $1`
+
+	_, err := s.db.Exec(ctx, query, userID)
 	return err
 }

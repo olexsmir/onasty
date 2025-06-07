@@ -182,6 +182,15 @@ func (a *APIV1) logOutHandler(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+func (a *APIV1) logOutAllHandler(c *gin.Context) {
+	if err := a.usersrv.LogoutAll(c.Request.Context(), a.getUserID(c)); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 type changePasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
 	NewPassword     string `json:"new_password"`
