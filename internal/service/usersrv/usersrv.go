@@ -30,7 +30,7 @@ type UserServicer interface {
 	RequestPasswordReset(ctx context.Context, inp dtos.RequestResetPassword) error
 	ResetPassword(ctx context.Context, inp dtos.ResetPassword) error
 
-	GetOAuthURL(providerName string) (string, error)
+	GetOAuthURL(providerName string) (dtos.OAuthRedirect, error)
 	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
 
 	Verify(ctx context.Context, verificationKey string) error

@@ -198,17 +198,36 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+const oatuhStateCookie = "oauth_state"
+
 func (a *APIV1) oauthLoginHandler(c *gin.Context) {
-	url, err := a.usersrv.GetOAuthURL(c.Param("provider"))
+	redirectInfo, err := a.usersrv.GetOAuthURL(c.Param("provider"))
 	if err != nil {
 		errorResponse(c, err)
 		return
 	}
 
-	c.Redirect(http.StatusSeeOther, url)
+	c.SetCookie(
+		oatuhStateCookie,
+		redirectInfo.State,
+		int(time.Minute.Seconds()),
+		"/",
+		a.domain,
+		!a.env.IsDevMode(),
+		true,
+	)
+
+	c.Redirect(http.StatusSeeOther, redirectInfo.URL)
 }
 
 func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
+	state := c.Query("state")
+	storedState, err := c.Cookie(oatuhStateCookie)
+	if err != nil || state != storedState {
+		newError(c, http.StatusBadRequest, "invalid oauth state")
+		return
+	}
+
 	tokens, err := a.usersrv.HandleOAuthLogin(
 		c.Request.Context(),
 		c.Param("provider"),

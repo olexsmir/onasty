@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/transport/http/apiv1"
@@ -16,6 +17,9 @@ type Transport struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
 
+	env    config.Environment
+	domain string
+
 	corsAllowedOrigins []string
 	corsMaxAge         time.Duration
 	ratelimitCfg       ratelimit.Config
@@ -24,6 +28,8 @@ type Transport struct {
 func NewTransport(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
+	env config.Environment,
+	domain string,
 	corsAllowedOrigins []string,
 	corsMaxAge time.Duration,
 	ratelimitCfg ratelimit.Config,
@@ -31,6 +37,8 @@ func NewTransport(
 	return &Transport{
 		usersrv:            us,
 		notesrv:            ns,
+		env:                env,
+		domain:             domain,
 		corsAllowedOrigins: corsAllowedOrigins,
 		corsMaxAge:         corsMaxAge,
 		ratelimitCfg:       ratelimitCfg,
@@ -49,7 +57,7 @@ func (t *Transport) Handler() http.Handler {
 
 	api := r.Group("/api")
 	api.GET("/ping", t.pingHandler)
-	apiv1.NewAPIV1(t.usersrv, t.notesrv).Routes(api.Group("/v1"))
+	apiv1.NewAPIV1(t.usersrv, t.notesrv, t.env, t.domain).Routes(api.Group("/v1"))
 
 	return r.Handler()
 }

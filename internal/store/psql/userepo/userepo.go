@@ -157,8 +157,12 @@ func (r *UserRepo) LinkOAuthIdentity(
 	provider, providerID string,
 ) error {
 	query := `--sql
-	insert into oauth_identities (user_id, provider, provider_id)
-	values ($1, $2, $3)`
+insert into oauth_identities (user_id, provider, provider_id)
+values ($1, $2, $3)
+on conflict (provider, provider_id) do update
+set user_id = $1,
+	provider = $2,
+	provider_id = $3`
 
 	_, err := r.db.Exec(ctx, query, userID, provider, providerID)
 	return err

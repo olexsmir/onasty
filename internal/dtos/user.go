@@ -30,6 +30,11 @@ type ResetPassword struct {
 	NewPassword string
 }
 
+type OAuthRedirect struct {
+	URL   string
+	State string
+}
+
 type Tokens struct {
 	Access  string
 	Refresh string
