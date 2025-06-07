@@ -286,13 +286,24 @@ func (e *AppTestSuite) TestAuthV1_RefreshTokens_wrong() {
 	e.Equal(httpResp.Code, http.StatusBadRequest)
 }
 
+type apiV1AuthLogoutRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
 func (e *AppTestSuite) TestAuthV1_Logout() {
 	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
 
 	sessionDB := e.getLastSessionByUserID(uid)
 	e.NotEmpty(sessionDB.RefreshToken)
 
-	httpResp := e.httpRequest(http.MethodPost, "/api/v1/auth/logout", nil, toks.AccessToken)
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/logout",
+		e.jsonify(apiV1AuthLogoutRequest{
+			RefreshToken: toks.RefreshToken,
+		}),
+		toks.AccessToken,
+	)
 	e.Equal(httpResp.Code, http.StatusNoContent)
 
 	sessionDB = e.getLastSessionByUserID(uid)
