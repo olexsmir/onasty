@@ -310,6 +310,24 @@ func (e *AppTestSuite) TestAuthV1_Logout() {
 	e.Empty(sessionDB.RefreshToken)
 }
 
+func (e *AppTestSuite) TestAuthV1_LogoutAll() {
+	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+
+	var res int
+	query := " select count(*) from sessions where user_id = $1"
+
+	err := e.postgresDB.QueryRow(e.ctx, query, uid).Scan(&res)
+	e.require.NoError(err)
+	e.NotZero(res)
+
+	httpResp := e.httpRequest(http.MethodPost, "/api/v1/auth/logout/all", nil, toks.AccessToken)
+	e.Equal(httpResp.Code, http.StatusNoContent)
+
+	err = e.postgresDB.QueryRow(e.ctx, query, uid).Scan(&res)
+	e.require.NoError(err)
+	e.Zero(res)
+}
+
 type apiv1AuthChangePasswordRequest struct {
 	CurrentPassword string `json:"current_password"`
 	NewPassword     string `json:"new_password"`
