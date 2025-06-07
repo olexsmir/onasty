@@ -3,7 +3,15 @@ services:
     image: onasty:runtime
     build:
       context: .
-      dockerfile: runtime.dockerfile
+      dockerfile: runtime.Dockerfile
+    depends_on:
+      - builder
+
+  builder:
+    image: onasty:builder
+    build:
+      context: .
+      dockerfile: builder.Dockerfile
 
   core:
     image: onasty:core
@@ -32,6 +40,17 @@ services:
     depends_on:
       - runtime
       - nats
+
+  seed:
+    image: onasty:seed
+    build:
+      context: .
+      dockerfile: seed.Dockerfile
+    entrypoint: ["/seed"]
+    env_file: .env
+    profiles: [manual]
+    depends_on:
+      - postgres
 
   postgres:
     image: postgres:16-alpine

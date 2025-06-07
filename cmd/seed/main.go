@@ -21,7 +21,6 @@ func main() {
 
 func run(ctx context.Context) error {
 	cfg := config.NewConfig()
-	cfg.PostgresDSN = os.Getenv("SEED_DSN")
 
 	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
 	if err != nil {
