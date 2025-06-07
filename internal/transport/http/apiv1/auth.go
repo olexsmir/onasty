@@ -210,7 +210,7 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 	c.SetCookie(
 		oatuhStateCookie,
 		redirectInfo.State,
-		int(time.Hour.Seconds()),
+		int(time.Minute.Seconds()),
 		"/",
 		"",
 		!a.env.IsDevMode(),
