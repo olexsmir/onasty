@@ -141,6 +141,7 @@ func (e *AppTestSuite) initDeps() {
 		usersrv,
 		notesrv,
 		cfg.AppEnv,
+		cfg.AppURL,
 		cfg.CORSAllowedOrigins,
 		cfg.CORSMaxAge,
 		ratelimitCfg,

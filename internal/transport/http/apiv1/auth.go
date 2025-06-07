@@ -212,7 +212,7 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 		redirectInfo.State,
 		int(time.Minute.Seconds()),
 		"/",
-		"",
+		a.domain,
 		!a.env.IsDevMode(),
 		true,
 	)

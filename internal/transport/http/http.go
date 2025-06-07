@@ -17,7 +17,8 @@ type Transport struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
 
-	env config.Environment
+	env    config.Environment
+	domain string
 
 	corsAllowedOrigins []string
 	corsMaxAge         time.Duration
@@ -28,6 +29,7 @@ func NewTransport(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
 	env config.Environment,
+	domain string,
 	corsAllowedOrigins []string,
 	corsMaxAge time.Duration,
 	ratelimitCfg ratelimit.Config,
@@ -36,6 +38,7 @@ func NewTransport(
 		usersrv:            us,
 		notesrv:            ns,
 		env:                env,
+		domain:             domain,
 		corsAllowedOrigins: corsAllowedOrigins,
 		corsMaxAge:         corsMaxAge,
 		ratelimitCfg:       ratelimitCfg,
@@ -54,7 +57,7 @@ func (t *Transport) Handler() http.Handler {
 
 	api := r.Group("/api")
 	api.GET("/ping", t.pingHandler)
-	apiv1.NewAPIV1(t.usersrv, t.notesrv, t.env).Routes(api.Group("/v1"))
+	apiv1.NewAPIV1(t.usersrv, t.notesrv, t.env, t.domain).Routes(api.Group("/v1"))
 
 	return r.Handler()
 }

@@ -11,17 +11,20 @@ type APIV1 struct {
 	usersrv usersrv.UserServicer
 	notesrv notesrv.NoteServicer
 	env     config.Environment
+	domain  string
 }
 
 func NewAPIV1(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
 	env config.Environment,
+	domain string,
 ) *APIV1 {
 	return &APIV1{
 		usersrv: us,
 		notesrv: ns,
 		env:     env,
+		domain:  domain,
 	}
 }
 
