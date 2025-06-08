@@ -49,12 +49,9 @@ func run(ctx context.Context) error {
 	cfg := config.NewConfig()
 
 	// logger
-	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
-	if err != nil {
+	if err := logger.SetDefault(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine); err != nil {
 		return err
 	}
-
-	slog.SetDefault(logger)
 
 	// semi dev mode
 	if !cfg.AppEnv.IsDevMode() {

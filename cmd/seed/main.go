@@ -22,11 +22,9 @@ func main() {
 func run(ctx context.Context) error {
 	cfg := config.NewConfig()
 
-	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
-	if err != nil {
+	if err := logger.SetDefault(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine); err != nil {
 		return err
 	}
-	slog.SetDefault(logger)
 
 	psql, err := psqlutil.Connect(ctx, cfg.PostgresDSN)
 	if err != nil {
