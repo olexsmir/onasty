@@ -9,10 +9,12 @@ import (
 	"github.com/olexsmir/onasty/internal/transport/http/reqid"
 )
 
-type CustomLogger struct{ slog.Handler }
+var (
+	ErrUnknownLevel  = errors.New("unknown log level")
+	ErrUnknownFormat = errors.New("unknown log format")
+)
 
-//nolint:err113
-func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
+func SetDefault(lvl, format string, showLine bool) error {
 	loggerLevels := map[string]slog.Level{
 		"info":  slog.LevelInfo,
 		"debug": slog.LevelDebug,
@@ -22,7 +24,7 @@ func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
 
 	logLevel, ok := loggerLevels[lvl]
 	if !ok {
-		return nil, errors.New("unknown log level")
+		return ErrUnknownLevel
 	}
 
 	handlerOptions := &slog.HandlerOptions{
@@ -37,11 +39,14 @@ func NewCustomLogger(lvl, format string, showLine bool) (*slog.Logger, error) {
 	case "text", "txt":
 		slogHandler = slog.NewTextHandler(os.Stdout, handlerOptions)
 	default:
-		return nil, errors.New("unknown log format")
+		return ErrUnknownFormat
 	}
 
-	return slog.New(&CustomLogger{Handler: slogHandler}), nil
+	slog.SetDefault(slog.New(&CustomLogger{Handler: slogHandler}))
+	return nil
 }
+
+type CustomLogger struct{ slog.Handler }
 
 func (l *CustomLogger) Handle(ctx context.Context, r slog.Record) error {
 	if requestID := reqid.GetContext(ctx); requestID != "" {
