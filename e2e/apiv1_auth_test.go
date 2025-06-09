@@ -2,6 +2,7 @@ package e2e_test
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/olexsmir/onasty/internal/hasher"
@@ -435,6 +436,26 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
 	)
 
 	e.Equal(httpResp.Code, http.StatusBadRequest)
+}
+
+type getMeResponse struct {
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (e *AppTestSuite) TestApiV1_getMe() {
+	email := e.uuid() + "@test.com"
+	_, toks := e.createAndSingIn(email, "password")
+
+	httpResp := e.httpRequest(http.MethodGet, "/api/v1/me", nil, toks.AccessToken)
+
+	e.Equal(httpResp.Code, http.StatusOK)
+
+	var body getMeResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	e.Equal(email, body.Email)
+	e.NotZero(body.CreatedAt)
 }
 
 // createAndSingIn creates an activated user, logs them in,
