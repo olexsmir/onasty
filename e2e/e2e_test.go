@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"testing"
 	"time"
@@ -94,10 +93,8 @@ func (e *AppTestSuite) TearDownSuite() {
 func (e *AppTestSuite) initDeps() {
 	cfg := e.getConfig()
 
-	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
+	err := logger.SetDefault(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
 	e.require.NoError(err)
-
-	slog.SetDefault(logger)
 
 	e.hasher = hasher.NewSHA256Hasher(cfg.PasswordSalt)
 	e.jwtTokenizer = jwtutil.NewJWTUtil(cfg.JwtSigningKey, time.Hour)
@@ -106,7 +103,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(e.postgresDB)
 
-	oauthProvider := newOauthProviderMock()
+	stubOAuthProvider := newOauthProviderMock()
 
 	userepo := userepo.New(e.postgresDB)
 	usercache := usercache.New(e.redisDB, cfg.CacheUsersTTL)
@@ -119,8 +116,8 @@ func (e *AppTestSuite) initDeps() {
 		e.jwtTokenizer,
 		newMailerMockService(),
 		usercache,
-		oauthProvider,
-		oauthProvider,
+		stubOAuthProvider,
+		stubOAuthProvider,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.ResetPasswordTokenTTL,

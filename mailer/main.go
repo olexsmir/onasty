@@ -38,12 +38,9 @@ func run() error {
 		return err
 	}
 
-	logger, err := logger.NewCustomLogger(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine)
-	if err != nil {
+	if err = logger.SetDefault(cfg.LogLevel, cfg.LogFormat, cfg.LogShowLine); err != nil {
 		return err
 	}
-
-	slog.SetDefault(logger)
 
 	//nolint:exhaustruct
 	svc, err := micro.AddService(nc, micro.Config{
