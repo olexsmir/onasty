@@ -26,6 +26,7 @@ type UserServicer interface {
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.Tokens, error)
 	Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error
 	LogoutAll(ctx context.Context, userID uuid.UUID) error
+	GetUserInfo(ctx context.Context, userID uuid.UUID) (dtos.UserInfo, error)
 
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
 	RequestPasswordReset(ctx context.Context, inp dtos.RequestResetPassword) error
@@ -165,6 +166,18 @@ func (u *UserSrv) Logout(ctx context.Context, userID uuid.UUID, refreshToken str
 
 func (u *UserSrv) LogoutAll(ctx context.Context, userID uuid.UUID) error {
 	return u.sessionstore.DeleteAllByUserID(ctx, userID)
+}
+
+func (u *UserSrv) GetUserInfo(ctx context.Context, userID uuid.UUID) (dtos.UserInfo, error) {
+	user, err := u.userstore.GetByID(ctx, userID)
+	if err != nil {
+		return dtos.UserInfo{}, err
+	}
+
+	return dtos.UserInfo{
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+	}, nil
 }
 
 func (u *UserSrv) RefreshTokens(ctx context.Context, rtoken string) (dtos.Tokens, error) {

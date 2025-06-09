@@ -262,3 +262,21 @@ func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
 		RefreshToken: tokens.Refresh,
 	})
 }
+
+type getMeResponse struct {
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func (a *APIV1) getMeHandler(c *gin.Context) {
+	uinfo, err := a.usersrv.GetUserInfo(c.Request.Context(), a.getUserID(c))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, getMeResponse{
+		Email:     uinfo.Email,
+		CreatedAt: uinfo.CreatedAt,
+	})
+}

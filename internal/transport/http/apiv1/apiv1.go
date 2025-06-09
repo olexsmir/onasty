@@ -54,6 +54,8 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		}
 	}
 
+	r.GET("/me", a.authorizedMiddleware, a.getMeHandler)
+
 	note := r.Group("/note")
 	{
 		note.GET("/:slug", a.getNoteBySlugHandler)

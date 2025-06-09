@@ -39,3 +39,8 @@ type Tokens struct {
 	Access  string
 	Refresh string
 }
+
+type UserInfo struct {
+	Email     string
+	CreatedAt time.Time
+}
