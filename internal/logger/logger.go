@@ -14,6 +14,7 @@ var (
 	ErrUnknownFormat = errors.New("unknown log format")
 )
 
+// SetDefault configures and set default [slog.Logger]
 func SetDefault(lvl, format string, showLine bool) error {
 	loggerLevels := map[string]slog.Level{
 		"info":  slog.LevelInfo,
