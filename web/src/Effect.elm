@@ -6,7 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , sendApiRequest
-    , saveUser, clearUser
+    , signin, saveUser, clearUser
     , map, toCmd
     )
 
@@ -30,6 +30,7 @@ module Effect exposing
 
 import Api exposing (HttpRequestDetails)
 import Browser.Navigation
+import Data.Credentials exposing (Credentials)
 import Dict exposing (Dict)
 import Http
 import Json.Decode
@@ -181,6 +182,11 @@ sendApiRequest opts =
         , onHttpError = onHttpError
         , decoder = decoder
         }
+
+
+signin : Credentials -> Effect msg
+signin credentials =
+    SendSharedMsg (Shared.Msg.SignedIn credentials)
 
 
 saveUser : String -> String -> Effect msg

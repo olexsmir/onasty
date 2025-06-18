@@ -13,6 +13,7 @@ module Shared exposing
 -}
 
 import Data.Credentials exposing (Credentials)
+import Dict
 import Effect exposing (Effect)
 import Json.Decode
 import Route exposing (Route)
@@ -49,7 +50,7 @@ type alias Model =
 
 
 init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
-init flagsResult route =
+init flagsResult _ =
     let
         flags : Flags
         flags =
@@ -82,7 +83,7 @@ type alias Msg =
 
 
 update : Route () -> Msg -> Model -> ( Model, Effect Msg )
-update route msg model =
+update _ msg model =
     case msg of
         Shared.Msg.GotZone timeZone ->
             ( { model | timeZone = timeZone }, Effect.none )
@@ -90,11 +91,23 @@ update route msg model =
         Shared.Msg.Logout ->
             ( { model | credentials = Nothing }, Effect.clearUser )
 
+        Shared.Msg.SignedIn credentials ->
+            ( { model | credentials = Just credentials }
+            , Effect.batch
+                [ Effect.pushRoute
+                    { path = Route.Path.Home_
+                    , query = Dict.empty
+                    , hash = Nothing
+                    }
+                , Effect.saveUser credentials.accessToken credentials.refreshToken
+                ]
+            )
+
 
 
 -- SUBSCRIPTIONS
 
 
 subscriptions : Route () -> Model -> Sub Msg
-subscriptions route model =
+subscriptions _ _ =
     Sub.none
