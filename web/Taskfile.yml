@@ -7,11 +7,11 @@ tasks:
 
   lint:
     desc: runs elm-review
-    cmd: bunx elm-review
+    cmd: bunx elm-review --ignore-dirs .elm-land
 
   lint:fix:
     desc: runs elm-review fix
-    cmd: bunx elm-review --fix
+    cmd: bunx elm-review --ignore-dirs .elm-land --fix
 
   dev:
     desc: runs elm-land dev server
