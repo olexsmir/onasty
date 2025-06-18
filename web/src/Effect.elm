@@ -36,7 +36,7 @@ import Http
 import Json.Decode
 import Json.Encode
 import Ports exposing (sendToLocalStorage)
-import Route exposing (Route)
+import Route
 import Route.Path
 import Shared.Model
 import Shared.Msg
@@ -306,6 +306,7 @@ toCmd options effect =
 
         SendApiRequest opts ->
             let
+                headers : List Http.Header
                 headers =
                     case options.shared.credentials of
                         Just tok ->

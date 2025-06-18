@@ -1,4 +1,4 @@
-module JwtUtil exposing (getTokenExpiration, isExpired)
+module JwtUtil exposing (isExpired)
 
 import Jwt
 import Time
@@ -9,6 +9,7 @@ import Time
 isExpired : Time.Posix -> String -> Bool
 isExpired now token =
     let
+        timeDiff : Int
         timeDiff =
             getTokenExpiration token
                 |> (\expiration -> expiration - Time.posixToMillis now)
