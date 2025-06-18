@@ -6,7 +6,7 @@ module Data.Credentials exposing
 {-|
 
 @docs Credentials
-@docs encode
+@docs decode
 
 -}
 
