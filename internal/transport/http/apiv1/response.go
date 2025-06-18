@@ -49,6 +49,7 @@ func errorResponse(c *gin.Context, err error) {
 
 	if errors.Is(err, ErrUnauthorized) ||
 		errors.Is(err, jwtutil.ErrTokenExpired) ||
+		errors.Is(err, jwtutil.ErrTokenSignatureInvalid) ||
 		errors.Is(err, models.ErrUserWrongCredentials) {
 		newErrorStatus(c, http.StatusUnauthorized, err.Error())
 		return
