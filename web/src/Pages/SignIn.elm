@@ -10,14 +10,15 @@ import Html.Events
 import Http
 import Page exposing (Page)
 import Route exposing (Route)
+import Route.Path
 import Shared
 import View exposing (View)
 
 
 page : Shared.Model -> Route () -> Page Model Msg
-page _ _ =
+page shared _ =
     Page.new
-        { init = init
+        { init = init shared
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -36,14 +37,19 @@ type alias Model =
     }
 
 
-init : () -> ( Model, Effect Msg )
-init () =
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init shared _ =
     ( { isSubmittingForm = False
       , email = ""
       , password = ""
       , error = Nothing
       }
-    , Effect.none
+    , case shared.credentials of
+        Just _ ->
+            Effect.pushRoutePath Route.Path.Home_
+
+        Nothing ->
+            Effect.none
     )
 
 
