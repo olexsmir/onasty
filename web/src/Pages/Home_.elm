@@ -1,0 +1,82 @@
+module Pages.Home_ exposing (Model, Msg, page)
+
+import Effect exposing (Effect)
+import Html
+import Html.Attributes as Attributes
+import Html.Events
+import Page exposing (Page)
+import Route exposing (Route)
+import Shared
+import View exposing (View)
+
+
+page : Shared.Model -> Route () -> Page Model Msg
+page shared _ =
+    Page.new
+        { init = init shared
+        , update = update
+        , subscriptions = subscriptions
+        , view = view shared
+        }
+
+
+
+-- INIT
+
+
+type alias Model =
+    {}
+
+
+init : Shared.Model -> () -> ( Model, Effect Msg )
+init _ () =
+    ( {}, Effect.none )
+
+
+
+-- UPDATE
+
+
+type Msg
+    = LogOut
+
+
+update : Msg -> Model -> ( Model, Effect Msg )
+update msg model =
+    case msg of
+        LogOut ->
+            ( model, Effect.logout )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
+
+
+
+-- VIEW
+
+
+view : Shared.Model -> Model -> View Msg
+view _ _ =
+    { title = "Homepage"
+    , body =
+        [ Html.div []
+            [ Html.p [] [ Html.text "Hello, world!" ]
+            , Html.p []
+                [ Html.a
+                    [ Attributes.href "/profile/me" ]
+                    [ Html.text "/profile/me - fetches authorized data" ]
+                ]
+            , Html.p []
+                [ Html.button
+                    [ Html.Events.onClick LogOut ]
+                    [ Html.text "Logout" ]
+                ]
+            ]
+        ]
+    }

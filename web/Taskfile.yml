@@ -1,0 +1,22 @@
+version: "3"
+
+tasks:
+  install:
+    desc: install dependencies
+    cmd: bun install
+
+  lint:
+    desc: runs elm-review
+    cmd: bunx elm-review --ignore-dirs .elm-land
+
+  lint:fix:
+    desc: runs elm-review fix
+    cmd: bunx elm-review --ignore-dirs .elm-land --fix
+
+  test:
+    desc: run tests
+    cmd: bunx elm-test-rs
+
+  dev:
+    desc: runs elm-land dev server
+    cmd: bunx elm-land server
