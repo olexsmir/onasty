@@ -1,4 +1,4 @@
-module UnitTests.Data.Me exposing (..)
+module UnitTests.Data.Me exposing (suite)
 
 import Data.Me
 import Expect
