@@ -5,6 +5,9 @@ dotenv:
 
 includes:
   migrate: ./migrations/Taskfile.yml
+  frontend:
+    taskfile: ./web/Taskfile.yml
+    dir: ./web/
 
 env:
   COMPOSE_BAKE: 1

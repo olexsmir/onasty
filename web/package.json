@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "scripts": {
+    "postinstall": "elm-tooling install"
+  },
+  "devDependencies": {
+    "elm-land": "^0.20.1",
+    "elm-review": "^2.13.2",
+    "elm-tooling": "^1.15.1"
+  }
+}
