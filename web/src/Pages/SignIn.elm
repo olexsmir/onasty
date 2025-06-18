@@ -108,10 +108,10 @@ view : Model -> View Msg
 view model =
     { title = "Sign-in"
     , body =
-        [ Html.div [ Attr.class "columns is-mobile is-centered" ]
-            [ Html.div [ Attr.class "column is-narrow" ]
-                [ Html.div [ Attr.class "section" ]
-                    [ Html.h1 [ Attr.class "title" ] [ Html.text "Sign in" ]
+        [ Html.div []
+            [ Html.div []
+                [ Html.div []
+                    [ Html.h1 [] [ Html.text "Sign in" ]
                     , viewError model.error
                     , viewForm model
                     ]
@@ -123,7 +123,7 @@ view model =
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form [ Attr.class "box", Html.Events.onSubmit UserClickedSubmit ]
+    Html.form [ Html.Events.onSubmit UserClickedSubmit ]
         [ viewFormInput { field = Email, value = model.email }
         , viewFormInput { field = Password, value = model.password }
         , viewFormControls model
@@ -134,7 +134,7 @@ viewError : Maybe Http.Error -> Html Msg
 viewError maybeError =
     case maybeError of
         Just error ->
-            Html.div [ Attr.class "is-danger" ]
+            Html.div [ Attr.style "color" "red" ]
                 [ Html.text (Api.errorToFriendlyMessage error) ]
 
         Nothing ->
@@ -143,7 +143,7 @@ viewError maybeError =
 
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
-    Html.div [ Attr.class "field" ]
+    Html.div []
         [ Html.label [] [ Html.text (fromFieldToLabel opts.field) ]
         , Html.div []
             [ Html.input
@@ -158,12 +158,9 @@ viewFormInput opts =
 
 viewFormControls : Model -> Html Msg
 viewFormControls model =
-    Html.div [ Attr.class "control" ]
+    Html.div []
         [ Html.button
-            [ Attr.class "button is-link"
-            , Attr.disabled model.isSubmittingForm
-            , Attr.classList [ ( "is-loading", model.isSubmittingForm ) ]
-            ]
+            [ Attr.disabled model.isSubmittingForm ]
             [ Html.text "Sign In" ]
         ]
 
