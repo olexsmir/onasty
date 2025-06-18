@@ -7,4 +7,5 @@ import Time
 type alias Model =
     { credentials : Maybe Credentials
     , timeZone : Time.Zone
+    , isRefreshingTokens : Bool
     }

@@ -12,10 +12,12 @@ module Shared exposing
 
 -}
 
+import Api.Auth
 import Data.Credentials exposing (Credentials)
 import Dict
 import Effect exposing (Effect)
 import Json.Decode
+import JwtUtil
 import Route exposing (Route)
 import Route.Path
 import Shared.Model
@@ -67,10 +69,14 @@ init flagsResult _ =
         initModel =
             { credentials = maybeCredentials
             , timeZone = Time.utc
+            , isRefreshingTokens = False
             }
     in
     ( initModel
-    , Time.here |> Task.perform Shared.Msg.GotZone |> Effect.sendCmd
+    , Effect.batch
+        [ Time.now |> Task.perform Shared.Msg.CheckTokenExpiration |> Effect.sendCmd
+        , Time.here |> Task.perform Shared.Msg.GotZone |> Effect.sendCmd
+        ]
     )
 
 
@@ -103,6 +109,39 @@ update _ msg model =
                 ]
             )
 
+        Shared.Msg.CheckTokenExpiration now ->
+            case model.credentials of
+                Just credentials ->
+                    if JwtUtil.isExpired now credentials.accessToken then
+                        ( model, Effect.refreshTokens )
+
+                    else
+                        ( model, Effect.none )
+
+                Nothing ->
+                    ( model, Effect.none )
+
+        Shared.Msg.TriggerTokenRefresh ->
+            case model.credentials of
+                Just credentials ->
+                    ( { model | isRefreshingTokens = True }
+                    , Api.Auth.refreshToken
+                        { onResponse = Shared.Msg.ApiRefreshTokensResponded
+                        , refreshToken = credentials.refreshToken
+                        }
+                    )
+
+                Nothing ->
+                    ( model, Effect.none )
+
+        Shared.Msg.ApiRefreshTokensResponded (Ok credentials) ->
+            ( { model | isRefreshingTokens = False, credentials = Just credentials }
+            , Effect.saveUser credentials.accessToken credentials.refreshToken
+            )
+
+        Shared.Msg.ApiRefreshTokensResponded (Err _) ->
+            ( { model | isRefreshingTokens = False }, Effect.clearUser )
+
 
 
 -- SUBSCRIPTIONS
@@ -110,4 +149,4 @@ update _ msg model =
 
 subscriptions : Route () -> Model -> Sub Msg
 subscriptions _ _ =
-    Sub.none
+    Time.every (30 * 1000) Shared.Msg.CheckTokenExpiration

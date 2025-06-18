@@ -7,7 +7,7 @@ module Effect exposing
     , loadExternalUrl, back
     , sendApiRequest
     , signin, logout, saveUser, clearUser
-    , map, toCmd
+    , map, toCmd, refreshTokens
     )
 
 {-|
@@ -21,7 +21,7 @@ module Effect exposing
 @docs pushRoutePath, replaceRoutePath
 @docs loadExternalUrl, back
 
-@docs sendApiRequest
+@docs sendApiRequest, refreshTokens
 @docs signin, logout, saveUser, clearUser
 
 @docs map, toCmd
@@ -182,6 +182,11 @@ sendApiRequest opts =
         , onHttpError = onHttpError
         , decoder = decoder
         }
+
+
+refreshTokens : Effect msg
+refreshTokens =
+    SendSharedMsg Shared.Msg.TriggerTokenRefresh
 
 
 signin : Credentials -> Effect msg
