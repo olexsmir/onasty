@@ -11,6 +11,7 @@ import (
 
 var (
 	ErrUnexpectedSigningMethod = errors.New("unexpected signing method")
+	ErrTokenSignatureInvalid   = errors.New("token signature invalid")
 	ErrTokenExpired            = errors.New("token expired")
 )
 
@@ -71,6 +72,10 @@ func (j *JWTUtil) Parse(token string) (Payload, error) {
 
 	if errors.Is(err, jwt.ErrTokenExpired) {
 		return Payload{}, ErrTokenExpired
+	}
+
+	if errors.Is(err, jwt.ErrTokenSignatureInvalid) {
+		return Payload{}, ErrTokenSignatureInvalid
 	}
 
 	return Payload{
