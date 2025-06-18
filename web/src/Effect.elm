@@ -5,6 +5,7 @@ module Effect exposing
     , pushRoute, replaceRoute
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
+    , sendApiRequest
     , saveUser, clearUser
     , map, toCmd
     )
@@ -27,8 +28,11 @@ module Effect exposing
 
 -}
 
+import Api exposing (HttpRequestDetails)
 import Browser.Navigation
 import Dict exposing (Dict)
+import Http
+import Json.Decode
 import Json.Encode
 import Ports exposing (sendToLocalStorage)
 import Route exposing (Route)
@@ -52,6 +56,7 @@ type Effect msg
       -- SHARED
     | SendSharedMsg Shared.Msg.Msg
     | SendToLocalStorage { key : String, value : Json.Encode.Value }
+    | SendApiRequest (HttpRequestDetails msg)
 
 
 
@@ -149,6 +154,35 @@ back =
 -- SHARED
 
 
+sendApiRequest :
+    { endpoint : String
+    , method : String
+    , body : Http.Body
+    , decoder : Json.Decode.Decoder value
+    , onResponse : Result Http.Error value -> msg
+    }
+    -> Effect msg
+sendApiRequest opts =
+    let
+        onHttpError : Http.Error -> msg
+        onHttpError httpError =
+            opts.onResponse (Err httpError)
+
+        decoder : Json.Decode.Decoder msg
+        decoder =
+            opts.decoder
+                |> Json.Decode.map Ok
+                |> Json.Decode.map opts.onResponse
+    in
+    SendApiRequest
+        { endpoint = opts.endpoint
+        , method = opts.method
+        , body = opts.body
+        , onHttpError = onHttpError
+        , decoder = decoder
+        }
+
+
 saveUser : String -> String -> Effect msg
 saveUser accessToken refreshToken =
     batch
@@ -202,6 +236,15 @@ map fn effect =
         SendToLocalStorage options ->
             SendToLocalStorage options
 
+        SendApiRequest opts ->
+            SendApiRequest
+                { endpoint = opts.endpoint
+                , method = opts.method
+                , body = opts.body
+                , decoder = Json.Decode.map fn opts.decoder
+                , onHttpError = \err -> fn (opts.onHttpError err)
+                }
+
 
 {-| Elm Land depends on this function to perform your effects.
 -}
@@ -244,3 +287,37 @@ toCmd options effect =
 
         SendToLocalStorage opts ->
             sendToLocalStorage opts
+
+        SendApiRequest opts ->
+            let
+                headers =
+                    case options.shared.credentials of
+                        Just tok ->
+                            if not (String.contains opts.endpoint "refresh-tokens") then
+                                [ Http.header "Authorization" ("Bearer " ++ tok.accessToken) ]
+
+                            else
+                                []
+
+                        Nothing ->
+                            []
+            in
+            Http.request
+                { method = opts.method
+                , url = opts.endpoint
+                , headers = headers
+                , body = opts.body
+                , expect =
+                    Http.expectJson
+                        (\httpResult ->
+                            case httpResult of
+                                Ok msg ->
+                                    msg
+
+                                Err err ->
+                                    opts.onHttpError err
+                        )
+                        opts.decoder
+                , timeout = Just (1000 * 60) -- 60 second timeout
+                , tracker = Nothing
+                }
