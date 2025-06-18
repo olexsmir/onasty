@@ -1,0 +1,33 @@
+name: elm
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["web/**"]
+  pull_request:
+    paths: ["web/**"]
+
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bunx elm-land build
+
+      - name: elm-review
+        run: bunx elm-review --ignore-dirs .elm-land
+
+      - name: Tests
+        run: bunx elm-test-rs
+
