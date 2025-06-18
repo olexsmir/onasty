@@ -6,7 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , sendApiRequest
-    , signin, saveUser, clearUser
+    , signin, logout, saveUser, clearUser
     , map, toCmd
     )
 
@@ -22,7 +22,7 @@ module Effect exposing
 @docs loadExternalUrl, back
 
 @docs sendApiRequest
-@docs signin, saveUser, clearUser
+@docs signin, logout, saveUser, clearUser
 
 @docs map, toCmd
 
@@ -187,6 +187,11 @@ sendApiRequest opts =
 signin : Credentials -> Effect msg
 signin credentials =
     SendSharedMsg (Shared.Msg.SignedIn credentials)
+
+
+logout : Effect msg
+logout =
+    SendSharedMsg Shared.Msg.Logout
 
 
 saveUser : String -> String -> Effect msg
