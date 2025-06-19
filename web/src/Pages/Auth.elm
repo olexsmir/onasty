@@ -32,7 +32,9 @@ page shared _ =
 type alias Model =
     { email : String
     , password : String
+    , passwordAgain : String
     , isSubmittingForm : Bool
+    , formVariant : Variant
     , error : Maybe Http.Error
     }
 
@@ -42,6 +44,8 @@ init shared _ =
     ( { isSubmittingForm = False
       , email = ""
       , password = ""
+      , passwordAgain = ""
+      , formVariant = SignIn
       , error = Nothing
       }
     , case shared.credentials of
@@ -59,13 +63,21 @@ init shared _ =
 
 type Msg
     = UserUpdatedInput Field String
+    | UserChangedFormVariant Variant
     | UserClickedSubmit
     | ApiSignInResponded (Result Http.Error Credentials)
+    | ApiSignUpResponded (Result Http.Error ())
 
 
 type Field
     = Email
     | Password
+    | PasswordAgain
+
+
+type Variant
+    = SignIn
+    | SignUp
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -73,12 +85,24 @@ update msg model =
     case msg of
         UserClickedSubmit ->
             ( { model | isSubmittingForm = True }
-            , Api.Auth.signin
-                { onResponse = ApiSignInResponded
-                , email = model.email
-                , password = model.password
-                }
+            , case model.formVariant of
+                SignIn ->
+                    Api.Auth.signin
+                        { onResponse = ApiSignInResponded
+                        , email = model.email
+                        , password = model.password
+                        }
+
+                SignUp ->
+                    Api.Auth.signup
+                        { onResponse = ApiSignUpResponded
+                        , email = model.email
+                        , password = model.password
+                        }
             )
+
+        UserChangedFormVariant variant ->
+            ( { model | formVariant = variant }, Effect.none )
 
         UserUpdatedInput Email email ->
             ( { model | email = email }, Effect.none )
@@ -86,15 +110,23 @@ update msg model =
         UserUpdatedInput Password password ->
             ( { model | password = password }, Effect.none )
 
+        UserUpdatedInput PasswordAgain passwordAgain ->
+            ( { model | passwordAgain = passwordAgain }, Effect.none )
+
         ApiSignInResponded (Ok credentials) ->
             ( { model | isSubmittingForm = False }
             , Effect.signin credentials
             )
 
         ApiSignInResponded (Err error) ->
-            ( { model | isSubmittingForm = False, error = Just error }
-            , Effect.none
-            )
+            ( { model | isSubmittingForm = False, error = Just error }, Effect.none )
+
+        ApiSignUpResponded (Ok ()) ->
+            -- TODO: show banner with that they have to activate account
+            ( { model | isSubmittingForm = False }, Effect.none )
+
+        ApiSignUpResponded (Err error) ->
+            ( { model | isSubmittingForm = False, error = Just error }, Effect.none )
 
 
 
@@ -112,28 +144,51 @@ subscriptions _ =
 
 view : Model -> View Msg
 view model =
-    { title = "Sign-in"
+    { title = "Authentication"
     , body =
         [ Html.div []
-            [ Html.div []
-                [ Html.div []
-                    [ Html.h1 [] [ Html.text "Sign in" ]
-                    , viewError model.error
-                    , viewForm model
-                    ]
-                ]
+            -- TODO: add oauth buttons
+            [ viewChangeVariant model.formVariant
+            , viewError model.error
+            , viewForm model
             ]
         ]
     }
 
 
+viewChangeVariant : Variant -> Html Msg
+viewChangeVariant variant =
+    Html.div []
+        [ Html.button
+            [ Attr.disabled (variant == SignIn)
+            , Html.Events.onClick (UserChangedFormVariant SignIn)
+            ]
+            [ Html.text "Sign In" ]
+        , Html.button
+            [ Attr.disabled (variant == SignUp)
+            , Html.Events.onClick (UserChangedFormVariant SignUp)
+            ]
+            [ Html.text "Sign Up" ]
+        ]
+
+
 viewForm : Model -> Html Msg
 viewForm model =
     Html.form [ Html.Events.onSubmit UserClickedSubmit ]
-        [ viewFormInput { field = Email, value = model.email }
-        , viewFormInput { field = Password, value = model.password }
-        , viewFormControls model
-        ]
+        (case model.formVariant of
+            SignIn ->
+                [ viewFormInput { field = Email, value = model.email }
+                , viewFormInput { field = Password, value = model.password }
+                , viewFormControls model
+                ]
+
+            SignUp ->
+                [ viewFormInput { field = Email, value = model.email }
+                , viewFormInput { field = Password, value = model.password }
+                , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
+                , viewFormControls model
+                ]
+        )
 
 
 viewError : Maybe Http.Error -> Html Msg
@@ -167,8 +222,30 @@ viewFormControls model =
     Html.div []
         [ Html.button
             [ Attr.disabled (isFormDisabled model) ]
-            [ Html.text "Sign In" ]
+            (case model.formVariant of
+                SignIn ->
+                    [ Html.text "Sign In" ]
+
+                SignUp ->
+                    [ Html.text "Sign Up" ]
+            )
         ]
+
+
+isFormDisabled : Model -> Bool
+isFormDisabled model =
+    case model.formVariant of
+        SignIn ->
+            model.isSubmittingForm
+                || String.isEmpty model.email
+                || String.isEmpty model.password
+
+        SignUp ->
+            model.isSubmittingForm
+                || String.isEmpty model.email
+                || String.isEmpty model.password
+                || String.isEmpty model.passwordAgain
+                || (model.password /= model.passwordAgain)
 
 
 fromFieldToLabel : Field -> String
@@ -180,6 +257,9 @@ fromFieldToLabel field =
         Password ->
             "Password"
 
+        PasswordAgain ->
+            "Password again"
+
 
 fromFieldToInputType : Field -> String
 fromFieldToInputType field =
@@ -190,9 +270,5 @@ fromFieldToInputType field =
         Password ->
             "password"
 
-
-isFormDisabled : Model -> Bool
-isFormDisabled model =
-    model.isSubmittingForm
-        || String.isEmpty model.email
-        || String.isEmpty model.password
+        PasswordAgain ->
+            "password"
