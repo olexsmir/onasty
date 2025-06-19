@@ -25,6 +25,9 @@ onPageLoad shared _ =
                 , hash = Nothing
                 }
 
+        Auth.User.RefreshingTokens ->
+            Auth.Action.loadCustomPage
+
         Auth.User.SignedIn credentials ->
             Auth.Action.loadPageWithUser credentials
 

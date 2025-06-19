@@ -57,6 +57,9 @@ init shared _ =
 
         Auth.User.NotSignedIn ->
             Effect.none
+
+        Auth.User.RefreshingTokens ->
+            Effect.none
     )
 
 

@@ -10,3 +10,4 @@ type alias User =
 type SignInStatus
     = SignedIn User
     | NotSignedIn
+    | RefreshingTokens

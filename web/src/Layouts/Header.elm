@@ -89,6 +89,9 @@ viewNavbar shared =
                     Auth.User.NotSignedIn ->
                         [ Html.li [] [ viewNavLink ( "sign in", Route.Path.Auth ) ]
                         ]
+
+                    Auth.User.RefreshingTokens ->
+                        []
                 )
             ]
         ]

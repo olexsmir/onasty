@@ -317,7 +317,7 @@ toCmd options effect =
                             else
                                 []
 
-                        Auth.User.NotSignedIn ->
+                        _ ->
                             []
             in
             Http.request
