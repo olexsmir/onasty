@@ -27,7 +27,7 @@ onPageLoad shared _ =
 
         _ ->
             Auth.Action.pushRoute
-                { path = Route.Path.SignIn
+                { path = Route.Path.Auth
                 , query = Dict.empty
                 , hash = Nothing
                 }
