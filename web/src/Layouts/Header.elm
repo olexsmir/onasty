@@ -68,7 +68,7 @@ view shared { toContentMsg, content } =
     { title = content.title
     , body =
         [ viewNavbar shared |> Html.map toContentMsg
-        , Html.main_ [ Attr.class "page" ] content.body
+        , Html.main_ [] content.body
         ]
     }
 
@@ -87,7 +87,7 @@ viewNavbar shared =
                         ]
 
                     Auth.User.NotSignedIn ->
-                        [ Html.li [] [ viewNavLink ( "signin", Route.Path.Auth ) ]
+                        [ Html.li [] [ viewNavLink ( "sign in", Route.Path.Auth ) ]
                         ]
                 )
             ]

@@ -149,11 +149,12 @@ view : Model -> View Msg
 view model =
     { title = "Authentication"
     , body =
-        [ Html.div []
+        [ Html.div [ Attr.class "center" ]
             -- TODO: add oauth buttons
-            [ viewChangeVariant model.formVariant
-            , viewError model.error
+            [ viewError model.error
+            , viewChangeVariant model.formVariant
             , viewForm model
+            , viewForgotPassword
             ]
         ]
     }
@@ -161,7 +162,7 @@ view model =
 
 viewChangeVariant : Variant -> Html Msg
 viewChangeVariant variant =
-    Html.div []
+    Html.div [ Attr.class "mb1" ]
         [ Html.button
             [ Attr.disabled (variant == SignIn)
             , Html.Events.onClick (UserChangedFormVariant SignIn)
@@ -182,14 +183,14 @@ viewForm model =
             SignIn ->
                 [ viewFormInput { field = Email, value = model.email }
                 , viewFormInput { field = Password, value = model.password }
-                , viewFormControls model
+                , viewSubmitButton model
                 ]
 
             SignUp ->
                 [ viewFormInput { field = Email, value = model.email }
                 , viewFormInput { field = Password, value = model.password }
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
-                , viewFormControls model
+                , viewSubmitButton model
                 ]
         )
 
@@ -198,8 +199,10 @@ viewError : Maybe Http.Error -> Html Msg
 viewError maybeError =
     case maybeError of
         Just error ->
-            Html.div [ Attr.style "color" "red" ]
-                [ Html.text (Api.errorToFriendlyMessage error) ]
+            Html.div [ Attr.class "box bad" ]
+                [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
+                , Html.text (Api.errorToFriendlyMessage error)
+                ]
 
         Nothing ->
             Html.text ""
@@ -207,7 +210,7 @@ viewError maybeError =
 
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
-    Html.div []
+    Html.div [ Attr.class "mb1" ]
         [ Html.label [] [ Html.text (fromFieldToLabel opts.field) ]
         , Html.div []
             [ Html.input
@@ -220,18 +223,23 @@ viewFormInput opts =
         ]
 
 
-viewFormControls : Model -> Html Msg
-viewFormControls model =
+viewForgotPassword : Html Msg
+viewForgotPassword =
     Html.div []
+        [ Html.a
+            [ Attr.href "/forgot-password"
+            , Attr.class "gray"
+            ]
+            [ Html.text "Forgot password?" ]
+        ]
+
+
+viewSubmitButton : Model -> Html Msg
+viewSubmitButton model =
+    Html.div [ Attr.class "mb1" ]
         [ Html.button
             [ Attr.disabled (isFormDisabled model) ]
-            (case model.formVariant of
-                SignIn ->
-                    [ Html.text "Sign In" ]
-
-                SignUp ->
-                    [ Html.text "Sign Up" ]
-            )
+            [ Html.text (fromVariantToLabel model.formVariant) ]
         ]
 
 
@@ -249,6 +257,16 @@ isFormDisabled model =
                 || String.isEmpty model.password
                 || String.isEmpty model.passwordAgain
                 || (model.password /= model.passwordAgain)
+
+
+fromVariantToLabel : Variant -> String
+fromVariantToLabel variant =
+    case variant of
+        SignIn ->
+            "Sign In"
+
+        SignUp ->
+            "Sign Up"
 
 
 fromFieldToLabel : Field -> String
