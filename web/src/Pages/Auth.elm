@@ -1,4 +1,4 @@
-module Pages.SignIn exposing (Model, Msg, page)
+module Pages.Auth exposing (Model, Msg, page)
 
 import Api
 import Api.Auth
@@ -166,7 +166,7 @@ viewFormControls : Model -> Html Msg
 viewFormControls model =
     Html.div []
         [ Html.button
-            [ Attr.disabled model.isSubmittingForm ]
+            [ Attr.disabled (isFormDisabled model) ]
             [ Html.text "Sign In" ]
         ]
 
@@ -189,3 +189,10 @@ fromFieldToInputType field =
 
         Password ->
             "password"
+
+
+isFormDisabled : Model -> Bool
+isFormDisabled model =
+    model.isSubmittingForm
+        || String.isEmpty model.email
+        || String.isEmpty model.password
