@@ -2,12 +2,14 @@ module Pages.Auth exposing (Model, Msg, Variant, page)
 
 import Api
 import Api.Auth
+import Auth.User
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events
 import Http
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Route.Path
@@ -23,6 +25,7 @@ page shared _ =
         , subscriptions = subscriptions
         , view = view
         }
+        |> Page.withLayout (\_ -> Layouts.Header {})
 
 
 
@@ -48,11 +51,11 @@ init shared _ =
       , formVariant = SignIn
       , error = Nothing
       }
-    , case shared.credentials of
-        Just _ ->
+    , case shared.user of
+        Auth.User.SignedIn _ ->
             Effect.pushRoutePath Route.Path.Home_
 
-        Nothing ->
+        Auth.User.NotSignedIn ->
             Effect.none
     )
 

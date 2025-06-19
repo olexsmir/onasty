@@ -2,8 +2,6 @@ module Pages.Home_ exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
 import Html
-import Html.Attributes as Attributes
-import Html.Events
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
