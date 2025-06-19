@@ -2,6 +2,7 @@ module Pages.Home_ exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
 import Html
+import Html.Events
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -45,7 +46,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         NoOp ->
-            ( model, Effect.logout )
+            ( model, Effect.none )
 
 
 
@@ -64,5 +65,5 @@ subscriptions _ =
 view : Shared.Model -> Model -> View Msg
 view _ _ =
     { title = "Homepage"
-    , body = [ Html.p [] [ Html.text "Hello, world!" ] ]
+    , body = [ Html.p [ Html.Events.onClick NoOp ] [ Html.text "Hello, world!" ] ]
     }
