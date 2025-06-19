@@ -77,18 +77,18 @@ view shared { toContentMsg, model, content } =
 viewNavbar : Shared.Model -> Html Msg
 viewNavbar shared =
     Html.header [ Attr.class "navbar" ]
-        [ Html.nav [ Attr.id "nav", Attr.class "navigation" ]
-            [ Html.ul [ Attr.attribute "role" "list", Attr.class "align-items:center", Attr.preload "mouseover" ]
+        [ Html.nav [ Attr.class "f-row justify-content:space-between" ]
+            [ Html.ul [ Attr.attribute "role" "list" ]
+                [ Html.li [] [ viewNavLink ( "home", Route.Path.Home_ ) ] ]
+            , Html.ul [ Attr.attribute "role" "list" ]
                 (case shared.user of
                     Auth.User.SignedIn _ ->
-                        [ Html.li [] [ viewNavLink ( "onasty", Route.Path.Home_ ) ]
-                        , Html.li [] [ viewNavLink ( "profile", Route.Path.Profile_Me ) ]
+                        [ Html.li [] [ viewNavLink ( "profile", Route.Path.Profile_Me ) ]
                         , Html.li [] [ Html.a [ Html.Events.onClick UserClickedLogout ] [ Html.text "logout" ] ]
                         ]
 
                     Auth.User.NotSignedIn ->
-                        [ Html.li [] [ viewNavLink ( "onasty", Route.Path.Home_ ) ]
-                        , Html.li [] [ viewNavLink ( "signin", Route.Path.Auth ) ]
+                        [ Html.li [] [ viewNavLink ( "signin", Route.Path.Auth ) ]
                         ]
                 )
             ]
