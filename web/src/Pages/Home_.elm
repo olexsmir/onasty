@@ -4,6 +4,7 @@ import Effect exposing (Effect)
 import Html
 import Html.Attributes as Attributes
 import Html.Events
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
@@ -18,6 +19,7 @@ page shared _ =
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout Layouts.Header
 
 
 
@@ -38,13 +40,13 @@ init _ () =
 
 
 type Msg
-    = LogOut
+    = NoOp
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        LogOut ->
+        NoOp ->
             ( model, Effect.logout )
 
 
@@ -64,19 +66,5 @@ subscriptions _ =
 view : Shared.Model -> Model -> View Msg
 view _ _ =
     { title = "Homepage"
-    , body =
-        [ Html.div []
-            [ Html.p [] [ Html.text "Hello, world!" ]
-            , Html.p []
-                [ Html.a
-                    [ Attributes.href "/profile/me" ]
-                    [ Html.text "/profile/me - fetches authorized data" ]
-                ]
-            , Html.p []
-                [ Html.button
-                    [ Html.Events.onClick LogOut ]
-                    [ Html.text "Logout" ]
-                ]
-            ]
-        ]
+    , body = [ Html.p [] [ Html.text "Hello, world!" ] ]
     }
