@@ -20,7 +20,7 @@ import Effect exposing (Effect)
 import Json.Decode
 import JwtUtil
 import Route exposing (Route)
-import Route.Path exposing (Path(..))
+import Route.Path
 import Shared.Model
 import Shared.Msg
 import Task

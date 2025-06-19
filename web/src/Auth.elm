@@ -2,7 +2,6 @@ module Auth exposing (User, onPageLoad, viewCustomPage)
 
 import Auth.Action
 import Auth.User
-import Data.Credentials exposing (Credentials)
 import Dict
 import Route exposing (Route)
 import Route.Path

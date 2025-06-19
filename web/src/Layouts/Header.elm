@@ -1,6 +1,5 @@
 module Layouts.Header exposing (Model, Msg, Props, layout)
 
-import Auth exposing (User)
 import Auth.User
 import Effect exposing (Effect)
 import Html exposing (Html)
@@ -65,7 +64,7 @@ subscriptions _ =
 
 
 view : Shared.Model -> { toContentMsg : Msg -> contentMsg, content : View contentMsg, model : Model } -> View contentMsg
-view shared { toContentMsg, model, content } =
+view shared { toContentMsg, content } =
     { title = content.title
     , body =
         [ viewNavbar shared |> Html.map toContentMsg
