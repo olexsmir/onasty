@@ -13,13 +13,14 @@ module Shared exposing
 -}
 
 import Api.Auth
+import Auth.User
 import Data.Credentials exposing (Credentials)
 import Dict
 import Effect exposing (Effect)
 import Json.Decode
 import JwtUtil
 import Route exposing (Route)
-import Route.Path
+import Route.Path exposing (Path(..))
 import Shared.Model
 import Shared.Msg
 import Task
@@ -65,9 +66,18 @@ init flagsResult _ =
                 flags.accessToken
                 flags.refreshToken
 
+        user : Auth.User.SignInStatus
+        user =
+            case maybeCredentials of
+                Just credentials ->
+                    Auth.User.SignedIn credentials
+
+                Nothing ->
+                    Auth.User.NotSignedIn
+
         initModel : Model
         initModel =
-            { credentials = maybeCredentials
+            { user = user
             , timeZone = Time.utc
             , isRefreshingTokens = False
             }
@@ -95,10 +105,10 @@ update _ msg model =
             ( { model | timeZone = timeZone }, Effect.none )
 
         Shared.Msg.Logout ->
-            ( { model | credentials = Nothing }, Effect.clearUser )
+            ( { model | user = Auth.User.NotSignedIn }, Effect.clearUser )
 
         Shared.Msg.SignedIn credentials ->
-            ( { model | credentials = Just credentials }
+            ( { model | user = Auth.User.SignedIn credentials }
             , Effect.batch
                 [ Effect.pushRoute
                     { path = Route.Path.Home_
@@ -110,20 +120,20 @@ update _ msg model =
             )
 
         Shared.Msg.CheckTokenExpiration now ->
-            case model.credentials of
-                Just credentials ->
+            case model.user of
+                Auth.User.SignedIn credentials ->
                     if JwtUtil.isExpired now credentials.accessToken then
                         ( model, Effect.refreshTokens )
 
                     else
                         ( model, Effect.none )
 
-                Nothing ->
+                Auth.User.NotSignedIn ->
                     ( model, Effect.none )
 
         Shared.Msg.TriggerTokenRefresh ->
-            case model.credentials of
-                Just credentials ->
+            case model.user of
+                Auth.User.SignedIn credentials ->
                     ( { model | isRefreshingTokens = True }
                     , Api.Auth.refreshToken
                         { onResponse = Shared.Msg.ApiRefreshTokensResponded
@@ -131,11 +141,11 @@ update _ msg model =
                         }
                     )
 
-                Nothing ->
+                Auth.User.NotSignedIn ->
                     ( model, Effect.none )
 
         Shared.Msg.ApiRefreshTokensResponded (Ok credentials) ->
-            ( { model | isRefreshingTokens = False, credentials = Just credentials }
+            ( { model | isRefreshingTokens = False, user = Auth.User.SignedIn credentials }
             , Effect.saveUser credentials.accessToken credentials.refreshToken
             )
 

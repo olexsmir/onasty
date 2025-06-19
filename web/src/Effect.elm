@@ -5,9 +5,9 @@ module Effect exposing
     , pushRoute, replaceRoute
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
-    , sendApiRequest
+    , sendApiRequest, refreshTokens
     , signin, logout, saveUser, clearUser
-    , map, toCmd, refreshTokens
+    , map, toCmd
     )
 
 {-|
@@ -29,6 +29,7 @@ module Effect exposing
 -}
 
 import Api exposing (HttpRequestDetails)
+import Auth.User
 import Browser.Navigation
 import Data.Credentials exposing (Credentials)
 import Dict exposing (Dict)
@@ -308,15 +309,15 @@ toCmd options effect =
             let
                 headers : List Http.Header
                 headers =
-                    case options.shared.credentials of
-                        Just tok ->
+                    case options.shared.user of
+                        Auth.User.SignedIn cred ->
                             if not (String.contains opts.endpoint "refresh-tokens") then
-                                [ Http.header "Authorization" ("Bearer " ++ tok.accessToken) ]
+                                [ Http.header "Authorization" ("Bearer " ++ cred.accessToken) ]
 
                             else
                                 []
 
-                        Nothing ->
+                        Auth.User.NotSignedIn ->
                             []
             in
             Http.request
