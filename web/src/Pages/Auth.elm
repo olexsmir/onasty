@@ -1,4 +1,4 @@
-module Pages.Auth exposing (Model, Msg, page)
+module Pages.Auth exposing (Model, Msg, Variant, page)
 
 import Api
 import Api.Auth
