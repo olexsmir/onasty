@@ -2,12 +2,14 @@ module Pages.Auth exposing (Model, Msg, Variant, page)
 
 import Api
 import Api.Auth
+import Auth.User
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events
 import Http
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Route.Path
@@ -23,6 +25,7 @@ page shared _ =
         , subscriptions = subscriptions
         , view = view
         }
+        |> Page.withLayout (\_ -> Layouts.Header {})
 
 
 
@@ -48,11 +51,11 @@ init shared _ =
       , formVariant = SignIn
       , error = Nothing
       }
-    , case shared.credentials of
-        Just _ ->
+    , case shared.user of
+        Auth.User.SignedIn _ ->
             Effect.pushRoutePath Route.Path.Home_
 
-        Nothing ->
+        Auth.User.NotSignedIn ->
             Effect.none
     )
 
@@ -146,11 +149,12 @@ view : Model -> View Msg
 view model =
     { title = "Authentication"
     , body =
-        [ Html.div []
+        [ Html.div [ Attr.class "center" ]
             -- TODO: add oauth buttons
-            [ viewChangeVariant model.formVariant
-            , viewError model.error
+            [ viewError model.error
+            , viewChangeVariant model.formVariant
             , viewForm model
+            , viewForgotPassword
             ]
         ]
     }
@@ -158,7 +162,7 @@ view model =
 
 viewChangeVariant : Variant -> Html Msg
 viewChangeVariant variant =
-    Html.div []
+    Html.div [ Attr.class "mb1" ]
         [ Html.button
             [ Attr.disabled (variant == SignIn)
             , Html.Events.onClick (UserChangedFormVariant SignIn)
@@ -179,14 +183,14 @@ viewForm model =
             SignIn ->
                 [ viewFormInput { field = Email, value = model.email }
                 , viewFormInput { field = Password, value = model.password }
-                , viewFormControls model
+                , viewSubmitButton model
                 ]
 
             SignUp ->
                 [ viewFormInput { field = Email, value = model.email }
                 , viewFormInput { field = Password, value = model.password }
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
-                , viewFormControls model
+                , viewSubmitButton model
                 ]
         )
 
@@ -195,8 +199,10 @@ viewError : Maybe Http.Error -> Html Msg
 viewError maybeError =
     case maybeError of
         Just error ->
-            Html.div [ Attr.style "color" "red" ]
-                [ Html.text (Api.errorToFriendlyMessage error) ]
+            Html.div [ Attr.class "box bad" ]
+                [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
+                , Html.text (Api.errorToFriendlyMessage error)
+                ]
 
         Nothing ->
             Html.text ""
@@ -204,7 +210,7 @@ viewError maybeError =
 
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
-    Html.div []
+    Html.div [ Attr.class "mb1" ]
         [ Html.label [] [ Html.text (fromFieldToLabel opts.field) ]
         , Html.div []
             [ Html.input
@@ -217,18 +223,23 @@ viewFormInput opts =
         ]
 
 
-viewFormControls : Model -> Html Msg
-viewFormControls model =
+viewForgotPassword : Html Msg
+viewForgotPassword =
     Html.div []
+        [ Html.a
+            [ Attr.href "/forgot-password"
+            , Attr.class "gray"
+            ]
+            [ Html.text "Forgot password?" ]
+        ]
+
+
+viewSubmitButton : Model -> Html Msg
+viewSubmitButton model =
+    Html.div [ Attr.class "mb1" ]
         [ Html.button
             [ Attr.disabled (isFormDisabled model) ]
-            (case model.formVariant of
-                SignIn ->
-                    [ Html.text "Sign In" ]
-
-                SignUp ->
-                    [ Html.text "Sign Up" ]
-            )
+            [ Html.text (fromVariantToLabel model.formVariant) ]
         ]
 
 
@@ -246,6 +257,16 @@ isFormDisabled model =
                 || String.isEmpty model.password
                 || String.isEmpty model.passwordAgain
                 || (model.password /= model.passwordAgain)
+
+
+fromVariantToLabel : Variant -> String
+fromVariantToLabel variant =
+    case variant of
+        SignIn ->
+            "Sign In"
+
+        SignUp ->
+            "Sign Up"
 
 
 fromFieldToLabel : Field -> String

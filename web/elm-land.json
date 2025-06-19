@@ -12,7 +12,8 @@
     "html": {
       "attributes": {
         "html": {
-          "lang": "en"
+          "lang": "en",
+          "class": "-no-dark-theme"
         },
         "head": {}
       },

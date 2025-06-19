@@ -1,11 +1,11 @@
 module Shared.Model exposing (Model)
 
-import Data.Credentials exposing (Credentials)
+import Auth.User
 import Time
 
 
 type alias Model =
-    { credentials : Maybe Credentials
+    { user : Auth.User.SignInStatus
     , timeZone : Time.Zone
     , isRefreshingTokens : Bool
     }

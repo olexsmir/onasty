@@ -36,6 +36,10 @@ jobs:
       - name: elm-review
         run: bunx elm-review --ignore-dirs .elm-land
 
+      - name: elm-format
+        run: bunx elm-format --validate src/
+
+
       - name: Tests
         run: bunx elm-test-rs
 

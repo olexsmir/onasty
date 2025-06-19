@@ -7,6 +7,7 @@ import Data.Me exposing (Me)
 import Effect exposing (Effect)
 import Html exposing (Html)
 import Http
+import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
@@ -21,6 +22,7 @@ page _ shared _ =
         , subscriptions = subscriptions
         , view = view shared
         }
+        |> Page.withLayout (\_ -> Layouts.Header {})
 
 
 
