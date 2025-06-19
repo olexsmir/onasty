@@ -149,7 +149,7 @@ update _ msg model =
             )
 
         Shared.Msg.ApiRefreshTokensResponded (Err _) ->
-            ( model, Effect.clearUser )
+            ( { model | user = Auth.User.NotSignedIn }, Effect.clearUser )
 
 
 
