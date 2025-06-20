@@ -67,7 +67,7 @@ type alias HttpRequestDetails msg =
     , method : String
     , body : Http.Body
     , decoder : Json.Decode.Decoder msg
-    , onHttpError : Http.Error -> msg
+    , onHttpError : Api.Error -> msg
     }
 
 
@@ -180,9 +180,9 @@ sendApiRequest opts =
         onSuccess value =
             opts.onResponse (Ok value)
 
-        onHttpError : Http.Error -> msg
-        onHttpError httpError =
-            opts.onResponse (Err (Api.HttpError { message = "", reason = httpError }))
+        onHttpError : Api.Error -> msg
+        onHttpError err =
+            opts.onResponse (Err err)
     in
     SendApiRequest
         { endpoint = opts.endpoint
@@ -341,7 +341,7 @@ toCmd options effect =
                                     msg
 
                                 Err err ->
-                                    err |> toHttpError |> opts.onHttpError
+                                    opts.onHttpError err
                         )
                         (\resp -> fromHttpResponseToCustomError opts.decoder resp)
                 , timeout = Just (1000 * 60) -- 60 second timeout
@@ -362,8 +362,8 @@ fromHttpResponseToCustomError decoder response =
 
         Http.BadStatus_ { statusCode } body ->
             case Json.Decode.decodeString Data.Error.decode body of
-                Ok error ->
-                    Err (Api.HttpError { message = error.message, reason = Http.BadStatus statusCode })
+                Ok err ->
+                    Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
 
                 Err err ->
                     Err (Api.JsonDecodeError { message = "Something unexpected happened", reason = err })
@@ -376,13 +376,3 @@ fromHttpResponseToCustomError decoder response =
 
         Http.NetworkError_ ->
             Err (Api.HttpError { message = "Could not connect, please try again", reason = Http.NetworkError })
-
-
-toHttpError : Api.Error -> Http.Error
-toHttpError customError =
-    case customError of
-        Api.JsonDecodeError { reason } ->
-            Http.BadBody (Json.Decode.errorToString reason)
-
-        Api.HttpError { reason } ->
-            reason

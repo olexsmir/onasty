@@ -239,9 +239,7 @@ viewForgotPassword : Html Msg
 viewForgotPassword =
     Html.div []
         [ Html.a
-            [ Attr.href "/forgot-password"
-            , Attr.class "gray"
-            ]
+            [ Attr.href "/forgot-password" ]
             [ Html.text "Forgot password?" ]
         ]
 
