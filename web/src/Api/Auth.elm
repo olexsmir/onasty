@@ -1,5 +1,6 @@
 module Api.Auth exposing (refreshToken, signin, signup)
 
+import Api
 import Data.Credentials as Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Http
@@ -8,7 +9,7 @@ import Json.Encode as Encode
 
 
 signin :
-    { onResponse : Result Http.Error Credentials -> msg
+    { onResponse : Result Api.Error Credentials -> msg
     , email : String
     , password : String
     }
@@ -32,7 +33,7 @@ signin options =
 
 
 signup :
-    { onResponse : Result Http.Error () -> msg
+    { onResponse : Result Api.Error () -> msg
     , email : String
     , password : String
     }
@@ -56,7 +57,7 @@ signup options =
 
 
 refreshToken :
-    { onResponse : Result Http.Error Credentials -> msg
+    { onResponse : Result Api.Error Credentials -> msg
     , refreshToken : String
     }
     -> Effect msg

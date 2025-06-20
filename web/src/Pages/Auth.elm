@@ -8,7 +8,6 @@ import Effect exposing (Effect)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Html.Events
-import Http
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -38,7 +37,7 @@ type alias Model =
     , passwordAgain : String
     , isSubmittingForm : Bool
     , formVariant : Variant
-    , error : Maybe Http.Error
+    , error : Maybe Api.Error
     }
 
 
@@ -71,8 +70,8 @@ type Msg
     = UserUpdatedInput Field String
     | UserChangedFormVariant Variant
     | UserClickedSubmit
-    | ApiSignInResponded (Result Http.Error Credentials)
-    | ApiSignUpResponded (Result Http.Error ())
+    | ApiSignInResponded (Result Api.Error Credentials)
+    | ApiSignUpResponded (Result Api.Error ())
 
 
 type Field
@@ -198,13 +197,23 @@ viewForm model =
         )
 
 
-viewError : Maybe Http.Error -> Html Msg
+viewError : Maybe Api.Error -> Html Msg
 viewError maybeError =
     case maybeError of
         Just error ->
+            let
+                text : String
+                text =
+                    case error of
+                        Api.HttpError err ->
+                            err.message
+
+                        Api.JsonDecodeError err ->
+                            err.message
+            in
             Html.div [ Attr.class "box bad" ]
                 [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
-                , Html.text (Api.errorToFriendlyMessage error)
+                , Html.text text
                 ]
 
         Nothing ->
