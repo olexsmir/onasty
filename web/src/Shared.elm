@@ -79,7 +79,6 @@ init flagsResult _ =
         initModel =
             { user = user
             , timeZone = Time.utc
-            , isRefreshingTokens = False
             }
     in
     ( initModel
@@ -128,29 +127,29 @@ update _ msg model =
                     else
                         ( model, Effect.none )
 
-                Auth.User.NotSignedIn ->
+                _ ->
                     ( model, Effect.none )
 
         Shared.Msg.TriggerTokenRefresh ->
             case model.user of
                 Auth.User.SignedIn credentials ->
-                    ( { model | isRefreshingTokens = True }
+                    ( { model | user = Auth.User.RefreshingTokens }
                     , Api.Auth.refreshToken
                         { onResponse = Shared.Msg.ApiRefreshTokensResponded
                         , refreshToken = credentials.refreshToken
                         }
                     )
 
-                Auth.User.NotSignedIn ->
+                _ ->
                     ( model, Effect.none )
 
         Shared.Msg.ApiRefreshTokensResponded (Ok credentials) ->
-            ( { model | isRefreshingTokens = False, user = Auth.User.SignedIn credentials }
+            ( { model | user = Auth.User.SignedIn credentials }
             , Effect.saveUser credentials.accessToken credentials.refreshToken
             )
 
         Shared.Msg.ApiRefreshTokensResponded (Err _) ->
-            ( { model | isRefreshingTokens = False }, Effect.clearUser )
+            ( { model | user = Auth.User.NotSignedIn }, Effect.clearUser )
 
 
 
