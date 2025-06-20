@@ -141,10 +141,10 @@ update msg model =
             ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
         ApiResendVerificationEmail (Ok ()) ->
-            ( { model | isSubmittingForm = False, apiError = Nothing }, Effect.none )
+            ( { model | apiError = Nothing }, Effect.none )
 
         ApiResendVerificationEmail (Err err) ->
-            ( { model | isSubmittingForm = False, apiError = Just err }, Effect.none )
+            ( { model | apiError = Just err }, Effect.none )
 
 
 
