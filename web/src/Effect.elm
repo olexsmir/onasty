@@ -28,10 +28,11 @@ module Effect exposing
 
 -}
 
-import Api exposing (HttpRequestDetails)
+import Api
 import Auth.User
 import Browser.Navigation
 import Data.Credentials exposing (Credentials)
+import Data.Error
 import Dict exposing (Dict)
 import Http
 import Json.Decode
@@ -59,6 +60,15 @@ type Effect msg
     | SendSharedMsg Shared.Msg.Msg
     | SendToLocalStorage { key : String, value : Json.Encode.Value }
     | SendApiRequest (HttpRequestDetails msg)
+
+
+type alias HttpRequestDetails msg =
+    { endpoint : String
+    , method : String
+    , body : Http.Body
+    , decoder : Json.Decode.Decoder msg
+    , onHttpError : Http.Error -> msg
+    }
 
 
 
@@ -161,27 +171,25 @@ sendApiRequest :
     , method : String
     , body : Http.Body
     , decoder : Json.Decode.Decoder value
-    , onResponse : Result Http.Error value -> msg
+    , onResponse : Result Api.Error value -> msg
     }
     -> Effect msg
 sendApiRequest opts =
     let
+        onSuccess : value -> msg
+        onSuccess value =
+            opts.onResponse (Ok value)
+
         onHttpError : Http.Error -> msg
         onHttpError httpError =
-            opts.onResponse (Err httpError)
-
-        decoder : Json.Decode.Decoder msg
-        decoder =
-            opts.decoder
-                |> Json.Decode.map Ok
-                |> Json.Decode.map opts.onResponse
+            opts.onResponse (Err (Api.HttpError { message = "", reason = httpError }))
     in
     SendApiRequest
         { endpoint = opts.endpoint
         , method = opts.method
         , body = opts.body
         , onHttpError = onHttpError
-        , decoder = decoder
+        , decoder = Json.Decode.map onSuccess opts.decoder
         }
 
 
@@ -326,16 +334,55 @@ toCmd options effect =
                 , headers = headers
                 , body = opts.body
                 , expect =
-                    Http.expectJson
+                    Http.expectStringResponse
                         (\httpResult ->
                             case httpResult of
                                 Ok msg ->
                                     msg
 
                                 Err err ->
-                                    opts.onHttpError err
+                                    err |> toHttpError |> opts.onHttpError
                         )
-                        opts.decoder
+                        (\resp -> fromHttpResponseToCustomError opts.decoder resp)
                 , timeout = Just (1000 * 60) -- 60 second timeout
                 , tracker = Nothing
                 }
+
+
+fromHttpResponseToCustomError : Json.Decode.Decoder msg -> Http.Response String -> Result Api.Error msg
+fromHttpResponseToCustomError decoder response =
+    case response of
+        Http.GoodStatus_ _ body ->
+            case Json.Decode.decodeString decoder body of
+                Ok data ->
+                    Ok data
+
+                Err err ->
+                    Err (Api.JsonDecodeError { message = "Something unexpected happened", reason = err })
+
+        Http.BadStatus_ { statusCode } body ->
+            case Json.Decode.decodeString Data.Error.decode body of
+                Ok error ->
+                    Err (Api.HttpError { message = error.message, reason = Http.BadStatus statusCode })
+
+                Err err ->
+                    Err (Api.JsonDecodeError { message = "Something unexpected happened", reason = err })
+
+        Http.BadUrl_ url ->
+            Err (Api.HttpError { message = "Unexpected URL format", reason = Http.BadUrl url })
+
+        Http.Timeout_ ->
+            Err (Api.HttpError { message = "Request timed out, please try again", reason = Http.Timeout })
+
+        Http.NetworkError_ ->
+            Err (Api.HttpError { message = "Could not connect, please try again", reason = Http.NetworkError })
+
+
+toHttpError : Api.Error -> Http.Error
+toHttpError customError =
+    case customError of
+        Api.JsonDecodeError { reason } ->
+            Http.BadBody (Json.Decode.errorToString reason)
+
+        Api.HttpError { reason } ->
+            reason
