@@ -1,4 +1,4 @@
-module Api.Auth exposing (refreshToken, signin, signup)
+module Api.Auth exposing (refreshToken, resendVerificationEmail, signin, signup)
 
 import Api
 import Data.Credentials as Credentials exposing (Credentials)
@@ -74,4 +74,28 @@ refreshToken options =
         , body = Http.jsonBody body
         , onResponse = options.onResponse
         , decoder = Credentials.decode
+        }
+
+
+resendVerificationEmail :
+    { onResponse : Result Api.Error () -> msg
+    , email : String
+    , password : String
+    }
+    -> Effect msg
+resendVerificationEmail options =
+    let
+        body : Encode.Value
+        body =
+            Encode.object
+                [ ( "email", Encode.string options.email )
+                , ( "password", Encode.string options.password )
+                ]
+    in
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/auth/resend-verification-email"
+        , method = "POST"
+        , body = Http.jsonBody body
+        , onResponse = options.onResponse
+        , decoder = Decode.succeed ()
         }
