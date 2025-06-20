@@ -201,19 +201,9 @@ viewError : Maybe Api.Error -> Html Msg
 viewError maybeError =
     case maybeError of
         Just error ->
-            let
-                text : String
-                text =
-                    case error of
-                        Api.HttpError err ->
-                            err.message
-
-                        Api.JsonDecodeError err ->
-                            err.message
-            in
             Html.div [ Attr.class "box bad" ]
                 [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
-                , Html.text text
+                , Html.text (Api.getErrorMessage error)
                 ]
 
         Nothing ->

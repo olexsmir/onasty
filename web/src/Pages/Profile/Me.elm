@@ -86,11 +86,8 @@ viewProfileContent shared userResponse =
         Api.Success user ->
             viewUserDetails shared user
 
-        Api.Failure (Api.HttpError err) ->
-            Html.text err.message
-
-        Api.Failure (Api.JsonDecodeError err) ->
-            Html.text err.message
+        Api.Failure err ->
+            Html.text (Api.getErrorMessage err)
 
 
 viewUserDetails : Shared.Model -> Me -> Html Msg
