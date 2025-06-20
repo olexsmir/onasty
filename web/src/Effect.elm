@@ -176,10 +176,6 @@ sendApiRequest :
     -> Effect msg
 sendApiRequest opts =
     let
-        onSuccess : value -> msg
-        onSuccess value =
-            opts.onResponse (Ok value)
-
         onHttpError : Api.Error -> msg
         onHttpError err =
             opts.onResponse (Err err)
