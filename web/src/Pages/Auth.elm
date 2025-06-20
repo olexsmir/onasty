@@ -36,9 +36,9 @@ type alias Model =
     , password : String
     , passwordAgain : String
     , isSubmittingForm : Bool
-    , gotSignedUp : Bool
     , formVariant : Variant
-    , error : Maybe Api.Error
+    , gotSignedUp : Bool
+    , apiError : Maybe Api.Error
     }
 
 
@@ -49,17 +49,14 @@ init shared _ =
       , password = ""
       , passwordAgain = ""
       , formVariant = SignIn
-      , error = Nothing
+      , apiError = Nothing
       , gotSignedUp = False
       }
     , case shared.user of
         Auth.User.SignedIn _ ->
             Effect.pushRoutePath Route.Path.Home_
 
-        Auth.User.NotSignedIn ->
-            Effect.none
-
-        Auth.User.RefreshingTokens ->
+        _ ->
             Effect.none
     )
 
@@ -93,7 +90,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UserClickedSubmit ->
-            ( { model | isSubmittingForm = True, error = Nothing }
+            ( { model | isSubmittingForm = True, apiError = Nothing }
             , case model.formVariant of
                 SignIn ->
                     Api.Auth.signin
@@ -132,25 +129,22 @@ update msg model =
             ( { model | passwordAgain = passwordAgain }, Effect.none )
 
         ApiSignInResponded (Ok credentials) ->
-            ( { model | isSubmittingForm = False }
-            , Effect.signin credentials
-            )
+            ( { model | isSubmittingForm = False }, Effect.signin credentials )
 
         ApiSignInResponded (Err error) ->
-            ( { model | isSubmittingForm = False, error = Just error }, Effect.none )
+            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
         ApiSignUpResponded (Ok ()) ->
-            -- TODO: show banner with that they have to activate account
             ( { model | isSubmittingForm = False, gotSignedUp = True }, Effect.none )
 
         ApiSignUpResponded (Err error) ->
-            ( { model | isSubmittingForm = False, error = Just error }, Effect.none )
+            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
         ApiResendVerificationEmail (Ok ()) ->
-            ( { model | isSubmittingForm = False, error = Nothing }, Effect.none )
+            ( { model | isSubmittingForm = False, apiError = Nothing }, Effect.none )
 
         ApiResendVerificationEmail (Err err) ->
-            ( { model | isSubmittingForm = False, error = Just err }, Effect.none )
+            ( { model | isSubmittingForm = False, apiError = Just err }, Effect.none )
 
 
 
@@ -172,8 +166,7 @@ view model =
     , body =
         [ Html.div [ Attr.class "center" ]
             -- TODO: add oauth buttons
-            [ viewError model.error
-            , viewSuccessfullySignedUpBanner model
+            [ viewBanner model.apiError model.gotSignedUp
             , viewChangeVariant model.formVariant
             , viewForm model
             , viewForgotPassword
@@ -217,24 +210,14 @@ viewForm model =
         )
 
 
-viewError : Maybe Api.Error -> Html Msg
-viewError maybeError =
-    case maybeError of
-        Just error ->
+viewBanner : Maybe Api.Error -> Bool -> Html Msg
+viewBanner maybeError gotSignedUp =
+    case ( maybeError, gotSignedUp ) of
+        ( Just error, _ ) ->
             Html.div [ Attr.class "box bad" ]
                 [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
                 , Html.text (Api.errorMessage error)
                 ]
-
-        Nothing ->
-            Html.text ""
-
-
-viewSuccessfullySignedUpBanner : Model -> Html Msg
-viewSuccessfullySignedUpBanner model =
-    case ( model.error, model.gotSignedUp ) of
-        ( Just _, _ ) ->
-            Html.text ""
 
         ( Nothing, True ) ->
             Html.div [ Attr.class "box good" ]
