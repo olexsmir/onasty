@@ -35,7 +35,7 @@ type alias Model =
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init _ () =
     ( { me = Api.Loading }
-   , Api.Me.get { onResponse = ApiMeResponded }
+    , Api.Me.get { onResponse = ApiMeResponded }
     )
 
 
