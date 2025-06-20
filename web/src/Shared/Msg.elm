@@ -1,7 +1,7 @@
 module Shared.Msg exposing (Msg(..))
 
+import Api
 import Data.Credentials exposing (Credentials)
-import Http
 import Time
 
 
@@ -13,4 +13,4 @@ type Msg
       -- Session
     | CheckTokenExpiration Time.Posix
     | TriggerTokenRefresh
-    | ApiRefreshTokensResponded (Result Http.Error Credentials)
+    | ApiRefreshTokensResponded (Result Api.Error Credentials)

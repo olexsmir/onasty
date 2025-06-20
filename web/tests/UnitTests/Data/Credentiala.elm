@@ -9,7 +9,7 @@ import Test exposing (Test, describe, test)
 suite : Test
 suite =
     describe "Data.Credentials"
-        [ test "decode credentials" <|
+        [ test "decode" <|
             \_ ->
                 """
                 {
