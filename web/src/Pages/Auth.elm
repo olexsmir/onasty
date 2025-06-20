@@ -203,7 +203,7 @@ viewError maybeError =
         Just error ->
             Html.div [ Attr.class "box bad" ]
                 [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
-                , Html.text (Api.getErrorMessage error)
+                , Html.text (Api.errorMessage error)
                 ]
 
         Nothing ->

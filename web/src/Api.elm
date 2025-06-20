@@ -1,4 +1,4 @@
-module Api exposing (Error(..), Response(..), getErrorMessage)
+module Api exposing (Error(..), Response(..), errorMessage)
 
 import Http
 import Json.Decode
@@ -21,8 +21,8 @@ type Response value
     | Failure Error
 
 
-getErrorMessage : Error -> String
-getErrorMessage error =
+errorMessage : Error -> String
+errorMessage error =
     case error of
         HttpError err ->
             err.message
