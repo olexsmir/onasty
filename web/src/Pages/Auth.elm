@@ -220,7 +220,7 @@ viewBanner maybeError gotSignedUp =
                 ]
 
         ( Nothing, True ) ->
-            Html.div [ Attr.class "box good" ]
+            Html.div [ Attr.class "box ok" ]
                 [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Successfully signed up!" ]
                 , Html.p []
                     [ Html.text "Please check your email to activate your account."
