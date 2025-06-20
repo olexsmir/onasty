@@ -183,13 +183,19 @@ sendApiRequest opts =
         onHttpError : Api.Error -> msg
         onHttpError err =
             opts.onResponse (Err err)
+
+        decoder : Json.Decode.Decoder msg
+        decoder =
+            opts.decoder
+                |> Json.Decode.map Ok
+                |> Json.Decode.map opts.onResponse
     in
     SendApiRequest
         { endpoint = opts.endpoint
         , method = opts.method
         , body = opts.body
         , onHttpError = onHttpError
-        , decoder = Json.Decode.map onSuccess opts.decoder
+        , decoder = decoder
         }
 
 
@@ -353,12 +359,20 @@ fromHttpResponseToCustomError : Json.Decode.Decoder msg -> Http.Response String 
 fromHttpResponseToCustomError decoder response =
     case response of
         Http.GoodStatus_ _ body ->
-            case Json.Decode.decodeString decoder body of
-                Ok data ->
-                    Ok data
+            case
+                Json.Decode.decodeString decoder
+                    (if String.isEmpty body then
+                        "\"\""
+
+                     else
+                        body
+                    )
+            of
+                Ok value ->
+                    Ok value
 
                 Err err ->
-                    Err (Api.JsonDecodeError { message = "Something unexpected happened", reason = err })
+                    Err (Api.JsonDecodeError { message = "Failed to decode JSON response", reason = err })
 
         Http.BadStatus_ { statusCode } body ->
             case Json.Decode.decodeString Data.Error.decode body of
