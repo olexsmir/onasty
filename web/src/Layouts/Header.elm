@@ -2,9 +2,9 @@ module Layouts.Header exposing (Model, Msg, Props, layout)
 
 import Auth.User
 import Effect exposing (Effect)
-import Html exposing (Html)
-import Html.Attributes as Attr
-import Html.Events
+import Html as H exposing (Html)
+import Html.Attributes as A
+import Html.Events as E
 import Layout exposing (Layout)
 import Route exposing (Route)
 import Route.Path
@@ -67,43 +67,70 @@ view : Shared.Model -> { toContentMsg : Msg -> contentMsg, content : View conten
 view shared { toContentMsg, content } =
     { title = content.title
     , body =
-        [ viewNavbar shared |> Html.map toContentMsg
-        , Html.main_ [] content.body
+        [ viewHeader shared.user |> H.map toContentMsg
+        , H.main_ [] content.body
         ]
     }
 
 
-viewNavbar : Shared.Model -> Html Msg
-viewNavbar shared =
-    Html.header [ Attr.class "navbar" ]
-        [ Html.nav [ Attr.class "f-row justify-content:space-between" ]
-            [ Html.ul [ Attr.attribute "role" "list" ]
-                [ Html.li [] [ viewNavLink ( "home", Route.Path.Home_ ) ] ]
-            , Html.ul [ Attr.attribute "role" "list" ]
-                (case shared.user of
-                    Auth.User.SignedIn _ ->
-                        [ Html.li [] [ viewNavLink ( "profile", Route.Path.Profile_Me ) ]
-                        , Html.li [] [ Html.a [ Html.Events.onClick UserClickedLogout ] [ Html.text "logout" ] ]
+viewHeader : Auth.User.SignInStatus -> Html Msg
+viewHeader user =
+    H.header [ A.class "w-full border-b border-gray-200 bg-white" ]
+        [ H.div [ A.class "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" ]
+            [ H.div [ A.class "flex justify-between items-center h-16" ]
+                [ H.div [ A.class "flex items-center" ]
+                    [ H.a
+                        [ A.class "text-lg font-semibold text-black hover:text-gray-700 transition-colors"
+                        , Route.Path.href Route.Path.Home_
                         ]
-
-                    Auth.User.NotSignedIn ->
-                        viewNotSignedInNav
-
-                    Auth.User.RefreshingTokens ->
-                        viewNotSignedInNav
-                )
+                        [ H.text "Onasty" ]
+                    ]
+                , H.nav [ A.class "flex items-center space-x-6" ] (viewNav user)
+                ]
             ]
         ]
 
 
-viewNotSignedInNav : List (Html msg)
-viewNotSignedInNav =
-    [ Html.li [] [ viewNavLink ( "sign in", Route.Path.Auth ) ]
+viewNav : Auth.User.SignInStatus -> List (Html Msg)
+viewNav user =
+    case user of
+        Auth.User.SignedIn _ ->
+            viewSignedInNav
+
+        Auth.User.NotSignedIn ->
+            viewNotSignedInNav
+
+        Auth.User.RefreshingTokens ->
+            viewNotSignedInNav
+
+
+viewSignedInNav : List (Html Msg)
+viewSignedInNav =
+    [ viewLink "Profile" Route.Path.Profile_Me
+    , H.button
+        [ A.class "text-gray-600 hover:text-red-600 transition-colors"
+        , E.onClick UserClickedLogout
+        ]
+        [ H.text "Logout" ]
     ]
 
 
-viewNavLink : ( String, Route.Path.Path ) -> Html msg
-viewNavLink ( label, path ) =
-    Html.a
-        [ Route.Path.href path ]
-        [ Html.text label ]
+viewNotSignedInNav : List (Html Msg)
+viewNotSignedInNav =
+    -- TODO: or add about page, or delete the link
+    [ viewLink "About" Route.Path.Home_
+    , H.a
+        [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
+        , Route.Path.href Route.Path.Auth
+        ]
+        [ H.text "Sign In/Up" ]
+    ]
+
+
+viewLink : String -> Route.Path.Path -> Html Msg
+viewLink text path =
+    H.a
+        [ A.class "text-gray-600 hover:text-black transition-colors"
+        , Route.Path.href path
+        ]
+        [ H.text text ]

@@ -1,8 +1,9 @@
 module Pages.Home_ exposing (Model, Msg, page)
 
 import Effect exposing (Effect)
-import Html
-import Html.Events
+import Html as H
+import Html.Attributes as A
+import Html.Events as E
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -65,5 +66,8 @@ subscriptions _ =
 view : Shared.Model -> Model -> View Msg
 view _ _ =
     { title = "Homepage"
-    , body = [ Html.p [ Html.Events.onClick NoOp ] [ Html.text "Hello, world!" ] ]
+    , body =
+        [ H.div [ A.class "w-full max-w-6xl mx-auto" ]
+            [ H.p [ E.onClick NoOp ] [ H.text "Hello, world!" ] ]
+        ]
     }
