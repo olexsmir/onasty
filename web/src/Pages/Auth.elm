@@ -214,12 +214,12 @@ viewBannerSuccess now lastClicked =
             "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
 
         buttonClasses : Bool -> String
-        buttonClasses disabled =
-            if disabled then
-                buttonClassesBase ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
+        buttonClasses active =
+            if active then
+                buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
 
             else
-                buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
+                buttonClassesBase ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
 
         timeLeftSeconds : Int
         timeLeftSeconds =
@@ -246,7 +246,7 @@ viewBannerSuccess now lastClicked =
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "We've sent you a verification link. Please check your email and click the link to activate your account." ]
         , H.button
             -- TODO: implement countdown for resend button
-            [ A.class (buttonClasses (not canClick))
+            [ A.class (buttonClasses canClick)
             , E.onClick UserClickedResendActivationEmail
             , A.disabled (not canClick)
             ]
