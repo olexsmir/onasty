@@ -135,18 +135,21 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 		email        string
 		password     string
 		expectedCode int
+		expectedMsg  string
 	}{
 		{
-			name:         "activated account",
+			name:         "already activated account",
 			email:        email,
 			password:     password,
 			expectedCode: http.StatusBadRequest,
+			expectedMsg:  models.ErrUserIsAlreadyVerified.Error(),
 		},
 		{
 			name:         "wrong credentials",
 			email:        email,
 			password:     e.uuid(),
-			expectedCode: http.StatusUnauthorized,
+			expectedCode: http.StatusBadRequest,
+			expectedMsg:  models.ErrUserWrongCredentials.Error(),
 		},
 	}
 
@@ -160,6 +163,11 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 			}))
 
 		e.Equal(httpResp.Code, t.expectedCode)
+
+		var body errorResponse
+		e.readBodyAndUnjsonify(httpResp.Body, &body)
+		e.Equal(body.Message, t.expectedMsg)
+
 		e.Empty(mockMailStore[t.email])
 	}
 }
@@ -220,12 +228,14 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 			email:        "wrong@email.com",
 			password:     password,
 			expectedCode: http.StatusBadRequest,
+			expectedMsg:  models.ErrUserWrongCredentials.Error(),
 		},
 		{
 			name:         "wrong password",
 			email:        email,
 			password:     "wrong-wrong",
-			expectedCode: http.StatusUnauthorized,
+			expectedCode: http.StatusBadRequest,
+			expectedMsg:  models.ErrUserWrongCredentials.Error(),
 		},
 	}
 
