@@ -13,6 +13,7 @@ import Page exposing (Page)
 import Route exposing (Route)
 import Route.Path
 import Shared
+import Time exposing (Posix)
 import View exposing (View)
 
 
@@ -38,19 +39,23 @@ type alias Model =
     , isSubmittingForm : Bool
     , formVariant : Variant
     , gotSignedUp : Bool
+    , lastClicked : Maybe Posix
     , apiError : Maybe Api.Error
+    , now : Maybe Posix
     }
 
 
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared _ =
-    ( { isSubmittingForm = False
-      , email = ""
+    ( { email = ""
       , password = ""
       , passwordAgain = ""
+      , isSubmittingForm = False
       , formVariant = SignIn
-      , apiError = Nothing
       , gotSignedUp = False
+      , lastClicked = Nothing
+      , apiError = Nothing
+      , now = Nothing
       }
     , case shared.user of
         Auth.User.SignedIn _ ->
@@ -66,7 +71,8 @@ init shared _ =
 
 
 type Msg
-    = UserUpdatedInput Field String
+    = Tick Posix
+    | UserUpdatedInput Field String
     | UserChangedFormVariant Variant
     | UserClickedSubmit
     | UserClickedResendActivationEmail
@@ -89,6 +95,9 @@ type Variant
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
+        Tick now ->
+            ( { model | now = Just now }, Effect.none )
+
         UserClickedSubmit ->
             ( { model | isSubmittingForm = True, apiError = Nothing }
             , case model.formVariant of
@@ -108,7 +117,7 @@ update msg model =
             )
 
         UserClickedResendActivationEmail ->
-            ( model
+            ( { model | lastClicked = model.now }
             , Api.Auth.resendVerificationEmail
                 { onResponse = ApiResendVerificationEmail
                 , email = model.email
@@ -152,8 +161,12 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    if model.gotSignedUp then
+        Time.every 1000 Tick
+
+    else
+        Sub.none
 
 
 
@@ -167,7 +180,7 @@ view model =
         [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
-                [ viewBanner model.apiError model.gotSignedUp
+                [ viewBanner model
                 , viewHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
@@ -180,21 +193,21 @@ view model =
     }
 
 
-viewBanner : Maybe Api.Error -> Bool -> Html Msg
-viewBanner maybeError gotSignedUp =
-    case ( maybeError, gotSignedUp ) of
+viewBanner : Model -> Html Msg
+viewBanner model =
+    case ( model.apiError, model.gotSignedUp ) of
         ( Just error, False ) ->
             viewBannerError error
 
         ( Nothing, True ) ->
-            viewBannerSuccess
+            viewBannerSuccess model.now model.lastClicked
 
         _ ->
             H.text ""
 
 
-viewBannerSuccess : Html Msg
-viewBannerSuccess =
+viewBannerSuccess : Maybe Posix -> Maybe Posix -> Html Msg
+viewBannerSuccess now lastClicked =
     let
         buttonClassesBase : String
         buttonClassesBase =
@@ -208,25 +221,47 @@ viewBannerSuccess =
             else
                 buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
 
-        isDisabled : Bool
-        isDisabled =
-            False
+        timeLeftSeconds : Int
+        timeLeftSeconds =
+            case ( now, lastClicked ) of
+                ( Just now_, Just last ) ->
+                    let
+                        remainingMs =
+                            30 * 1000 - (Time.posixToMillis now_ - Time.posixToMillis last)
+                    in
+                    if remainingMs > 0 then
+                        remainingMs // 1000
+
+                    else
+                        0
+
+                _ ->
+                    0
+
+        canClick =
+            timeLeftSeconds == 0
     in
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-4 mb-4" ]
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "We've sent you a verification link. Please check your email and click the link to activate your account." ]
         , H.button
             -- TODO: implement countdown for resend button
-            [ A.class (buttonClasses isDisabled)
+            [ A.class (buttonClasses (not canClick))
             , E.onClick UserClickedResendActivationEmail
-            , A.disabled isDisabled
+            , A.disabled (not canClick)
             ]
             [ H.text "Resend verification email" ]
-        , if isDisabled then
-            H.p [ A.class "text-gray-600 text-xs mt-2" ] [ H.text "You can request a new verification email in N seconds" ]
+        , if canClick then
+            H.text ""
 
           else
-            H.text ""
+            H.p [ A.class "text-gray-600 text-xs mt-2" ]
+                [ H.text
+                    ("You can request a new verification email in "
+                        ++ String.fromInt timeLeftSeconds
+                        ++ " seconds."
+                    )
+                ]
         ]
 
 
