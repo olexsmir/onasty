@@ -5,9 +5,9 @@ import Api.Auth
 import Auth.User
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
-import Html exposing (Html)
-import Html.Attributes as Attr
-import Html.Events
+import Html as H exposing (Html)
+import Html.Attributes as A
+import Html.Events as E
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
@@ -158,46 +158,109 @@ subscriptions _ =
 
 
 -- VIEW
+-- viewBanner : Maybe Api.Error -> Bool -> Html Msg
+-- viewBanner maybeError gotSignedUp =
+--     case ( maybeError, gotSignedUp ) of
+--         ( Just error, _ ) ->
+--             H.div [ A.class "box bad" ]
+--                 [ H.strong [ A.class "block titlebar" ] [ H.text "Error" ]
+--                 , H.text (Api.errorMessage error)
+--                 ]
+--
+--         ( Nothing, True ) ->
+--             H.div [ A.class "box ok" ]
+--                 [ H.strong [ A.class "block titlebar" ] [ H.text "Successfully signed up!" ]
+--                 , H.p []
+--                     [ H.text "Please check your email to activate your account."
+--                     , H.text " If you don't see the email, please check your spam folder."
+--                     , H.button [ E.onClick UserClickedResendActivationEmail ]
+--                         [ H.text "Resend activation email"
+--                         ]
+--                     ]
+--                 ]
+--
+--         ( Nothing, False ) ->
+--             H.text ""
 
 
 view : Model -> View Msg
 view model =
     { title = "Authentication"
     , body =
-        [ Html.div [ Attr.class "center" ]
-            -- TODO: add oauth buttons
-            [ viewBanner model.apiError model.gotSignedUp
-            , viewChangeVariant model.formVariant
-            , viewForm model
-            , viewForgotPassword
+        [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
+            [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
+                -- TODO: add oauth buttons
+                [ viewHeader model.formVariant
+                , H.div [ A.class "px-6 pb-6 space-y-4" ]
+                    [ viewChangeVariant model.formVariant
+                    , H.div [ A.class "border-t border-gray-200" ] []
+                    , viewForm model
+                    ]
+                ]
             ]
         ]
     }
 
 
+viewHeader : Variant -> Html Msg
+viewHeader variant =
+    let
+        ( title, description ) =
+            case variant of
+                SignIn ->
+                    ( "Welcome Back", "Enter your credentials to access your account" )
+
+                SignUp ->
+                    ( "Create Account", "Enter your information to create your account" )
+    in
+    H.div [ A.class "p-6 pb-4" ]
+        [ H.h1 [ A.class "text-2xl font-bold text-center mb-2" ] [ H.text title ]
+        , H.p [ A.class "text-center text-gray-600 text-sm" ] [ H.text description ]
+        ]
+
+
 viewChangeVariant : Variant -> Html Msg
 viewChangeVariant variant =
-    Html.div [ Attr.class "mb1" ]
-        [ Html.button
-            [ Attr.disabled (variant == SignIn)
-            , Html.Events.onClick (UserChangedFormVariant SignIn)
+    let
+        base : String
+        base =
+            "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
+
+        buttonClasses : Bool -> String
+        buttonClasses active =
+            if active then
+                base ++ " bg-black text-white"
+
+            else
+                base ++ " bg-white text-black border border-gray-300 hover:bg-gray-50"
+    in
+    H.div [ A.class "flex gap-2" ]
+        [ H.button
+            [ A.class (buttonClasses (variant == SignIn))
+            , A.disabled (variant == SignIn)
+            , E.onClick (UserChangedFormVariant SignIn)
             ]
-            [ Html.text "Sign In" ]
-        , Html.button
-            [ Attr.disabled (variant == SignUp)
-            , Html.Events.onClick (UserChangedFormVariant SignUp)
+            [ H.text "Sign In" ]
+        , H.button
+            [ A.class (buttonClasses (variant == SignUp))
+            , A.disabled (variant == SignUp)
+            , E.onClick (UserChangedFormVariant SignUp)
             ]
-            [ Html.text "Sign Up" ]
+            [ H.text "Sign Up" ]
         ]
 
 
 viewForm : Model -> Html Msg
 viewForm model =
-    Html.form [ Html.Events.onSubmit UserClickedSubmit ]
+    H.form
+        [ A.class "space-y-4"
+        , E.onSubmit UserClickedSubmit
+        ]
         (case model.formVariant of
             SignIn ->
                 [ viewFormInput { field = Email, value = model.email }
                 , viewFormInput { field = Password, value = model.password }
+                , viewForgotPassword
                 , viewSubmitButton model
                 ]
 
@@ -210,40 +273,19 @@ viewForm model =
         )
 
 
-viewBanner : Maybe Api.Error -> Bool -> Html Msg
-viewBanner maybeError gotSignedUp =
-    case ( maybeError, gotSignedUp ) of
-        ( Just error, _ ) ->
-            Html.div [ Attr.class "box bad" ]
-                [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Error" ]
-                , Html.text (Api.errorMessage error)
-                ]
-
-        ( Nothing, True ) ->
-            Html.div [ Attr.class "box ok" ]
-                [ Html.strong [ Attr.class "block titlebar" ] [ Html.text "Successfully signed up!" ]
-                , Html.p []
-                    [ Html.text "Please check your email to activate your account."
-                    , Html.text " If you don't see the email, please check your spam folder."
-                    , Html.button [ Html.Events.onClick UserClickedResendActivationEmail ]
-                        [ Html.text "Resend activation email"
-                        ]
-                    ]
-                ]
-
-        ( Nothing, False ) ->
-            Html.text ""
-
-
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
-    Html.div [ Attr.class "mb1" ]
-        [ Html.label [] [ Html.text (fromFieldToLabel opts.field) ]
-        , Html.div []
-            [ Html.input
-                [ Attr.type_ (fromFieldToInputType opts.field)
-                , Attr.value opts.value
-                , Html.Events.onInput (UserUpdatedInput opts.field)
+    H.div [ A.class "space-y-2" ]
+        [ H.label
+            [ A.class "block text-sm font-medium text-gray-700" ]
+            [ H.text (fromFieldToLabel opts.field) ]
+        , H.div []
+            [ H.input
+                [ A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                , A.type_ (fromFieldToInputType opts.field)
+                , A.value opts.value
+                , A.placeholder (fromFieldToLabel opts.field)
+                , E.onInput (UserUpdatedInput opts.field)
                 ]
                 []
             ]
@@ -252,20 +294,31 @@ viewFormInput opts =
 
 viewForgotPassword : Html Msg
 viewForgotPassword =
-    Html.div []
-        [ Html.a
-            [ Attr.href "/forgot-password" ]
-            [ Html.text "Forgot password?" ]
+    H.div [ A.class "text-right" ]
+        [ H.button
+            [ A.class "text-sm text-black hover:underline focus:outline-none"
+
+            -- TODO: implement forgot password
+            -- , E.onClick (UserChangedFormVariant ForgotPassword)
+            ]
+            [ H.text "Forgot password?" ]
         ]
 
 
 viewSubmitButton : Model -> Html Msg
 viewSubmitButton model =
-    Html.div [ Attr.class "mb1" ]
-        [ Html.button
-            [ Attr.disabled (isFormDisabled model) ]
-            [ Html.text (fromVariantToLabel model.formVariant) ]
+    H.button
+        [ A.type_ "submit"
+        , A.disabled (isFormDisabled model)
+        , A.class
+            (if isFormDisabled model then
+                "w-full px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
+
+             else
+                "w-full px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+            )
         ]
+        [ H.text (fromVariantToLabel model.formVariant) ]
 
 
 isFormDisabled : Model -> Bool
@@ -304,7 +357,7 @@ fromFieldToLabel field =
             "Password"
 
         PasswordAgain ->
-            "Password again"
+            "Confirm password"
 
 
 fromFieldToInputType : Field -> String
