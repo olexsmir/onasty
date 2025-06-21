@@ -196,28 +196,33 @@ viewBanner maybeError gotSignedUp =
 viewBannerSuccess : Html Msg
 viewBannerSuccess =
     let
-        base =
+        buttonClassesBase : String
+        buttonClassesBase =
             "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
 
         buttonClasses : Bool -> String
         buttonClasses disabled =
             if disabled then
-                base ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
+                buttonClassesBase ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
 
             else
-                base ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
+                buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
+
+        isDisabled : Bool
+        isDisabled =
+            False
     in
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-4 mb-4" ]
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "We've sent you a verification link. Please check your email and click the link to activate your account." ]
         , H.button
             -- TODO: implement countdown for resend button
-            [ A.class (buttonClasses False)
+            [ A.class (buttonClasses isDisabled)
             , E.onClick UserClickedResendActivationEmail
-            , A.disabled False
+            , A.disabled isDisabled
             ]
             [ H.text "Resend verification email" ]
-        , if False then
+        , if isDisabled then
             H.p [ A.class "text-gray-600 text-xs mt-2" ] [ H.text "You can request a new verification email in N seconds" ]
 
           else
