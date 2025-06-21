@@ -158,29 +158,6 @@ subscriptions _ =
 
 
 -- VIEW
--- viewBanner : Maybe Api.Error -> Bool -> Html Msg
--- viewBanner maybeError gotSignedUp =
---     case ( maybeError, gotSignedUp ) of
---         ( Just error, _ ) ->
---             H.div [ A.class "box bad" ]
---                 [ H.strong [ A.class "block titlebar" ] [ H.text "Error" ]
---                 , H.text (Api.errorMessage error)
---                 ]
---
---         ( Nothing, True ) ->
---             H.div [ A.class "box ok" ]
---                 [ H.strong [ A.class "block titlebar" ] [ H.text "Successfully signed up!" ]
---                 , H.p []
---                     [ H.text "Please check your email to activate your account."
---                     , H.text " If you don't see the email, please check your spam folder."
---                     , H.button [ E.onClick UserClickedResendActivationEmail ]
---                         [ H.text "Resend activation email"
---                         ]
---                     ]
---                 ]
---
---         ( Nothing, False ) ->
---             H.text ""
 
 
 view : Model -> View Msg
@@ -190,7 +167,8 @@ view model =
         [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
-                [ viewHeader model.formVariant
+                [ viewBanner model.apiError model.gotSignedUp
+                , viewHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
                     , H.div [ A.class "border-t border-gray-200" ] []
@@ -200,6 +178,60 @@ view model =
             ]
         ]
     }
+
+
+viewBanner : Maybe Api.Error -> Bool -> Html Msg
+viewBanner maybeError gotSignedUp =
+    case ( maybeError, gotSignedUp ) of
+        ( Just error, False ) ->
+            viewBannerError error
+
+        ( Nothing, True ) ->
+            viewBannerSuccess
+
+        _ ->
+            H.text ""
+
+
+viewBannerSuccess : Html Msg
+viewBannerSuccess =
+    let
+        base =
+            "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
+
+        buttonClasses : Bool -> String
+        buttonClasses disabled =
+            if disabled then
+                base ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
+
+            else
+                base ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
+    in
+    H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-4 mb-4" ]
+        [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
+        , H.p [ A.class "text-green-800 text-sm" ] [ H.text "We've sent you a verification link. Please check your email and click the link to activate your account." ]
+        , H.button
+            -- TODO: implement countdown for resend button
+            [ A.class (buttonClasses False)
+            , E.onClick UserClickedResendActivationEmail
+            , A.disabled False
+            ]
+            [ H.text "Resend verification email" ]
+        , if False then
+            H.p [ A.class "text-gray-600 text-xs mt-2" ] [ H.text "You can request a new verification email in N seconds" ]
+
+          else
+            H.text ""
+        ]
+
+
+viewBannerError : Api.Error -> Html Msg
+viewBannerError error =
+    H.div [ A.class "bg-red-50 border border-red-200 rounded-md p-4 mb-3" ]
+        [ H.p
+            [ A.class "text-red-800 text-sm" ]
+            [ H.text (Api.errorMessage error) ]
+        ]
 
 
 viewHeader : Variant -> Html Msg
