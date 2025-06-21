@@ -360,7 +360,7 @@ fromHttpResponseToCustomError decoder response =
                     Ok value
 
                 Err err ->
-                    Err (Api.JsonDecodeError { message = "Failed to decode JSON response", reason = err })
+                    Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadStatus_ { statusCode } body ->
             case Json.Decode.decodeString Data.Error.decode body of
@@ -368,7 +368,7 @@ fromHttpResponseToCustomError decoder response =
                     Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
 
                 Err err ->
-                    Err (Api.JsonDecodeError { message = "Something unexpected happened", reason = err })
+                    Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadUrl_ url ->
             Err (Api.HttpError { message = "Unexpected URL format", reason = Http.BadUrl url })
