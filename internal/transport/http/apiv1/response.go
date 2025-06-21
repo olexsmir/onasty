@@ -28,6 +28,7 @@ func errorResponse(c *gin.Context, err error) {
 		errors.Is(err, models.ErrUserInvalidEmail) ||
 		errors.Is(err, models.ErrUserInvalidPassword) ||
 		errors.Is(err, models.ErrUserNotFound) ||
+		errors.Is(err, models.ErrUserWrongCredentials) ||
 		// notes
 		errors.Is(err, notesrv.ErrNotePasswordNotProvided) ||
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
@@ -49,8 +50,7 @@ func errorResponse(c *gin.Context, err error) {
 
 	if errors.Is(err, ErrUnauthorized) ||
 		errors.Is(err, jwtutil.ErrTokenExpired) ||
-		errors.Is(err, jwtutil.ErrTokenSignatureInvalid) ||
-		errors.Is(err, models.ErrUserWrongCredentials) {
+		errors.Is(err, jwtutil.ErrTokenSignatureInvalid) {
 		newErrorStatus(c, http.StatusUnauthorized, err.Error())
 		return
 	}
