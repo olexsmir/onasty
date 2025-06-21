@@ -247,7 +247,6 @@ viewBannerSuccess now lastClicked =
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "We've sent you a verification link. Please check your email and click the link to activate your account." ]
         , H.button
-            -- TODO: implement countdown for resend button
             [ A.class (buttonClasses canClick)
             , E.onClick UserClickedResendActivationEmail
             , A.disabled (not canClick)
