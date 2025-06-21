@@ -334,6 +334,7 @@ viewForgotPassword =
     H.div [ A.class "text-right" ]
         [ H.button
             [ A.class "text-sm text-black hover:underline focus:outline-none"
+            , A.type_ "button"
 
             -- TODO: implement forgot password
             -- , E.onClick (UserChangedFormVariant ForgotPassword)
