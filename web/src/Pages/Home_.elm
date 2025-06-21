@@ -67,7 +67,7 @@ view : Shared.Model -> Model -> View Msg
 view _ _ =
     { title = "Homepage"
     , body =
-        [ H.div [ A.class "w-full max-w-6xl mx-auto"]
+        [ H.div [ A.class "w-full max-w-6xl mx-auto" ]
             [ H.p [ E.onClick NoOp ] [ H.text "Hello, world!" ] ]
         ]
     }
