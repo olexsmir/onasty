@@ -175,23 +175,15 @@ sendApiRequest :
     }
     -> Effect msg
 sendApiRequest opts =
-    let
-        onHttpError : Api.Error -> msg
-        onHttpError err =
-            opts.onResponse (Err err)
-
-        decoder : Json.Decode.Decoder msg
-        decoder =
-            opts.decoder
-                |> Json.Decode.map Ok
-                |> Json.Decode.map opts.onResponse
-    in
     SendApiRequest
         { endpoint = opts.endpoint
         , method = opts.method
         , body = opts.body
-        , onHttpError = onHttpError
-        , decoder = decoder
+        , onHttpError = \e -> opts.onResponse (Err e)
+        , decoder =
+            opts.decoder
+                |> Json.Decode.map Ok
+                |> Json.Decode.map opts.onResponse
         }
 
 
