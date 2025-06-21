@@ -107,7 +107,7 @@ viewNav user =
 viewSignedInNav : List (Html Msg)
 viewSignedInNav =
     [ viewLink "Profile" Route.Path.Profile_Me
-    , H.a
+    , H.button
         [ A.class "text-gray-600 hover:text-red-600 transition-colors"
         , E.onClick UserClickedLogout
         ]
