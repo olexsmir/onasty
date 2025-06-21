@@ -106,9 +106,9 @@ viewNav user =
 
 viewSignedInNav : List (Html Msg)
 viewSignedInNav =
-    [ H.a [ A.class "text-gray-600 hover:text-black transition-colors" ] [ H.text "Profile" ]
+    [ viewLink "Profile" Route.Path.Profile_Me
     , H.a
-        [ A.class "px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+        [ A.class "text-gray-600 hover:text-red-600 transition-colors"
         , E.onClick UserClickedLogout
         ]
         [ H.text "Logout" ]
@@ -118,10 +118,19 @@ viewSignedInNav =
 viewNotSignedInNav : List (Html Msg)
 viewNotSignedInNav =
     -- TODO: or add about page, or delete the link
-    [ H.a [ A.class "text-gray-600 hover:text-black transition-colors" ] [ H.text "about" ]
+    [ viewLink "About" Route.Path.Home_
     , H.a
         [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
         , Route.Path.href Route.Path.Auth
         ]
         [ H.text "Sign In/Up" ]
     ]
+
+
+viewLink : String -> Route.Path.Path -> Html Msg
+viewLink text path =
+    H.a
+        [ A.class "text-gray-600 hover:text-black transition-colors"
+        , Route.Path.href path
+        ]
+        [ H.text text ]
