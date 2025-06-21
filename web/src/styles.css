@@ -1,5 +1,3 @@
-@import "missing.css";
-
-.mb1 {
-  margin-bottom: 1rem;
-}
+@import "tailwindcss";
+@source './**/*.{js,elm,ts,css,html}';
+@source '../.elm-land/**/*.{js,elm,ts,css,html}';

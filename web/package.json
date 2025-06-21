@@ -4,12 +4,12 @@
     "postinstall": "elm-tooling install"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.21",
+    "@tailwindcss/postcss": "^4.1.10",
     "elm-land": "^0.20.1",
     "elm-review": "^2.13.2",
     "elm-tooling": "^1.15.1",
-    "missing.css": "^1.1.3",
     "postcss": "^8.5.6",
-    "postcss-import": "^16.1.1"
+    "postcss-import": "^16.1.1",
+    "tailwindcss": "^4.1.10"
   }
 }
