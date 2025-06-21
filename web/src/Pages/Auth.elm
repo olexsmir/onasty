@@ -226,6 +226,7 @@ viewBannerSuccess now lastClicked =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
                     let
+                        remainingMs : Int
                         remainingMs =
                             30 * 1000 - (Time.posixToMillis now_ - Time.posixToMillis last)
                     in
@@ -238,6 +239,7 @@ viewBannerSuccess now lastClicked =
                 _ ->
                     0
 
+        canClick : Bool
         canClick =
             timeLeftSeconds == 0
     in
