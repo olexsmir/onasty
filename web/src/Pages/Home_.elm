@@ -1,5 +1,8 @@
 module Pages.Home_ exposing (Model, Msg, page)
 
+import Api
+import Api.Note
+import Data.Note as Note
 import Effect exposing (Effect)
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -19,7 +22,7 @@ page shared _ =
         , subscriptions = subscriptions
         , view = view shared
         }
-        |> Page.withLayout Layouts.Header
+        |> Page.withLayout (\_ -> Layouts.Header {})
 
 
 
@@ -27,12 +30,20 @@ page shared _ =
 
 
 type alias Model =
-    {}
+    { content : String
+    , slug : Maybe String
+    , apiError : Maybe Api.Error
+    }
 
 
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init _ () =
-    ( {}, Effect.none )
+    ( { content = ""
+      , slug = Nothing
+      , apiError = Nothing
+      }
+    , Effect.none
+    )
 
 
 
@@ -40,14 +51,43 @@ init _ () =
 
 
 type Msg
-    = NoOp
+    = UserUpdatedInput Field String
+    | UserClickedSubmit
+    | ApiCreateNoteResponded (Result Api.Error Note.CreateResponse)
+
+
+type Field
+    = Content
+    | Slug
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        NoOp ->
+        UserClickedSubmit ->
+            ( model
+            , Api.Note.create
+                { onResponse = ApiCreateNoteResponded
+                , content = model.content
+                , slug = Maybe.withDefault "" model.slug
+                }
+            )
+
+        UserUpdatedInput Content content ->
+            ( { model | content = content }, Effect.none )
+
+        UserUpdatedInput Slug slug ->
+            ( { model | slug = Just slug }, Effect.none )
+
+        ApiCreateNoteResponded (Ok response) ->
+            let
+                _ =
+                    Debug.log "note created" response.slug
+            in
             ( model, Effect.none )
+
+        ApiCreateNoteResponded (Err error) ->
+            ( { model | apiError = Just error }, Effect.none )
 
 
 
@@ -64,7 +104,7 @@ subscriptions _ =
 
 
 view : Shared.Model -> Model -> View Msg
-view _ _ =
+view _ model =
     { title = "Onasty"
     , body =
         [ H.div [ A.class "py-8 px-4 " ]
@@ -72,7 +112,7 @@ view _ _ =
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     [ viewHeader
                     , H.div [ A.class "p-6 space-y-6" ]
-                        [ viewForm ]
+                        [ viewForm model ]
                     ]
                 ]
             ]
@@ -88,11 +128,11 @@ viewHeader =
         ]
 
 
-viewForm : Html Msg
-viewForm =
+viewForm : Model -> Html Msg
+viewForm model =
     -- TODO: that form defo should be broken down into smaller components
     H.form
-        [ E.onSubmit NoOp -- TODO: implement me
+        [ E.onSubmit UserClickedSubmit
         , A.class "space-y-6"
         ]
         [ H.div [ A.class "space-y-2" ]
@@ -104,6 +144,7 @@ viewForm =
                 , A.class "w-full h-96 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
                 , A.placeholder "Write your note here..."
                 , A.required True
+                , E.onInput (UserUpdatedInput Content)
                 ]
                 []
             ]
@@ -114,23 +155,24 @@ viewForm =
                 , A.type_ "text"
                 , A.placeholder "my-unique-slug"
                 , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                , E.onInput (UserUpdatedInput Slug)
                 ]
                 []
             , H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text "Leave empty to generate a random slug" ]
             ]
         , H.div
             [ A.class "flex justify-end" ]
-            [ viewSubmitButton ]
+            [ viewSubmitButton model ]
         ]
 
 
-viewSubmitButton : Html Msg
-viewSubmitButton =
+viewSubmitButton : Model -> Html Msg
+viewSubmitButton model =
     H.button
         [ A.type_ "submit"
-        , A.disabled True -- TODO: check if form is valid to be sent
+        , A.disabled (isFormDisabled model)
         , A.class
-            (if True then
+            (if isFormDisabled model then
                 "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
 
              else
@@ -138,3 +180,8 @@ viewSubmitButton =
             )
         ]
         [ H.text "Create note" ]
+
+
+isFormDisabled : Model -> Bool
+isFormDisabled model =
+    String.isEmpty model.content
