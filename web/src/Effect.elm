@@ -175,23 +175,15 @@ sendApiRequest :
     }
     -> Effect msg
 sendApiRequest opts =
-    let
-        onHttpError : Api.Error -> msg
-        onHttpError err =
-            opts.onResponse (Err err)
-
-        decoder : Json.Decode.Decoder msg
-        decoder =
-            opts.decoder
-                |> Json.Decode.map Ok
-                |> Json.Decode.map opts.onResponse
-    in
     SendApiRequest
         { endpoint = opts.endpoint
         , method = opts.method
         , body = opts.body
-        , onHttpError = onHttpError
-        , decoder = decoder
+        , onHttpError = \e -> opts.onResponse (Err e)
+        , decoder =
+            opts.decoder
+                |> Json.Decode.map Ok
+                |> Json.Decode.map opts.onResponse
         }
 
 
@@ -368,7 +360,7 @@ fromHttpResponseToCustomError decoder response =
                     Ok value
 
                 Err err ->
-                    Err (Api.JsonDecodeError { message = "Failed to decode JSON response", reason = err })
+                    Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadStatus_ { statusCode } body ->
             case Json.Decode.decodeString Data.Error.decode body of
@@ -376,7 +368,7 @@ fromHttpResponseToCustomError decoder response =
                     Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
 
                 Err err ->
-                    Err (Api.JsonDecodeError { message = "Something unexpected happened", reason = err })
+                    Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadUrl_ url ->
             Err (Api.HttpError { message = "Unexpected URL format", reason = Http.BadUrl url })
