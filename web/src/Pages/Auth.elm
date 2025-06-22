@@ -358,6 +358,7 @@ viewFormInput opts =
                 , A.type_ (fromFieldToInputType opts.field)
                 , A.value opts.value
                 , A.placeholder (fromFieldToLabel opts.field)
+                , A.required True
                 , E.onInput (UserUpdatedInput opts.field)
                 ]
                 []

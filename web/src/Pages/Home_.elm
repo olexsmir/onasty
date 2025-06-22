@@ -30,15 +30,22 @@ page shared _ =
 
 
 type alias Model =
-    { content : String
+    { pageVariant : PageVariant
+    , content : String
     , slug : Maybe String
     , apiError : Maybe Api.Error
     }
 
 
+type PageVariant
+    = CreateNote
+    | NoteCreated String
+
+
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init _ () =
-    ( { content = ""
+    ( { pageVariant = CreateNote
+      , content = ""
       , slug = Nothing
       , apiError = Nothing
       }
@@ -80,11 +87,7 @@ update msg model =
             ( { model | slug = Just slug }, Effect.none )
 
         ApiCreateNoteResponded (Ok response) ->
-            let
-                _ =
-                    Debug.log "note created" response.slug
-            in
-            ( model, Effect.none )
+            ( { model | pageVariant = NoteCreated response.slug }, Effect.none )
 
         ApiCreateNoteResponded (Err error) ->
             ( { model | apiError = Just error }, Effect.none )
