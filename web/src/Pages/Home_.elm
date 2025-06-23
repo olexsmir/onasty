@@ -2,6 +2,7 @@ module Pages.Home_ exposing (Model, Msg, PageVariant, page)
 
 import Api
 import Api.Note
+import Components.Error
 import Data.Note as Note
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -14,7 +15,6 @@ import Route exposing (Route)
 import Shared
 import Task
 import View exposing (View)
-import Components.Error
 
 
 page : Shared.Model -> Route () -> Page Model Msg
@@ -211,7 +211,7 @@ viewTextarea =
     H.div [ A.class "space-y-2" ]
         [ H.label
             [ A.for (fromFieldToName Content), A.class "block text-sm font-medium text-gray-700 mb-2" ]
-            [ H.text "Content *" ]
+            [ H.text "Content" ]
         , H.textarea
             [ A.id (fromFieldToName Content)
             , A.class "w-full h-96 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
