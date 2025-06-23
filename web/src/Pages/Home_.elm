@@ -1,4 +1,4 @@
-module Pages.Home_ exposing (Model, Msg, page, PageVariant)
+module Pages.Home_ exposing (Model, Msg, PageVariant, page)
 
 import Api
 import Api.Note
