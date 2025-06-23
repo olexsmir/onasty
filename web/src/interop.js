@@ -1,9 +1,10 @@
 import "./styles.css";
 
-export const flags = (_) => {
+export const flags = ({env}) => {
   return {
     access_token: JSON.parse(window.localStorage.access_token || "null"),
     refresh_token: JSON.parse(window.localStorage.refresh_token || "null"),
+    app_url: env.FRONTEND_URL || "http://localhost:3000",
   };
 };
 
