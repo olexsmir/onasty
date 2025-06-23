@@ -76,7 +76,7 @@ update msg model =
             , Api.Note.create
                 { onResponse = ApiCreateNoteResponded
                 , content = model.content
-                , slug = Maybe.withDefault "" model.slug
+                , slug = model.slug
                 }
             )
 

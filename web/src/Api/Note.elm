@@ -10,7 +10,7 @@ import Json.Encode as E
 create :
     { onResponse : Result Api.Error CreateResponse -> msg
     , content : String
-    , slug : String
+    , slug : Maybe String
     }
     -> Effect msg
 create options =
@@ -18,7 +18,14 @@ create options =
         body : E.Value
         body =
             E.object
-                [ ( "content", E.string options.content ) ]
+                [ ( "content", E.string options.content )
+                , case options.slug of
+                    Just slug ->
+                        ( "slug", E.string slug )
+
+                    Nothing ->
+                        ( "slug", E.null )
+                ]
     in
     Effect.sendApiRequest
         { endpoint = "/api/v1/note"
