@@ -13,4 +13,10 @@ export const onReady = ({ app }) => {
       window.localStorage[key] = JSON.stringify(value);
     });
   }
+
+  if (app.ports?.sendToClipboard) {
+    app.ports.sendToClipboard.subscribe(async (text) => {
+      await navigator.clipboard.writeText(text)
+    })
+  }
 };

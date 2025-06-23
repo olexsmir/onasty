@@ -61,6 +61,7 @@ type Msg
     = UserUpdatedInput Field String
     | UserClickedSubmit
     | UserClickedCreateNewNote
+    | UserClickedCopyLink
     | ApiCreateNoteResponded (Result Api.Error Note.CreateResponse)
 
 
@@ -91,6 +92,9 @@ update msg model =
             , Effect.none
             )
 
+        UserClickedCopyLink ->
+            ( model, Effect.sendToClipboard ("https://onasty.local/secret/" ++ Maybe.withDefault "" model.slug) )
+
         UserUpdatedInput Content content ->
             ( { model | content = content }, Effect.none )
 
@@ -98,7 +102,7 @@ update msg model =
             ( { model | slug = Just slug }, Effect.none )
 
         ApiCreateNoteResponded (Ok response) ->
-            ( { model | pageVariant = NoteCreated response.slug }, Effect.none )
+            ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug }, Effect.none )
 
         ApiCreateNoteResponded (Err error) ->
             ( { model | apiError = Just error }, Effect.none )
@@ -226,7 +230,7 @@ viewNoteCreated slug =
         ]
 
 
-viewCopyLinkButton : Html msg
+viewCopyLinkButton : Html Msg
 viewCopyLinkButton =
     let
         base : String
@@ -252,7 +256,9 @@ viewCopyLinkButton =
         -- TODO: implement me
     in
     H.button
-        [ A.class (classes False) ]
+        [ A.class (classes False)
+        , E.onClick UserClickedCopyLink
+        ]
         [ H.text (text False) ]
 
 
