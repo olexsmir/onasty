@@ -66,11 +66,11 @@ init _ () =
 
 
 type Msg
-    = UserUpdatedInput Field String
+    = CopyButtonReset
+    | UserUpdatedInput Field String
     | UserClickedSubmit
     | UserClickedCreateNewNote
     | UserClickedCopyLink
-    | CopiedFeedbackShown
     | ApiCreateNoteResponded (Result Api.Error Note.CreateResponse)
 
 
@@ -82,6 +82,9 @@ type Field
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
+        CopyButtonReset ->
+            ( { model | userClickedCopyLink = False }, Effect.none )
+
         UserClickedSubmit ->
             ( model
             , Api.Note.create
@@ -104,13 +107,10 @@ update shared msg model =
         UserClickedCopyLink ->
             ( { model | userClickedCopyLink = True }
             , Effect.batch
-                [ Effect.sendCmd (Task.perform (\_ -> CopiedFeedbackShown) (Process.sleep 2000))
+                [ Effect.sendCmd (Task.perform (\_ -> CopyButtonReset) (Process.sleep 2000))
                 , Effect.sendToClipboard (secretUrl shared.appURL (Maybe.withDefault "" model.slug))
                 ]
             )
-
-        CopiedFeedbackShown ->
-            ( { model | userClickedCopyLink = False }, Effect.none )
 
         UserUpdatedInput Content content ->
             ( { model | content = content }, Effect.none )
