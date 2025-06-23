@@ -9,8 +9,10 @@ import Html.Attributes as A
 import Html.Events as E
 import Layouts
 import Page exposing (Page)
+import Process
 import Route exposing (Route)
 import Shared
+import Task
 import View exposing (View)
 
 
@@ -34,6 +36,7 @@ type alias Model =
     , content : String
     , slug : Maybe String
     , apiError : Maybe Api.Error
+    , userClickedCopyLink : Bool
     }
 
 
@@ -47,6 +50,7 @@ init _ () =
     ( { pageVariant = CreateNote
       , content = ""
       , slug = Nothing
+      , userClickedCopyLink = False
       , apiError = Nothing
       }
     , Effect.none
@@ -62,6 +66,7 @@ type Msg
     | UserClickedSubmit
     | UserClickedCreateNewNote
     | UserClickedCopyLink
+    | CopiedFeedbackShown
     | ApiCreateNoteResponded (Result Api.Error Note.CreateResponse)
 
 
@@ -93,7 +98,15 @@ update msg model =
             )
 
         UserClickedCopyLink ->
-            ( model, Effect.sendToClipboard ("https://onasty.local/secret/" ++ Maybe.withDefault "" model.slug) )
+            ( { model | userClickedCopyLink = True }
+            , Effect.batch
+                [ Effect.sendCmd (Task.perform (\_ -> CopiedFeedbackShown) (Process.sleep 2000))
+                , Effect.sendToClipboard ("https://onasty.local/secret/" ++ Maybe.withDefault "" model.slug) -- TODO: soft code the url
+                ]
+            )
+
+        CopiedFeedbackShown ->
+            ( { model | userClickedCopyLink = False }, Effect.none )
 
         UserUpdatedInput Content content ->
             ( { model | content = content }, Effect.none )
@@ -137,7 +150,7 @@ view _ model =
                                 [ viewForm model ]
 
                             NoteCreated slug ->
-                                [ viewNoteCreated slug ]
+                                [ viewNoteCreated model slug ]
                         )
                     ]
                 ]
@@ -213,8 +226,8 @@ isFormDisabled model =
     String.isEmpty model.content
 
 
-viewNoteCreated : String -> Html Msg
-viewNoteCreated slug =
+viewNoteCreated : Model -> String -> Html Msg
+viewNoteCreated model slug =
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-6" ]
         [ H.div [ A.class "bg-white border border-green-300 rounded-md p-4 mb-4" ]
             [ H.p [ A.class "text-sm text-gray-600 mb-2" ]
@@ -224,42 +237,37 @@ viewNoteCreated slug =
                 [ H.text ("https://onasty.local/secret/" ++ slug) ]
             ]
         , H.div [ A.class "flex gap-3" ]
-            [ viewCopyLinkButton
+            [ viewCopyLinkButton model.userClickedCopyLink
             , viewCreateNewNoteButton
             ]
         ]
 
 
-viewCopyLinkButton : Html Msg
-viewCopyLinkButton =
+viewCopyLinkButton : Bool -> Html Msg
+viewCopyLinkButton isClicked =
     let
         base : String
         base =
             "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-
-        classes : Bool -> String
-        classes success =
-            if success then
-                base ++ " bg-green-100 border-green-300 text-green-700"
-
-            else
-                base ++ " border-gray-300 text-gray-700 hover:bg-gray-50"
-
-        text : Bool -> String
-        text success =
-            if success then
-                "Copied!"
-
-            else
-                "Copy URL"
-
-        -- TODO: implement me
     in
     H.button
-        [ A.class (classes False)
+        [ A.class
+            (if isClicked then
+                base ++ " bg-green-100 border-green-300 text-green-700"
+
+             else
+                base ++ " border-gray-300 text-gray-700 hover:bg-gray-50"
+            )
         , E.onClick UserClickedCopyLink
         ]
-        [ H.text (text False) ]
+        [ H.text
+            (if isClicked then
+                "Copied!"
+
+             else
+                "Copy URL"
+            )
+        ]
 
 
 viewCreateNewNoteButton : Html Msg
