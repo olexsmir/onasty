@@ -14,6 +14,7 @@ import Route exposing (Route)
 import Shared
 import Task
 import View exposing (View)
+import Components.Error
 
 
 page : Shared.Model -> Route () -> Page Model Msg
@@ -154,8 +155,7 @@ view shared model =
                     , H.div [ A.class "p-6 space-y-6" ]
                         [ case model.apiError of
                             Just error ->
-                                H.div [ A.class "bg-red-50 border border-red-200 rounded-md p-4" ]
-                                    [ H.p [ A.class "text-red-800 text-sm" ] [ H.text (Api.errorMessage error) ] ]
+                                Components.Error.error (Api.errorMessage error)
 
                             Nothing ->
                                 H.text ""

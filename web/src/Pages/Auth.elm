@@ -3,6 +3,7 @@ module Pages.Auth exposing (Model, Msg, Variant, page)
 import Api
 import Api.Auth
 import Auth.User
+import Components.Error
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -197,7 +198,7 @@ viewBanner : Model -> Html Msg
 viewBanner model =
     case ( model.apiError, model.gotSignedUp ) of
         ( Just error, False ) ->
-            viewBannerError error
+            Components.Error.error (Api.errorMessage error)
 
         ( Nothing, True ) ->
             viewBannerSuccess model.now model.lastClicked
@@ -263,15 +264,6 @@ viewBannerSuccess now lastClicked =
                         ++ " seconds."
                     )
                 ]
-        ]
-
-
-viewBannerError : Api.Error -> Html Msg
-viewBannerError error =
-    H.div [ A.class "bg-red-50 border border-red-200 rounded-md p-4 mb-3" ]
-        [ H.p
-            [ A.class "text-red-800 text-sm" ]
-            [ H.text (Api.errorMessage error) ]
         ]
 
 
