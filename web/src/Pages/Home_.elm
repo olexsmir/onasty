@@ -150,9 +150,7 @@ view shared model =
         [ H.div [ A.class "py-8 px-4 " ]
             [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    [ viewHeader
-
-                    -- TODO: show the api error
+                    [ viewHeader model.pageVariant
                     , H.div [ A.class "p-6 space-y-6" ]
                         [ case model.apiError of
                             Just error ->
@@ -175,11 +173,19 @@ view shared model =
     }
 
 
-viewHeader : Html Msg
-viewHeader =
+viewHeader : PageVariant -> Html Msg
+viewHeader pageVariant =
     H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
         [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ]
-            [ H.text "Create new note" ]
+            [ H.text
+                (case pageVariant of
+                    CreateNote ->
+                        "Create a new note"
+
+                    NoteCreated _ ->
+                        "Paste Created Successfully!"
+                )
+            ]
         ]
 
 
