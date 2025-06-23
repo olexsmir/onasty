@@ -60,6 +60,7 @@ init _ () =
 type Msg
     = UserUpdatedInput Field String
     | UserClickedSubmit
+    | UserClickedCreateNewNote
     | ApiCreateNoteResponded (Result Api.Error Note.CreateResponse)
 
 
@@ -78,6 +79,16 @@ update msg model =
                 , content = model.content
                 , slug = model.slug
                 }
+            )
+
+        UserClickedCreateNewNote ->
+            ( { model
+                | pageVariant = CreateNote
+                , content = ""
+                , slug = Nothing
+                , apiError = Nothing
+              }
+            , Effect.none
             )
 
         UserUpdatedInput Content content ->
@@ -104,6 +115,8 @@ subscriptions _ =
 
 
 -- VIEW
+-- TODO: show errors
+-- TODO: validate form
 
 
 view : Shared.Model -> Model -> View Msg
@@ -115,7 +128,13 @@ view _ model =
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     [ viewHeader
                     , H.div [ A.class "p-6 space-y-6" ]
-                        [ viewForm model ]
+                        (case model.pageVariant of
+                            CreateNote ->
+                                [ viewForm model ]
+
+                            NoteCreated slug ->
+                                [ viewNoteCreated slug ]
+                        )
                     ]
                 ]
             ]
@@ -188,3 +207,59 @@ viewSubmitButton model =
 isFormDisabled : Model -> Bool
 isFormDisabled model =
     String.isEmpty model.content
+
+
+viewNoteCreated : String -> Html Msg
+viewNoteCreated slug =
+    H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-6" ]
+        [ H.div [ A.class "bg-white border border-green-300 rounded-md p-4 mb-4" ]
+            [ H.p [ A.class "text-sm text-gray-600 mb-2" ]
+                [ H.text "Your paste is available at:" ]
+            , H.p [ A.class "font-mono text-sm text-gray-800 break-all" ]
+                -- TODO: add the url to shared model, use it here
+                [ H.text ("https://onasty.local/secret/" ++ slug) ]
+            ]
+        , H.div [ A.class "flex gap-3" ]
+            [ viewCopyLinkButton
+            , viewCreateNewNoteButton
+            ]
+        ]
+
+
+viewCopyLinkButton : Html msg
+viewCopyLinkButton =
+    let
+        base : String
+        base =
+            "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+
+        classes : Bool -> String
+        classes success =
+            if success then
+                base ++ " bg-green-100 border-green-300 text-green-700"
+
+            else
+                base ++ " border-gray-300 text-gray-700 hover:bg-gray-50"
+
+        text : Bool -> String
+        text success =
+            if success then
+                "Copied!"
+
+            else
+                "Copy URL"
+
+        -- TODO: implement me
+    in
+    H.button
+        [ A.class (classes False) ]
+        [ H.text (text False) ]
+
+
+viewCreateNewNoteButton : Html Msg
+viewCreateNewNoteButton =
+    H.button
+        [ A.class "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+        , E.onClick UserClickedCreateNewNote
+        ]
+        [ H.text "Create New Paste" ]
