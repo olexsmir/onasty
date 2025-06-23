@@ -154,13 +154,20 @@ view shared model =
 
                     -- TODO: show the api error
                     , H.div [ A.class "p-6 space-y-6" ]
-                        (case model.pageVariant of
+                        [ case model.apiError of
+                            Just error ->
+                                H.div [ A.class "bg-red-50 border border-red-200 rounded-md p-4" ]
+                                    [ H.p [ A.class "text-red-800 text-sm" ] [ H.text (Api.errorMessage error) ] ]
+
+                            Nothing ->
+                                H.text ""
+                        , case model.pageVariant of
                             CreateNote ->
-                                [ viewCreateNoteForm model ]
+                                viewCreateNoteForm model
 
                             NoteCreated slug ->
-                                [ viewNoteCreated model.userClickedCopyLink shared.appURL slug ]
-                        )
+                                viewNoteCreated model.userClickedCopyLink shared.appURL slug
+                        ]
                     ]
                 ]
             ]
