@@ -20,7 +20,7 @@ page : Shared.Model -> Route () -> Page Model Msg
 page shared _ =
     Page.new
         { init = init shared
-        , update = update
+        , update = update shared
         , subscriptions = subscriptions
         , view = view shared
         }
@@ -75,8 +75,8 @@ type Field
     | Slug
 
 
-update : Msg -> Model -> ( Model, Effect Msg )
-update msg model =
+update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
+update shared msg model =
     case msg of
         UserClickedSubmit ->
             ( model
@@ -101,7 +101,7 @@ update msg model =
             ( { model | userClickedCopyLink = True }
             , Effect.batch
                 [ Effect.sendCmd (Task.perform (\_ -> CopiedFeedbackShown) (Process.sleep 2000))
-                , Effect.sendToClipboard ("https://onasty.local/secret/" ++ Maybe.withDefault "" model.slug) -- TODO: soft code the url
+                , Effect.sendToClipboard (secretUrl shared.appURL (Maybe.withDefault "" model.slug))
                 ]
             )
 
@@ -137,7 +137,7 @@ subscriptions _ =
 
 
 view : Shared.Model -> Model -> View Msg
-view _ model =
+view shared model =
     { title = "Onasty"
     , body =
         [ H.div [ A.class "py-8 px-4 " ]
@@ -150,7 +150,7 @@ view _ model =
                                 [ viewForm model ]
 
                             NoteCreated slug ->
-                                [ viewNoteCreated model slug ]
+                                [ viewNoteCreated model.userClickedCopyLink shared.appURL slug ]
                         )
                     ]
                 ]
@@ -226,18 +226,22 @@ isFormDisabled model =
     String.isEmpty model.content
 
 
-viewNoteCreated : Model -> String -> Html Msg
-viewNoteCreated model slug =
+secretUrl : String -> String -> String
+secretUrl appUrl slug =
+    appUrl ++ "/secret/" ++ slug
+
+
+viewNoteCreated : Bool -> String -> String -> Html Msg
+viewNoteCreated userClickedCopyLink appUrl slug =
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-6" ]
         [ H.div [ A.class "bg-white border border-green-300 rounded-md p-4 mb-4" ]
             [ H.p [ A.class "text-sm text-gray-600 mb-2" ]
                 [ H.text "Your paste is available at:" ]
             , H.p [ A.class "font-mono text-sm text-gray-800 break-all" ]
-                -- TODO: add the url to shared model, use it here
-                [ H.text ("https://onasty.local/secret/" ++ slug) ]
+                [ H.text (secretUrl appUrl slug) ]
             ]
         , H.div [ A.class "flex gap-3" ]
-            [ viewCopyLinkButton model.userClickedCopyLink
+            [ viewCopyLinkButton userClickedCopyLink
             , viewCreateNewNoteButton
             ]
         ]
