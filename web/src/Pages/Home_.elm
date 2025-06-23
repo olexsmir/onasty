@@ -40,6 +40,10 @@ type alias Model =
     }
 
 
+
+-- TODO: store slug as Slug type
+
+
 type PageVariant
     = CreateNote
     | NoteCreated String
@@ -132,8 +136,11 @@ subscriptions _ =
 
 
 -- VIEW
--- TODO: show errors
--- TODO: validate form
+
+
+secretUrl : String -> String -> String
+secretUrl appUrl slug =
+    appUrl ++ "/secret/" ++ slug
 
 
 view : Shared.Model -> Model -> View Msg
@@ -144,10 +151,12 @@ view shared model =
             [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     [ viewHeader
+
+                    -- TODO: show the api error
                     , H.div [ A.class "p-6 space-y-6" ]
                         (case model.pageVariant of
                             CreateNote ->
-                                [ viewForm model ]
+                                [ viewCreateNoteForm model ]
 
                             NoteCreated slug ->
                                 [ viewNoteCreated model.userClickedCopyLink shared.appURL slug ]
@@ -167,41 +176,58 @@ viewHeader =
         ]
 
 
-viewForm : Model -> Html Msg
-viewForm model =
-    -- TODO: that form defo should be broken down into smaller components
+
+-- VIEW CREATE NOTE
+-- TODO: validate form
+
+
+viewCreateNoteForm : Model -> Html Msg
+viewCreateNoteForm model =
     H.form
         [ E.onSubmit UserClickedSubmit
         , A.class "space-y-6"
         ]
-        [ H.div [ A.class "space-y-2" ]
-            [ H.label
-                [ A.for "content", A.class "block text-sm font-medium text-gray-700 mb-2" ]
-                [ H.text "Content *" ]
-            , H.textarea
-                [ A.id "content"
-                , A.class "w-full h-96 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
-                , A.placeholder "Write your note here..."
-                , A.required True
-                , E.onInput (UserUpdatedInput Content)
-                ]
-                []
+        [ viewTextarea
+        , viewFormInput { field = Slug, label = "Custom URL Slug (optional)", placeholder = "my-unique-slug", type_ = "text", comment = Just "Leave empty to generate a random slug" }
+        , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
+        ]
+
+
+viewTextarea : Html Msg
+viewTextarea =
+    H.div [ A.class "space-y-2" ]
+        [ H.label
+            [ A.for (fromFieldToName Content), A.class "block text-sm font-medium text-gray-700 mb-2" ]
+            [ H.text "Content *" ]
+        , H.textarea
+            [ A.id (fromFieldToName Content)
+            , A.class "w-full h-96 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
+            , A.placeholder "Write your note here..."
+            , A.required True
+            , E.onInput (UserUpdatedInput Content)
             ]
-        , H.div [ A.class "space-y-2" ]
-            [ H.label [ A.for "slug", A.class "block text-sm font-medium text-gray-700 mb-2" ] [ H.text "Custom URL Slug (optional)" ]
-            , H.input
-                [ A.id "slug"
-                , A.type_ "text"
-                , A.placeholder "my-unique-slug"
-                , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                , E.onInput (UserUpdatedInput Slug)
-                ]
-                []
-            , H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text "Leave empty to generate a random slug" ]
+            []
+        ]
+
+
+viewFormInput : { field : Field, label : String, placeholder : String, type_ : String, comment : Maybe String } -> Html Msg
+viewFormInput options =
+    H.div [ A.class "space-y-2" ]
+        [ H.label [ A.for (fromFieldToName options.field), A.class "block text-sm font-medium text-gray-700 mb-2" ] [ H.text options.label ]
+        , H.input
+            [ A.id (fromFieldToName options.field)
+            , A.type_ "text"
+            , A.placeholder options.placeholder
+            , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            , E.onInput (UserUpdatedInput options.field)
             ]
-        , H.div
-            [ A.class "flex justify-end" ]
-            [ viewSubmitButton model ]
+            []
+        , case options.comment of
+            Just cmt ->
+                H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text cmt ]
+
+            Nothing ->
+                H.text ""
         ]
 
 
@@ -226,9 +252,27 @@ isFormDisabled model =
     String.isEmpty model.content
 
 
-secretUrl : String -> String -> String
-secretUrl appUrl slug =
-    appUrl ++ "/secret/" ++ slug
+viewCreateNewNoteButton : Html Msg
+viewCreateNewNoteButton =
+    H.button
+        [ A.class "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+        , E.onClick UserClickedCreateNewNote
+        ]
+        [ H.text "Create New Paste" ]
+
+
+fromFieldToName : Field -> String
+fromFieldToName field =
+    case field of
+        Content ->
+            "content"
+
+        Slug ->
+            "slug"
+
+
+
+-- VIEW NOTE CREATED
 
 
 viewNoteCreated : Bool -> String -> String -> Html Msg
@@ -272,12 +316,3 @@ viewCopyLinkButton isClicked =
                 "Copy URL"
             )
         ]
-
-
-viewCreateNewNoteButton : Html Msg
-viewCreateNewNoteButton =
-    H.button
-        [ A.class "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-        , E.onClick UserClickedCreateNewNote
-        ]
-        [ H.text "Create New Paste" ]
