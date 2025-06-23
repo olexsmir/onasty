@@ -1,6 +1,6 @@
 import "./styles.css";
 
-export const flags = ({env}) => {
+export const flags = ({ env }) => {
   return {
     access_token: JSON.parse(window.localStorage.access_token || "null"),
     refresh_token: JSON.parse(window.localStorage.refresh_token || "null"),
