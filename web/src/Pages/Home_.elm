@@ -5,6 +5,7 @@ import Api.Note
 import Components.Error
 import Data.Note as Note
 import Effect exposing (Effect)
+import ExpirationOptions exposing (expirationOptions)
 import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
@@ -14,6 +15,7 @@ import Process
 import Route exposing (Route)
 import Shared
 import Task
+import Time exposing (Posix)
 import View exposing (View)
 
 
@@ -37,10 +39,11 @@ type alias Model =
     , content : String
     , slug : Maybe String
     , password : Maybe String
-    , expirationTime : Maybe String -- TODO: probably better to use Int and store mills
-    , burnBeforeExpiration : Bool
+    , expirationTime : Maybe Int
+    , dontBurnBeforeExpiration : Bool
     , apiError : Maybe Api.Error
     , userClickedCopyLink : Bool
+    , now : Maybe Posix
     }
 
 
@@ -60,9 +63,10 @@ init _ () =
       , slug = Nothing
       , password = Nothing
       , expirationTime = Nothing
-      , burnBeforeExpiration = True
+      , dontBurnBeforeExpiration = True
       , userClickedCopyLink = False
       , apiError = Nothing
+      , now = Nothing
       }
     , Effect.none
     )
@@ -74,6 +78,7 @@ init _ () =
 
 type Msg
     = CopyButtonReset
+    | Tick Posix
     | UserUpdatedInput Field String
     | UserClickedCheckbox Bool
     | UserClickedSubmit
@@ -92,16 +97,31 @@ type Field
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
 update shared msg model =
     case msg of
+        Tick now ->
+            ( { model | now = Just now }, Effect.none )
+
         CopyButtonReset ->
             ( { model | userClickedCopyLink = False }, Effect.none )
 
         UserClickedSubmit ->
+            let
+                expiresAt : Posix
+                expiresAt =
+                    case ( model.now, model.expirationTime ) of
+                        ( Just now, Just expirationTime ) ->
+                            Time.millisToPosix (Time.posixToMillis now + expirationTime)
+
+                        _ ->
+                            Time.millisToPosix 0
+            in
             ( model
             , Api.Note.create
                 { onResponse = ApiCreateNoteResponded
                 , content = model.content
                 , slug = model.slug
                 , password = model.password
+                , burnBeforeExpiration = not model.dontBurnBeforeExpiration
+                , expiresAt = expiresAt
                 }
             )
 
@@ -133,14 +153,14 @@ update shared msg model =
         UserUpdatedInput Password password ->
             ( { model | password = Just password }, Effect.none )
 
-        UserUpdatedInput ExpirationTime password ->
-            ( { model | password = Just password }, Effect.none )
+        UserUpdatedInput ExpirationTime expirationTime ->
+            ( { model | expirationTime = String.toInt expirationTime }, Effect.none )
 
         UserClickedCheckbox burnBeforeExpiration ->
-            ( { model | burnBeforeExpiration = burnBeforeExpiration }, Effect.none )
+            ( { model | dontBurnBeforeExpiration = burnBeforeExpiration }, Effect.none )
 
         ApiCreateNoteResponded (Ok response) ->
-            ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug }, Effect.none )
+            ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug, apiError = Nothing }, Effect.none )
 
         ApiCreateNoteResponded (Err error) ->
             ( { model | apiError = Just error }, Effect.none )
@@ -151,8 +171,13 @@ update shared msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    case model.expirationTime of
+        Just _ ->
+            Time.every 1000 Tick
+
+        _ ->
+            Sub.none
 
 
 
@@ -306,13 +331,14 @@ viewExpirationTimeSelector =
             , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             , E.onInput (UserUpdatedInput ExpirationTime)
             ]
-            [ H.option [ A.value "never" ] [ H.text "Never expire (default)" ]
-            , H.option [ A.value "" ] [ H.text "Select expiration time" ]
-            , H.option [ A.value "1h" ] [ H.text "1 hour" ]
-            , H.option [ A.value "1d" ] [ H.text "1 day" ]
-            , H.option [ A.value "7d" ] [ H.text "7 days" ]
-            , H.option [ A.value "30d" ] [ H.text "30 days" ]
-            ]
+            (List.map
+                (\e ->
+                    H.option
+                        [ A.value (String.fromInt e.value) ]
+                        [ H.text e.text ]
+                )
+                expirationOptions
+            )
         ]
 
 
@@ -329,26 +355,10 @@ viewBurnBeforeExpirationCheckbox =
                 []
             , H.div [ A.class "flex-1" ]
                 [ H.label [ A.for "burn", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
-                    [ H.text "" ]
-                , H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text "Don't delete note until expiration time, even if somebody read it." ]
+                    [ H.text "Don't delete note until expiration time, even if somebody read it." ]
                 ]
             ]
         ]
-
-
-
--- <div className={` ${className}`}>
---   <div className="">
---     <input
---     />
---     <div className="flex-1">
---       <label htmlFor={id} className="">
---         {label}
---       </label>
---       {helpText && <p className="">{helpText}</p>}
---     </div>
---   </div>
--- </div>
 
 
 viewSubmitButton : Model -> Html Msg
