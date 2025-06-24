@@ -355,7 +355,7 @@ viewBurnBeforeExpirationCheckbox =
                 []
             , H.div [ A.class "flex-1" ]
                 [ H.label [ A.for "burn", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
-                    [ H.text "Don't delete note until expiration time, even if somebody read it." ]
+                    [ H.text "Don't delete note until expiration time, even if it has been read it" ]
                 ]
             ]
         ]
