@@ -202,15 +202,21 @@ viewHeader pageVariant =
 -- TODO: validate form
 
 
-viewCreateNoteForm : Model -> Html Msg
-viewCreateNoteForm model =
+viewCreateNoteForm : Model -> String -> Html Msg
+viewCreateNoteForm model appUrl =
     H.form
         [ E.onSubmit UserClickedSubmit
         , A.class "space-y-6"
         ]
         [ viewTextarea
-        , viewFormInput { field = Slug, label = "Custom URL Slug (optional)", placeholder = "my-unique-slug", type_ = "text", comment = Just "Leave empty to generate a random slug" }
-        , viewFormInput { field = Password, label = "Password Protection (optional)", placeholder = "Enter password to protect this paste", type_ = "text", comment = Just "Viewers will need this password to access the paste" }
+        , viewFormInput
+            { field = Slug
+            , label = "Custom URL Slug (optional)"
+            , placeholder = "my-unique-slug"
+            , type_ = "text"
+            , help = Just "Leave empty to generate a random slug"
+            , prefix = Just (secretUrl appUrl "")
+            }
         , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
         ]
 
@@ -219,34 +225,49 @@ viewTextarea : Html Msg
 viewTextarea =
     H.div [ A.class "space-y-2" ]
         [ H.label
-            [ A.for (fromFieldToName Content), A.class "block text-sm font-medium text-gray-700 mb-2" ]
+            [ A.for (fromFieldToName Content)
+            , A.class "block text-sm font-medium text-gray-700 mb-2"
+            ]
             [ H.text "Content" ]
         , H.textarea
-            [ A.id (fromFieldToName Content)
-            , A.class "w-full h-96 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
+            [ E.onInput (UserUpdatedInput Content)
+            , A.id (fromFieldToName Content)
             , A.placeholder "Write your note here..."
             , A.required True
-            , E.onInput (UserUpdatedInput Content)
+            , A.rows 20
+            , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
             ]
             []
         ]
 
 
-viewFormInput : { field : Field, label : String, placeholder : String, type_ : String, comment : Maybe String } -> Html Msg
+viewFormInput : { field : Field, label : String, placeholder : String, type_ : String, prefix : Maybe String, help : Maybe String } -> Html Msg
 viewFormInput options =
     H.div [ A.class "space-y-2" ]
-        [ H.label [ A.for (fromFieldToName options.field), A.class "block text-sm font-medium text-gray-700 mb-2" ] [ H.text options.label ]
-        , H.input
-            [ A.id (fromFieldToName options.field)
-            , A.type_ "text"
-            , A.placeholder options.placeholder
-            , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-            , E.onInput (UserUpdatedInput options.field)
+        [ H.label
+            [ A.for (fromFieldToName options.field)
+            , A.class "block text-sm font-medium text-gray-700 mb-2"
             ]
-            []
-        , case options.comment of
-            Just cmt ->
-                H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text cmt ]
+            [ H.text options.label ]
+        , H.div [ A.class "flex items-center" ]
+            [ case options.prefix of
+                Just prefix ->
+                    H.span [ A.class "text-gray-500 text-md mr-2 whitespace-nowrap" ] [ H.text prefix ]
+
+                Nothing ->
+                    H.text ""
+            , H.input
+                [ E.onInput (UserUpdatedInput options.field)
+                , A.id (fromFieldToName options.field)
+                , A.type_ options.type_
+                , A.placeholder options.placeholder
+                , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                ]
+                []
+            ]
+        , case options.help of
+            Just help ->
+                H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text help ]
 
             Nothing ->
                 H.text ""
