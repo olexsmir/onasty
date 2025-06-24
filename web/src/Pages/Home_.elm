@@ -210,7 +210,7 @@ viewCreateNoteForm model =
         ]
         [ viewTextarea
         , viewFormInput { field = Slug, label = "Custom URL Slug (optional)", placeholder = "my-unique-slug", type_ = "text", comment = Just "Leave empty to generate a random slug" }
-        , viewFormInput { field = Password, label = "Enter password to protect this paste", placeholder = "", type_ = "text", comment = Just "Viewers will need this password to access the paste" }
+        , viewFormInput { field = Password, label = "Password Protection (optional)", placeholder = "Enter password to protect this paste", type_ = "text", comment = Just "Viewers will need this password to access the paste" }
         , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
         ]
 
