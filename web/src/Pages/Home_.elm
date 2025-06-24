@@ -37,6 +37,8 @@ type alias Model =
     , content : String
     , slug : Maybe String
     , password : Maybe String
+    , expirationTime : Maybe String -- TODO: probably better to use Int and store mills
+    , burnBeforeExpiration : Bool
     , apiError : Maybe Api.Error
     , userClickedCopyLink : Bool
     }
@@ -57,6 +59,8 @@ init _ () =
       , content = ""
       , slug = Nothing
       , password = Nothing
+      , expirationTime = Nothing
+      , burnBeforeExpiration = True
       , userClickedCopyLink = False
       , apiError = Nothing
       }
@@ -71,6 +75,7 @@ init _ () =
 type Msg
     = CopyButtonReset
     | UserUpdatedInput Field String
+    | UserClickedCheckbox Bool
     | UserClickedSubmit
     | UserClickedCreateNewNote
     | UserClickedCopyLink
@@ -81,6 +86,7 @@ type Field
     = Content
     | Slug
     | Password
+    | ExpirationTime
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -127,6 +133,12 @@ update shared msg model =
         UserUpdatedInput Password password ->
             ( { model | password = Just password }, Effect.none )
 
+        UserUpdatedInput ExpirationTime password ->
+            ( { model | password = Just password }, Effect.none )
+
+        UserClickedCheckbox burnBeforeExpiration ->
+            ( { model | burnBeforeExpiration = burnBeforeExpiration }, Effect.none )
+
         ApiCreateNoteResponded (Ok response) ->
             ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug }, Effect.none )
 
@@ -169,7 +181,7 @@ view shared model =
                                 H.text ""
                         , case model.pageVariant of
                             CreateNote ->
-                                viewCreateNoteForm model
+                                viewCreateNoteForm model shared.appURL
 
                             NoteCreated slug ->
                                 viewNoteCreated model.userClickedCopyLink shared.appURL slug
@@ -214,9 +226,25 @@ viewCreateNoteForm model appUrl =
             , label = "Custom URL Slug (optional)"
             , placeholder = "my-unique-slug"
             , type_ = "text"
-            , help = Just "Leave empty to generate a random slug"
+            , help = "Leave empty to generate a random slug"
             , prefix = Just (secretUrl appUrl "")
             }
+        , H.div [ A.class "grid grid-cols-1 md:grid-cols-2 gap-6" ]
+            [ H.div [ A.class "space-y-6" ]
+                [ viewFormInput
+                    { field = Password
+                    , label = "Password Protection (optional)"
+                    , type_ = "text"
+                    , placeholder = "Enter password to protect this paste"
+                    , help = "Viewers will need this password to access the paste"
+                    , prefix = Nothing
+                    }
+                ]
+            , H.div [ A.class "space-y-6" ]
+                [ viewExpirationTimeSelector
+                , viewBurnBeforeExpirationCheckbox
+                ]
+            ]
         , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
         ]
 
@@ -241,7 +269,7 @@ viewTextarea =
         ]
 
 
-viewFormInput : { field : Field, label : String, placeholder : String, type_ : String, prefix : Maybe String, help : Maybe String } -> Html Msg
+viewFormInput : { field : Field, label : String, placeholder : String, type_ : String, prefix : Maybe String, help : String } -> Html Msg
 viewFormInput options =
     H.div [ A.class "space-y-2" ]
         [ H.label
@@ -265,13 +293,62 @@ viewFormInput options =
                 ]
                 []
             ]
-        , case options.help of
-            Just help ->
-                H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text help ]
-
-            Nothing ->
-                H.text ""
+        , H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text options.help ]
         ]
+
+
+viewExpirationTimeSelector : Html Msg
+viewExpirationTimeSelector =
+    H.div []
+        [ H.label [ A.for (fromFieldToName ExpirationTime), A.class "block text-sm font-medium text-gray-700 mb-2" ] [ H.text "Expiration Time (optional)" ]
+        , H.select
+            [ A.id (fromFieldToName ExpirationTime)
+            , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            , E.onInput (UserUpdatedInput ExpirationTime)
+            ]
+            [ H.option [ A.value "never" ] [ H.text "Never expire (default)" ]
+            , H.option [ A.value "" ] [ H.text "Select expiration time" ]
+            , H.option [ A.value "1h" ] [ H.text "1 hour" ]
+            , H.option [ A.value "1d" ] [ H.text "1 day" ]
+            , H.option [ A.value "7d" ] [ H.text "7 days" ]
+            , H.option [ A.value "30d" ] [ H.text "30 days" ]
+            ]
+        ]
+
+
+viewBurnBeforeExpirationCheckbox : Html Msg
+viewBurnBeforeExpirationCheckbox =
+    H.div [ A.class "space-y-2" ]
+        [ H.div [ A.class "flex items-start space-x-3" ]
+            [ H.input
+                [ E.onCheck UserClickedCheckbox
+                , A.id "burn"
+                , A.type_ "checkbox"
+                , A.class "mt-1 h-4 w-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
+                ]
+                []
+            , H.div [ A.class "flex-1" ]
+                [ H.label [ A.for "burn", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
+                    [ H.text "" ]
+                , H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text "Don't delete note until expiration time, even if somebody read it." ]
+                ]
+            ]
+        ]
+
+
+
+-- <div className={` ${className}`}>
+--   <div className="">
+--     <input
+--     />
+--     <div className="flex-1">
+--       <label htmlFor={id} className="">
+--         {label}
+--       </label>
+--       {helpText && <p className="">{helpText}</p>}
+--     </div>
+--   </div>
+-- </div>
 
 
 viewSubmitButton : Model -> Html Msg
@@ -315,6 +392,9 @@ fromFieldToName field =
 
         Password ->
             "password"
+
+        ExpirationTime ->
+            "expiration"
 
 
 
