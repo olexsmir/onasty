@@ -36,6 +36,7 @@ type alias Model =
     { pageVariant : PageVariant
     , content : String
     , slug : Maybe String
+    , password : Maybe String
     , apiError : Maybe Api.Error
     , userClickedCopyLink : Bool
     }
@@ -55,6 +56,7 @@ init _ () =
     ( { pageVariant = CreateNote
       , content = ""
       , slug = Nothing
+      , password = Nothing
       , userClickedCopyLink = False
       , apiError = Nothing
       }
@@ -78,6 +80,7 @@ type Msg
 type Field
     = Content
     | Slug
+    | Password
 
 
 update : Shared.Model -> Msg -> Model -> ( Model, Effect Msg )
@@ -92,6 +95,7 @@ update shared msg model =
                 { onResponse = ApiCreateNoteResponded
                 , content = model.content
                 , slug = model.slug
+                , password = model.password
                 }
             )
 
@@ -100,6 +104,7 @@ update shared msg model =
                 | pageVariant = CreateNote
                 , content = ""
                 , slug = Nothing
+                , password = Nothing
                 , apiError = Nothing
               }
             , Effect.none
@@ -118,6 +123,9 @@ update shared msg model =
 
         UserUpdatedInput Slug slug ->
             ( { model | slug = Just slug }, Effect.none )
+
+        UserUpdatedInput Password password ->
+            ( { model | password = Just password }, Effect.none )
 
         ApiCreateNoteResponded (Ok response) ->
             ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug }, Effect.none )
@@ -202,6 +210,7 @@ viewCreateNoteForm model =
         ]
         [ viewTextarea
         , viewFormInput { field = Slug, label = "Custom URL Slug (optional)", placeholder = "my-unique-slug", type_ = "text", comment = Just "Leave empty to generate a random slug" }
+        , viewFormInput { field = Password, label = "Enter password to protect this paste", placeholder = "", type_ = "text", comment = Just "Viewers will need this password to access the paste" }
         , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
         ]
 
@@ -282,6 +291,9 @@ fromFieldToName field =
 
         Slug ->
             "slug"
+
+        Password ->
+            "password"
 
 
 

@@ -11,6 +11,7 @@ create :
     { onResponse : Result Api.Error CreateResponse -> msg
     , content : String
     , slug : Maybe String
+    , password : Maybe String
     }
     -> Effect msg
 create options =
@@ -25,6 +26,12 @@ create options =
 
                     Nothing ->
                         ( "slug", E.null )
+                , case options.password of
+                    Just password ->
+                        ( "password", E.string password )
+
+                    Nothing ->
+                        ( "password", E.null )
                 ]
     in
     Effect.sendApiRequest
