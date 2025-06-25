@@ -377,12 +377,17 @@ fromHttpResponseToCustomError decoder response =
                     Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadStatus_ { statusCode } body ->
-            case Json.Decode.decodeString Data.Error.decode body of
-                Ok err ->
-                    Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
+            case body of
+                "" ->
+                    Err (Api.HttpError { message = "Unexpected empty response", reason = Http.BadStatus statusCode })
 
-                Err err ->
-                    Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
+                _ ->
+                    case Json.Decode.decodeString Data.Error.decode body of
+                        Ok err ->
+                            Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
+
+                        Err err ->
+                            Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadUrl_ url ->
             Err (Api.HttpError { message = "Unexpected URL format", reason = Http.BadUrl url })
