@@ -16,6 +16,7 @@ decodeCreateResponse =
 type alias Note =
     { content : String
     , readAt : Maybe String -- TODO: use Posix
+    , burnBeforeExpiration : Maybe Bool
     , createdAt : String -- TODO: use Posix
     , expiresAt : Maybe String -- TODO: use Posix
     }
@@ -23,9 +24,10 @@ type alias Note =
 
 decode : Decoder Note
 decode =
-    D.map4 Note
+    D.map5 Note
         (D.field "content" D.string)
         (D.maybe (D.field "read_at" D.string))
+        (D.maybe (D.field "burn_before_expiration" D.bool))
         (D.field "created_at" D.string)
         (D.maybe (D.field "expires_at" D.string))
 

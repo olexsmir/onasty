@@ -82,7 +82,12 @@ update msg model =
             )
 
         UserClickedCopyContent ->
-            ( model, Effect.none )
+            case model.note of
+                Just (Api.Success note) ->
+                    ( model, Effect.sendToClipboard note.content )
+
+                _ ->
+                    ( model, Effect.none )
 
         ApiGetNoteResponded (Ok note) ->
             ( { model | page = ShowNote, note = Just (Api.Success note) }, Effect.none )
@@ -182,26 +187,42 @@ viewHeader options =
 
 viewShowNoteHeader : String -> Note -> Html Msg
 viewShowNoteHeader slug note =
-    H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
-        [ H.div [ A.class "flex justify-between items-start" ]
-            [ H.div []
-                [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text ("Note: " ++ slug) ]
-                , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
-                    [ H.p [] [ H.text ("Created" ++ note.createdAt) ]
-                    , case note.expiresAt of
-                        Just expiresAt ->
-                            H.p [] [ H.text ("Expires at: " ++ expiresAt) ]
+    H.div []
+        [ case note.burnBeforeExpiration of
+            Just True ->
+                H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
+                    [ H.div [ A.class "flex items-center gap-3" ]
+                        [ H.div [ A.class "w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" ]
+                            [ Components.Note.warningSvg ]
+                        , H.p [ A.class "text-orange-800 text-sm font-medium" ]
+                            [ H.text "This note was destroyed. If you need to keep it, copy it before closing this window." ]
+                        ]
+                    ]
 
-                        Nothing ->
-                            H.text ""
+            _ ->
+                H.text ""
+        , H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
+            [ H.div [ A.class "flex justify-between items-start" ]
+                [ H.div []
+                    [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text ("Note: " ++ slug) ]
+                    , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
+                        [ H.p [] [ H.text ("Created: " ++ note.createdAt) ]
+                        , case note.expiresAt of
+                            Just expiresAt ->
+                                -- TODO: format time properly
+                                H.p [] [ H.text ("Expires at: " ++ expiresAt) ]
+
+                            Nothing ->
+                                H.text ""
+                        ]
                     ]
-                ]
-            , H.div [ A.class "flex gap-2" ]
-                [ H.button
-                    [ E.onClick UserClickedCopyContent
-                    , A.class "px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+                , H.div [ A.class "flex gap-2" ]
+                    [ H.button
+                        [ E.onClick UserClickedCopyContent
+                        , A.class "px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+                        ]
+                        [ H.text "Copy Content" ]
                     ]
-                    [ H.text "Copy Content" ]
                 ]
             ]
         ]
@@ -209,6 +230,29 @@ viewShowNoteHeader slug note =
 
 
 -- NOTE
+
+
+viewNoteNotFound : String -> Html msg
+viewNoteNotFound slug =
+    H.div [ A.class "p-6" ]
+        [ H.div [ A.class "text-center py-12" ]
+            [ H.div [ A.class "w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
+                [ Components.Note.noteNotFoundSvg ]
+            , H.h2 [ A.class "text-xl font-semibold text-gray-900 mb-2" ]
+                [ H.text ("Note " ++ slug ++ " Not Found") ]
+            , H.div [ A.class "text-gray-600 mb-6 space-y-2" ]
+                [ H.p []
+                    [ H.text "This note may have:"
+                    , H.ul [ A.class "text-sm space-y-1 list-disc list-inside text-left max-w-md mx-auto" ]
+                        [ H.li [] [ H.text "Expired and been automatically deleted" ]
+                        , H.li [] [ H.text "Been deleted by the creator" ]
+                        , H.li [] [ H.text "Been burned after reading (if it was a one-time view)" ]
+                        , H.li [] [ H.text "Never existed or the URL is incorrect" ]
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
 
 viewOpenNote : Bool -> Html Msg
@@ -251,28 +295,5 @@ viewNoteContent note =
             [ H.pre
                 [ A.class "whitespace-pre-wrap font-mono text-sm text-gray-800 overflow-x-auto" ]
                 [ H.text note.content ]
-            ]
-        ]
-
-
-viewNoteNotFound : String -> Html msg
-viewNoteNotFound slug =
-    H.div [ A.class "p-6" ]
-        [ H.div [ A.class "text-center py-12" ]
-            [ H.div [ A.class "w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
-                [ Components.Note.noteNotFoundSvg ]
-            , H.h2 [ A.class "text-xl font-semibold text-gray-900 mb-2" ]
-                [ H.text ("Note " ++ slug ++ " Not Found") ]
-            , H.div [ A.class "text-gray-600 mb-6 space-y-2" ]
-                [ H.p []
-                    [ H.text "This note may have:"
-                    , H.ul [ A.class "text-sm space-y-1 list-disc list-inside text-left max-w-md mx-auto" ]
-                        [ H.li [] [ H.text "Expired and been automatically deleted" ]
-                        , H.li [] [ H.text "Been deleted by the creator" ]
-                        , H.li [] [ H.text "Been burned after reading (if it was a one-time view)" ]
-                        , H.li [] [ H.text "Never existed or the URL is incorrect" ]
-                        ]
-                    ]
-                ]
             ]
         ]
