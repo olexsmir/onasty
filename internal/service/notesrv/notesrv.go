@@ -151,10 +151,6 @@ func (n *NoteSrv) GetNoteMetadataBySlug(
 	slug dtos.NoteSlug,
 ) (dtos.NoteMetadata, error) {
 	note, err := n.noterepo.GetMetadataBySlug(ctx, slug)
-	if err != nil {
-		return dtos.NoteMetadata{}, err
-	}
-
 	return note, err
 }
 
