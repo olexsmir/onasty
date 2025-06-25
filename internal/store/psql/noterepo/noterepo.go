@@ -21,7 +21,7 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
-	// GetBySlug gets note's metadata by its slug.
+	// GetMetadataBySlug gets note's metadata by its slug.
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetMetadataBySlug(ctx context.Context, slug dtos.NoteSlug) (dtos.NoteMetadata, error)
 
@@ -123,7 +123,7 @@ func (s *NoteRepo) GetMetadataBySlug(
 	slug dtos.NoteSlug,
 ) (dtos.NoteMetadata, error) {
 	query := `--sql
-	select n.created_at, (n.password is not null and n.password <> '') has_pass
+	select n.created_at, (n.password is not null and n.password <> '') has_password
 	from notes n
 	where slug = $1
 	`
