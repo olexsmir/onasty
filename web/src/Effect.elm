@@ -6,6 +6,7 @@ module Effect exposing
     , pushRoutePath, replaceRoutePath
     , loadExternalUrl, back
     , sendApiRequest, refreshTokens
+    , sendToClipboard
     , signin, logout, saveUser, clearUser
     , map, toCmd
     )
@@ -22,6 +23,7 @@ module Effect exposing
 @docs loadExternalUrl, back
 
 @docs sendApiRequest, refreshTokens
+@docs sendToClipboard
 @docs signin, logout, saveUser, clearUser
 
 @docs map, toCmd
@@ -37,7 +39,7 @@ import Dict exposing (Dict)
 import Http
 import Json.Decode
 import Json.Encode
-import Ports exposing (sendToLocalStorage)
+import Ports
 import Route
 import Route.Path
 import Shared.Model
@@ -59,6 +61,7 @@ type Effect msg
       -- SHARED
     | SendSharedMsg Shared.Msg.Msg
     | SendToLocalStorage { key : String, value : Json.Encode.Value }
+    | SendToClipboard String
     | SendApiRequest (HttpRequestDetails msg)
 
 
@@ -187,6 +190,11 @@ sendApiRequest opts =
         }
 
 
+sendToClipboard : String -> Effect msg
+sendToClipboard text =
+    SendToClipboard text
+
+
 refreshTokens : Effect msg
 refreshTokens =
     SendSharedMsg Shared.Msg.TriggerTokenRefresh
@@ -255,6 +263,9 @@ map fn effect =
         SendToLocalStorage options ->
             SendToLocalStorage options
 
+        SendToClipboard text ->
+            SendToClipboard text
+
         SendApiRequest opts ->
             SendApiRequest
                 { endpoint = opts.endpoint
@@ -305,7 +316,10 @@ toCmd options effect =
                 |> Task.perform options.fromSharedMsg
 
         SendToLocalStorage opts ->
-            sendToLocalStorage opts
+            Ports.sendToLocalStorage opts
+
+        SendToClipboard text ->
+            Ports.sendToClipboard text
 
         SendApiRequest opts ->
             let

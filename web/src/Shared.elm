@@ -34,14 +34,16 @@ import Time
 type alias Flags =
     { accessToken : Maybe String
     , refreshToken : Maybe String
+    , appUrl : String
     }
 
 
 decoder : Json.Decode.Decoder Flags
 decoder =
-    Json.Decode.map2 Flags
+    Json.Decode.map3 Flags
         (Json.Decode.field "access_token" (Json.Decode.maybe Json.Decode.string))
         (Json.Decode.field "refresh_token" (Json.Decode.maybe Json.Decode.string))
+        (Json.Decode.field "app_url" Json.Decode.string)
 
 
 
@@ -57,7 +59,7 @@ init flagsResult _ =
     let
         flags : Flags
         flags =
-            flagsResult |> Result.withDefault { accessToken = Nothing, refreshToken = Nothing }
+            flagsResult |> Result.withDefault { accessToken = Nothing, refreshToken = Nothing, appUrl = "" }
 
         maybeCredentials : Maybe Credentials
         maybeCredentials =
@@ -79,6 +81,7 @@ init flagsResult _ =
         initModel =
             { user = user
             , timeZone = Time.utc
+            , appURL = flags.appUrl
             }
     in
     ( initModel

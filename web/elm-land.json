@@ -8,7 +8,7 @@
         "debugger": false
       }
     },
-    "env": [],
+    "env": ["FRONTEND_URL"],
     "html": {
       "attributes": {
         "html": {
