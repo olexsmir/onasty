@@ -42,7 +42,6 @@ func run() error {
 		return err
 	}
 
-	//nolint:exhaustruct
 	svc, err := micro.AddService(nc, micro.Config{
 		Name:    "mailer",
 		Version: version,

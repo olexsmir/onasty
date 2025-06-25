@@ -83,6 +83,8 @@ linters:
         - github.com/golang-jwt/jwt/v5\.RegisteredClaims
         - github.com/gin-contrib/cors\.Config
         - github.com/prometheus/client_golang/prometheus\.(CounterOpts|HistogramOpts)
+        - github.com/nats-io/nats.go/micro\.Config
+        - github.com/golang-migrate/migrate/v4/database/pgx.Config
 
     funlen:
       lines: 100
