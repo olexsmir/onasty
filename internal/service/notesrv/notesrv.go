@@ -150,15 +150,12 @@ func (n *NoteSrv) GetNoteMetadataBySlug(
 	ctx context.Context,
 	slug dtos.NoteSlug,
 ) (dtos.NoteMetadata, error) {
-	note, err := n.noterepo.GetBySlug(ctx, slug)
+	note, err := n.noterepo.GetMetadataBySlug(ctx, slug)
 	if err != nil {
 		return dtos.NoteMetadata{}, err
 	}
 
-	return dtos.NoteMetadata{
-		HasPassword: note.Password != "",
-		CreatedAt:   note.CreatedAt,
-	}, nil
+	return note, err
 }
 
 func (n *NoteSrv) GetAllByAuthorID(

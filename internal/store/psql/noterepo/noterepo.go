@@ -21,6 +21,10 @@ type NoteStorer interface {
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
+	// GetBySlug gets note's metadata by its slug.
+	// Returns [models.ErrNoteNotFound] if note is not found.
+	GetMetadataBySlug(ctx context.Context, slug dtos.NoteSlug) (dtos.NoteMetadata, error)
+
 	// GetAllByAuthorID returns all notes with specified author.
 	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
 
@@ -112,6 +116,25 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.No
 	}
 
 	return note, err
+}
+
+func (s *NoteRepo) GetMetadataBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+) (dtos.NoteMetadata, error) {
+	query := `--sql
+	select n.created_at, (n.password is not null and n.password <> '') has_pass
+	from notes n
+	where slug = $1
+	`
+
+	var metadata dtos.NoteMetadata
+	err := s.db.QueryRow(ctx, query, slug).Scan(&metadata.CreatedAt, &metadata.HasPassword)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return dtos.NoteMetadata{}, models.ErrNoteNotFound
+	}
+
+	return metadata, err
 }
 
 func (s *NoteRepo) GetAllByAuthorID(
