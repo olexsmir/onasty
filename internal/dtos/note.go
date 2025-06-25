@@ -9,10 +9,11 @@ import (
 type NoteSlug = string
 
 type GetNote struct {
-	Content   string
-	ReadAt    time.Time
-	CreatedAt time.Time
-	ExpiresAt time.Time
+	Content              string
+	BurnBeforeExpiration bool
+	ReadAt               time.Time
+	CreatedAt            time.Time
+	ExpiresAt            time.Time
 }
 
 type NoteMetadata struct {
