@@ -1,4 +1,4 @@
-module Data.Note exposing (CreateResponse, Note, decode, decodeCreateResponse)
+module Data.Note exposing (CreateResponse, Metadata, Note, decode, decodeCreateResponse, decodeMetadata)
 
 import Json.Decode as D exposing (Decoder)
 
@@ -28,3 +28,16 @@ decode =
         (D.field "read_at" (D.maybe D.string))
         (D.field "created_at" D.string)
         (D.field "expires_at" (D.maybe D.string))
+
+
+type alias Metadata =
+    { createdAt : String -- TODO: use Posix
+    , hasPassword : Bool
+    }
+
+
+decodeMetadata : Decoder Metadata
+decodeMetadata =
+    D.map2 Metadata
+        (D.field "created_at" D.string)
+        (D.field "has_password" D.bool)

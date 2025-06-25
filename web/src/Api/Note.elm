@@ -1,7 +1,7 @@
-module Api.Note exposing (create, get)
+module Api.Note exposing (create, fetchMetadata, get)
 
 import Api
-import Data.Note as Note exposing (CreateResponse, Note)
+import Data.Note as Note exposing (CreateResponse, Metadata, Note)
 import Effect exposing (Effect)
 import Http
 import ISO8601
@@ -70,4 +70,19 @@ get options =
         , body = Http.emptyBody
         , onResponse = options.onResponse
         , decoder = Note.decode
+        }
+
+
+fetchMetadata :
+    { onResponse : Result Api.Error Metadata -> msg
+    , slug : String
+    }
+    -> Effect msg
+fetchMetadata options =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note/" ++ options.slug ++ "/meta"
+        , method = "GET"
+        , body = Http.emptyBody
+        , onResponse = options.onResponse
+        , decoder = Note.decodeMetadata
         }

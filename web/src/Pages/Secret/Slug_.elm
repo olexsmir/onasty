@@ -4,7 +4,7 @@ import Api
 import Api.Note
 import Components.Error
 import Components.Note
-import Data.Note exposing (Note)
+import Data.Note exposing (Metadata, Note)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -34,7 +34,7 @@ page _ route =
 type alias Model =
     { slug : String
     , note : Maybe (Api.Response Note)
-    , apiError : Maybe Api.Error
+    , metadata : Api.Response Metadata
     }
 
 
@@ -42,9 +42,12 @@ init : String -> () -> ( Model, Effect Msg )
 init slug () =
     ( { slug = slug
       , note = Nothing
-      , apiError = Nothing
+      , metadata = Api.Loading
       }
-    , Effect.none
+    , Api.Note.fetchMetadata
+        { onResponse = ApiGetMetadataResponded
+        , slug = slug
+        }
     )
 
 
@@ -55,6 +58,7 @@ init slug () =
 type Msg
     = UserClickedViewNote
     | ApiGetNoteResponded (Result Api.Error Note)
+    | ApiGetMetadataResponded (Result Api.Error Metadata)
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -69,10 +73,16 @@ update msg model =
             )
 
         ApiGetNoteResponded (Ok note) ->
-            ( { model | note = Just (Api.Success note), apiError = Nothing }, Effect.none )
+            ( { model | note = Just (Api.Success note) }, Effect.none )
 
         ApiGetNoteResponded (Err error) ->
-            ( { model | note = Just (Api.Failure error), apiError = Just error }, Effect.none )
+            ( { model | note = Just (Api.Failure error) }, Effect.none )
+
+        ApiGetMetadataResponded (Ok metadata) ->
+            ( { model | metadata = Api.Success metadata }, Effect.none )
+
+        ApiGetMetadataResponded (Err error) ->
+            ( { model | metadata = Api.Failure error }, Effect.none )
 
 
 
