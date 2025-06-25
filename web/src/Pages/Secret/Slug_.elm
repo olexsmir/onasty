@@ -132,23 +132,20 @@ view model =
                      case model.page of
                         RequestNote ->
                             [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                            , viewOpenNote False
+                            , viewOpenNote model.slug False
                             ]
 
                         ShowNote ->
-                            let
-                                generic : List (Html Msg)
-                                generic =
-                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                                    , viewOpenNote True
-                                    ]
-                            in
                             case model.note of
                                 Nothing ->
-                                    generic
+                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+                                    , viewOpenNote model.slug False
+                                    ]
 
                                 Just Api.Loading ->
-                                    generic
+                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+                                    , viewOpenNote model.slug True
+                                    ]
 
                                 Just (Api.Failure err) ->
                                     if Api.is404 err then
@@ -255,8 +252,8 @@ viewNoteNotFound slug =
         ]
 
 
-viewOpenNote : Bool -> Html Msg
-viewOpenNote isLoading =
+viewOpenNote : String -> Bool -> Html Msg
+viewOpenNote slug isLoading =
     let
         buttonData : { text : String, class : String }
         buttonData =
@@ -276,8 +273,10 @@ viewOpenNote isLoading =
             [ H.div [ A.class "mb-6" ]
                 [ H.div [ A.class "w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
                     [ Components.Note.noteIconSvg ]
-                , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text "note slug" ]
-                , H.p [ A.class "text-gray-600 mb-6" ] [ H.text "This note is protected. Click below to view its content." ]
+                , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text slug ]
+
+                -- TODO: check if note will be burnt after, and change the text
+                , H.p [ A.class "text-gray-600 mb-6" ] [ H.text "You're about read and destroy the note." ]
                 ]
             , H.button
                 [ A.class buttonData.class
