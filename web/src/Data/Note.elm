@@ -25,9 +25,9 @@ decode : Decoder Note
 decode =
     D.map4 Note
         (D.field "content" D.string)
-        (D.field "read_at" (D.maybe D.string))
+        (D.maybe (D.field "read_at" D.string))
         (D.field "created_at" D.string)
-        (D.field "expires_at" (D.maybe D.string))
+        (D.maybe (D.field "expires_at" D.string))
 
 
 type alias Metadata =
