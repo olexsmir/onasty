@@ -1,4 +1,4 @@
-module Data.Note exposing (CreateResponse, decodeCreateResponse)
+module Data.Note exposing (CreateResponse, Note, decodeCreateResponse)
 
 import Json.Decode as D exposing (Decoder)
 
@@ -11,3 +11,7 @@ decodeCreateResponse : Decoder CreateResponse
 decodeCreateResponse =
     D.map CreateResponse
         (D.field "slug" D.string)
+
+
+type alias Note =
+    {}
