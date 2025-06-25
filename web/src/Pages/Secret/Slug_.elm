@@ -1,4 +1,4 @@
-module Pages.Secret.Slug_ exposing (Model, Msg, page)
+module Pages.Secret.Slug_ exposing (PageVariant, Model, Msg, page)
 
 import Api
 import Api.Note
