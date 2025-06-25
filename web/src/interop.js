@@ -17,7 +17,11 @@ export const onReady = ({ app }) => {
 
   if (app.ports?.sendToClipboard) {
     app.ports.sendToClipboard.subscribe(async (text) => {
-      await navigator.clipboard.writeText(text)
-    })
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (error) {
+        console.error("Failed to write to clipboard:", error);
+      }
+    });
   }
 };
