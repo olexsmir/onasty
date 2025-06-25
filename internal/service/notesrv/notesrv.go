@@ -131,10 +131,11 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	respNote := dtos.GetNote{
-		Content:   note.Content,
-		ReadAt:    note.ReadAt,
-		CreatedAt: note.CreatedAt,
-		ExpiresAt: note.ExpiresAt,
+		Content:              note.Content,
+		BurnBeforeExpiration: note.BurnBeforeExpiration,
+		ReadAt:               note.ReadAt,
+		CreatedAt:            note.CreatedAt,
+		ExpiresAt:            note.ExpiresAt,
 	}
 
 	// since not every note should be burn before expiration
