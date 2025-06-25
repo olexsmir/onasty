@@ -123,14 +123,19 @@ func (s *NoteRepo) GetMetadataBySlug(
 	slug dtos.NoteSlug,
 ) (dtos.NoteMetadata, error) {
 	query := `--sql
-	select n.created_at, (n.password is not null and n.password <> '') has_password
+	select n.created_at, (n.password is not null and n.password <> '') has_password, n.read_at is not null
 	from notes n
 	where slug = $1
 	`
 
+	var isRead bool
 	var metadata dtos.NoteMetadata
 	err := s.db.QueryRow(ctx, query, slug).Scan(&metadata.CreatedAt, &metadata.HasPassword)
 	if errors.Is(err, pgx.ErrNoRows) {
+		return dtos.NoteMetadata{}, models.ErrNoteNotFound
+	}
+
+	if isRead {
 		return dtos.NoteMetadata{}, models.ErrNoteNotFound
 	}
 
