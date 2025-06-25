@@ -23,11 +23,15 @@ type NoteServicer interface {
 	Create(ctx context.Context, note dtos.CreateNote, userID uuid.UUID) (dtos.NoteSlug, error)
 
 	// GetBySlugAndRemoveIfNeeded returns note by slug, and removes if if needed.
-	// If notes is not found returns [models.ErrNoteNotFound].
+	// If note is not found returns [models.ErrNoteNotFound].
 	GetBySlugAndRemoveIfNeeded(
 		ctx context.Context,
 		input GetNoteBySlugInput,
 	) (dtos.GetNote, error)
+
+	// GetNoteMetadataBySlug returns note metadata by slug.
+	// If note is not found returns [models.ErrNoteNotFound].
+	GetNoteMetadataBySlug(ctx context.Context, slug dtos.NoteSlug) (dtos.NoteMetadata, error)
 
 	// GetAllByAuthorID returns all notes by author id.
 	GetAllByAuthorID(
@@ -140,6 +144,14 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 	}
 
 	return respNote, n.noterepo.RemoveBySlug(ctx, inp.Slug, time.Now())
+}
+
+func (n *NoteSrv) GetNoteMetadataBySlug(
+	ctx context.Context,
+	slug dtos.NoteSlug,
+) (dtos.NoteMetadata, error) {
+	note, err := n.noterepo.GetMetadataBySlug(ctx, slug)
+	return note, err
 }
 
 func (n *NoteSrv) GetAllByAuthorID(

@@ -92,6 +92,24 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 	})
 }
 
+type getNoteMetadataBySlugResponse struct {
+	CreatedAt   time.Time `json:"created_at"`
+	HasPassword bool      `json:"has_password"`
+}
+
+func (a *APIV1) getNoteMetadataByIDHandler(c *gin.Context) {
+	meta, err := a.notesrv.GetNoteMetadataBySlug(c.Request.Context(), c.Param("slug"))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, getNoteMetadataBySlugResponse{
+		CreatedAt:   meta.CreatedAt,
+		HasPassword: meta.HasPassword,
+	})
+}
+
 type getNotesResponse struct {
 	Content              string    `json:"content"`
 	Slug                 string    `json:"slug"`

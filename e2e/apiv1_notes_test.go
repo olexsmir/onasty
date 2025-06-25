@@ -222,3 +222,62 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword_wrong() {
 	)
 	e.Equal(httpResp.Code, http.StatusNotFound)
 }
+
+type apiv1NoteMetadataResponse struct {
+	CreatedAt   time.Time `json:"created_at"`
+	HasPassword bool      `json:"has_password"`
+}
+
+func (e *AppTestSuite) TestNoteV1_GetMetadata() {
+	// create note
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{Content: "content"}), //nolint:exhaustruct
+	)
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
+
+	// get metadata
+	metaResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug+"/meta", []byte{})
+	e.Equal(metaResp.Code, http.StatusOK)
+
+	var metadata apiv1NoteMetadataResponse
+	e.readBodyAndUnjsonify(metaResp.Body, &metadata)
+
+	e.False(metadata.HasPassword)
+	e.NotEmpty(metadata.CreatedAt)
+}
+
+func (e *AppTestSuite) TestNoteV1_GetMetadata_withPassword() {
+	// create note
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:  "content",
+			Password: "pass",
+		}),
+	)
+	e.Equal(http.StatusCreated, httpResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
+
+	// get metadata
+	metaResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug+"/meta", []byte{})
+	e.Equal(metaResp.Code, http.StatusOK)
+
+	var metadata apiv1NoteMetadataResponse
+	e.readBodyAndUnjsonify(metaResp.Body, &metadata)
+
+	e.True(metadata.HasPassword)
+	e.NotEmpty(metadata.CreatedAt)
+}
+
+func (e *AppTestSuite) TestNoteV1_GetMetadata_notFound() {
+	metaResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+e.uuid()+"/meta", []byte{})
+	e.Equal(http.StatusNotFound, metaResp.Code)
+}
