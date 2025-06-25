@@ -177,7 +177,7 @@ func (e *AppTestSuite) prepPostgres() (*psqlutil.DB, stopFunc) {
 
 	// run migrations
 	sdb := stdlib.OpenDBFromPool(db.Pool)
-	driver, err := pgx.WithInstance(sdb, &pgx.Config{}) //nolint:exhaustruct
+	driver, err := pgx.WithInstance(sdb, &pgx.Config{})
 	e.require.NoError(err)
 
 	m, err := migrate.NewWithDatabaseInstance(
