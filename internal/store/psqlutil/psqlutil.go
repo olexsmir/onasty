@@ -31,14 +31,11 @@ func (db *DB) Close() error {
 }
 
 // IsDuplicateErr function that checks if the error is a duplicate key violation.
-func IsDuplicateErr(err error, constraintName ...string) bool {
+func IsDuplicateErr(err error, constraintName string) bool {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
-		if len(constraintName) == 0 || len(constraintName) == 1 {
-			return pgErr.Code == "23505" && // unique_violation
-				pgErr.ConstraintName == constraintName[0]
-		}
-		return pgErr.Code == "23505" // unique_violation
+		return pgErr.Code == "23505" && // unique_violation
+			pgErr.ConstraintName == constraintName
 	}
 	return false
 }
