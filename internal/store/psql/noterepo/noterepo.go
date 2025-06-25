@@ -85,7 +85,7 @@ func (s *NoteRepo) Create(ctx context.Context, inp models.Note) error {
 	}
 
 	_, err = s.db.Exec(ctx, query, args...)
-	if psqlutil.IsDuplicateErr(err) {
+	if psqlutil.IsDuplicateErr(err, "notes_slug_key") {
 		return models.ErrNoteSlugIsAlreadyInUse
 	}
 
