@@ -1,7 +1,7 @@
-module Api.Note exposing (create)
+module Api.Note exposing (create, get)
 
 import Api
-import Data.Note as Note exposing (CreateResponse)
+import Data.Note as Note exposing (CreateResponse, Note)
 import Effect exposing (Effect)
 import Http
 import ISO8601
@@ -55,4 +55,19 @@ create options =
         , body = Http.jsonBody body
         , onResponse = options.onResponse
         , decoder = Note.decodeCreateResponse
+        }
+
+
+get :
+    { onResponse : Result Api.Error Note -> msg
+    , slug : String
+    }
+    -> Effect msg
+get options =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note/" ++ options.slug
+        , method = "GET"
+        , body = Http.emptyBody
+        , onResponse = options.onResponse
+        , decoder = Note.decode
         }
