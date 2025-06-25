@@ -148,13 +148,25 @@ update shared msg model =
             ( { model | content = content }, Effect.none )
 
         UserUpdatedInput Slug slug ->
-            ( { model | slug = Just slug }, Effect.none )
+            if slug == "" then
+                ( { model | slug = Nothing }, Effect.none )
+
+            else
+                ( { model | slug = Just slug }, Effect.none )
 
         UserUpdatedInput Password password ->
-            ( { model | password = Just password }, Effect.none )
+            if password == "" then
+                ( { model | password = Nothing }, Effect.none )
+
+            else
+                ( { model | password = Just password }, Effect.none )
 
         UserUpdatedInput ExpirationTime expirationTime ->
-            ( { model | expirationTime = String.toInt expirationTime }, Effect.none )
+            if expirationTime == "0" then
+                ( { model | expirationTime = Nothing }, Effect.none )
+
+            else
+                ( { model | expirationTime = String.toInt expirationTime }, Effect.none )
 
         UserClickedCheckbox burnBeforeExpiration ->
             ( { model | dontBurnBeforeExpiration = burnBeforeExpiration }, Effect.none )
