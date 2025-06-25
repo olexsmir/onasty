@@ -1,4 +1,4 @@
-module Pages.Secret.Slug_ exposing (PageVariant, Model, Msg, page)
+module Pages.Secret.Slug_ exposing (Model, Msg, PageVariant, page)
 
 import Api
 import Api.Note
@@ -65,6 +65,7 @@ init slug () =
 
 type Msg
     = UserClickedViewNote
+    | UserClickedCopyContent
     | ApiGetNoteResponded (Result Api.Error Note)
     | ApiGetMetadataResponded (Result Api.Error Metadata)
 
@@ -79,6 +80,9 @@ update msg model =
                 , slug = model.slug
                 }
             )
+
+        UserClickedCopyContent ->
+            ( model, Effect.none )
 
         ApiGetNoteResponded (Ok note) ->
             ( { model | page = ShowNote, note = Just (Api.Success note) }, Effect.none )
@@ -176,24 +180,29 @@ viewHeader options =
         ]
 
 
-viewShowNoteHeader : String -> Note -> Html msg
+viewShowNoteHeader : String -> Note -> Html Msg
 viewShowNoteHeader slug note =
-    H.div [ A.class "flex justify-between items-start" ]
-        [ H.div []
-            [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text ("Note: " ++ slug) ]
-            , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
-                [ H.p [] [ H.text ("Created at: " ++ note.createdAt) ]
-                , case note.expiresAt of
-                    Just expiresAt ->
-                        H.p [] [ H.text ("Expires at: " ++ expiresAt) ]
+    H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
+        [ H.div [ A.class "flex justify-between items-start" ]
+            [ H.div []
+                [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text ("Note: " ++ slug) ]
+                , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
+                    [ H.p [] [ H.text ("Created" ++ note.createdAt) ]
+                    , case note.expiresAt of
+                        Just expiresAt ->
+                            H.p [] [ H.text ("Expires at: " ++ expiresAt) ]
 
-                    Nothing ->
-                        H.text ""
+                        Nothing ->
+                            H.text ""
+                    ]
                 ]
-            ]
-        , H.div [ A.class "flex gap-2" ]
-            [ H.button [ A.class "px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors" ]
-                [ H.text "Copy Content" ]
+            , H.div [ A.class "flex gap-2" ]
+                [ H.button
+                    [ E.onClick UserClickedCopyContent
+                    , A.class "px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+                    ]
+                    [ H.text "Copy Content" ]
+                ]
             ]
         ]
 
@@ -239,7 +248,10 @@ viewNoteContent : Note -> Html msg
 viewNoteContent note =
     H.div [ A.class "p-6" ]
         [ H.div [ A.class "bg-gray-50 border border-gray-200 rounded-md p-4" ]
-            [ H.pre [ A.class "whitespace-pre-wrap font-mono text-sm text-gray-800 overflow-x-auto" ] [ H.text note.content ] ]
+            [ H.pre
+                [ A.class "whitespace-pre-wrap font-mono text-sm text-gray-800 overflow-x-auto" ]
+                [ H.text note.content ]
+            ]
         ]
 
 
