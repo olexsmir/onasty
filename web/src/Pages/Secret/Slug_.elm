@@ -1,11 +1,12 @@
 module Pages.Secret.Slug_ exposing (Model, Msg, page)
 
 import Api
+import Api.Note
 import Components.Error
 import Components.Note
 import Data.Note exposing (Note)
 import Effect exposing (Effect)
-import Html as H exposing (Html, button)
+import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
 import Layouts
@@ -16,9 +17,9 @@ import View exposing (View)
 
 
 page : Shared.Model -> Route { slug : String } -> Page Model Msg
-page shared route =
+page _ route =
     Page.new
-        { init = init
+        { init = init route.params.slug
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -31,12 +32,18 @@ page shared route =
 
 
 type alias Model =
-    { note : Maybe (Api.Response Note) }
+    { slug : String
+    , note : Maybe (Api.Response Note)
+    , apiError : Maybe Api.Error
+    }
 
 
-init : () -> ( Model, Effect Msg )
-init () =
-    ( { note = Nothing }
+init : String -> () -> ( Model, Effect Msg )
+init slug () =
+    ( { slug = slug
+      , note = Nothing
+      , apiError = Nothing
+      }
     , Effect.none
     )
 
@@ -47,13 +54,25 @@ init () =
 
 type Msg
     = UserClickedViewNote
+    | ApiGetNoteResponded (Result Api.Error Note)
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UserClickedViewNote ->
-            ( { model | note = Just Api.Loading }, Effect.none )
+            ( { model | note = Just Api.Loading }
+            , Api.Note.get
+                { onResponse = ApiGetNoteResponded
+                , slug = model.slug
+                }
+            )
+
+        ApiGetNoteResponded (Ok note) ->
+            ( { model | note = Just (Api.Success note), apiError = Nothing }, Effect.none )
+
+        ApiGetNoteResponded (Err error) ->
+            ( { model | note = Just (Api.Failure error), apiError = Just error }, Effect.none )
 
 
 
@@ -61,12 +80,17 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
 
 -- VIEW
+
+
+type PageVariant
+    = RequestNote
+    | ShowNote
 
 
 view : Model -> View Msg
@@ -76,35 +100,72 @@ view model =
         [ H.div [ A.class "py-8 px-4" ]
             [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    [ viewHeader
-                    , case model.note of
+                    (case model.note of
                         Nothing ->
-                            viewOpenNote False
+                            [ viewHeader GetNote
+                            , viewOpenNote False
+                            ]
 
                         Just Api.Loading ->
-                            viewOpenNote True
+                            [ viewHeader GetNote
+                            , viewOpenNote True
+                            ]
 
                         Just (Api.Success note) ->
-                            viewNoteContent note
+                            [ viewHeader ViewNote
+                            , viewNoteContent note
+                            ]
 
                         Just (Api.Failure err) ->
-                            Components.Error.error (Api.errorMessage err)
-                    ]
+                            [ Components.Error.error (Api.errorMessage err) ]
+                    )
                 ]
             ]
         ]
     }
 
 
-viewHeader : Html msg
-viewHeader =
+
+-- HEADER
+
+
+type HeaderVariant
+    = GetNote
+    | ViewNote
+
+
+viewHeader : HeaderVariant -> Html msg
+viewHeader variant =
     H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
-        [ H.h1
-            [ A.class "text-2xl font-bold text-gray-900" ]
-            [ H.text "View note" ]
-        , H.p [ A.class "text-gray-600 mt-2" ]
-            [ H.text "Click the button below to view the note content" ]
-        ]
+        (case variant of
+            GetNote ->
+                [ H.h1
+                    [ A.class "text-2xl font-bold text-gray-900" ]
+                    [ H.text "View note" ]
+                , H.p [ A.class "text-gray-600 mt-2" ]
+                    [ H.text "Click the button below to view the note content" ]
+                ]
+
+            ViewNote ->
+                [ H.div [ A.class "flex justify-between items-start" ]
+                    [ H.div []
+                        [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text "Note: Slug" ]
+                        , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
+                            [ H.p [] [ H.text "Created at: 2023-10-01T12:00:00Z" ]
+                            , H.p [] [ H.text "Expires at: 2023-10-01T12:00:00Z" ]
+                            ]
+                        ]
+                    , H.div [ A.class "flex gap-2" ]
+                        [ H.button [ A.class "px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors" ]
+                            [ H.text "Copy Content" ]
+                        ]
+                    ]
+                ]
+        )
+
+
+
+-- NOTE
 
 
 viewOpenNote : Bool -> Html Msg
@@ -142,4 +203,7 @@ viewOpenNote isLoading =
 
 viewNoteContent : Note -> Html msg
 viewNoteContent note =
-    H.div [] []
+    H.div [ A.class "p-6" ]
+        [ H.div [ A.class "bg-gray-50 border border-gray-200 rounded-md p-4" ]
+            [ H.pre [ A.class "whitespace-pre-wrap font-mono text-sm text-gray-800 overflow-x-auto" ] [ H.text note.content ] ]
+        ]
