@@ -59,6 +59,7 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 	note := r.Group("/note")
 	{
 		note.GET("/:slug", a.getNoteBySlugHandler)
+		note.GET("/:slug/meta", a.getNoteMetadataByIDHandler)
 
 		possiblyAuthorized := note.Group("", a.couldBeAuthorizedMiddleware)
 		{

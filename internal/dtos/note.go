@@ -15,6 +15,11 @@ type GetNote struct {
 	ExpiresAt time.Time
 }
 
+type NoteMetadata struct {
+	HasPassword bool
+	CreatedAt   time.Time
+}
+
 type CreateNote struct {
 	Content              string
 	UserID               uuid.UUID
