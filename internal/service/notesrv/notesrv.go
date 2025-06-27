@@ -225,7 +225,7 @@ func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (models.N
 		return models.Note{}, err
 	}
 
-	if !note.IsRead() {
+	if note.IsRead() {
 		if err = n.cache.SetNote(ctx, inp.Slug, note); err != nil {
 			slog.ErrorContext(ctx, "notecache", "err", err)
 		}

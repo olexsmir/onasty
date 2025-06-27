@@ -268,7 +268,7 @@ func (e *AppTestSuite) TestNoteV1_GetMetadata_withPassword() {
 
 	// get metadata
 	metaResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug+"/meta", []byte{})
-	e.Equal(metaResp.Code, http.StatusOK)
+	e.Equal(http.StatusOK, metaResp.Code)
 
 	var metadata apiv1NoteMetadataResponse
 	e.readBodyAndUnjsonify(metaResp.Body, &metadata)
@@ -279,5 +279,26 @@ func (e *AppTestSuite) TestNoteV1_GetMetadata_withPassword() {
 
 func (e *AppTestSuite) TestNoteV1_GetMetadata_notFound() {
 	metaResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+e.uuid()+"/meta", []byte{})
+	e.Equal(http.StatusNotFound, metaResp.Code)
+}
+
+func (e *AppTestSuite) TestNoteV1_GetMetadata_readNote() {
+	// create note
+	createdResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{Content: "content"}), //nolint:exhaustruct
+	)
+	e.Equal(http.StatusCreated, createdResp.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(createdResp.Body, &bodyCreated)
+
+	// read note
+	readResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusOK, readResp.Code)
+
+	// get metadata
+	metaResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+e.uuid()+"/meta", nil)
 	e.Equal(http.StatusNotFound, metaResp.Code)
 }

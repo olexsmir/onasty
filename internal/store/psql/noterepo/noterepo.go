@@ -22,7 +22,7 @@ type NoteStorer interface {
 	GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error)
 
 	// GetMetadataBySlug gets note's metadata by its slug.
-	// Returns [models.ErrNoteNotFound] if note is not found.
+	// Returns [models.ErrNoteNotFound] if note is not found OR read.
 	GetMetadataBySlug(ctx context.Context, slug dtos.NoteSlug) (dtos.NoteMetadata, error)
 
 	// GetAllByAuthorID returns all notes with specified author.
@@ -123,14 +123,19 @@ func (s *NoteRepo) GetMetadataBySlug(
 	slug dtos.NoteSlug,
 ) (dtos.NoteMetadata, error) {
 	query := `--sql
-	select n.created_at, (n.password is not null and n.password <> '') has_password
+	select n.created_at, (n.password is not null and n.password <> '') has_password, n.read_at
 	from notes n
 	where slug = $1
 	`
 
+	var readAt time.Time
 	var metadata dtos.NoteMetadata
-	err := s.db.QueryRow(ctx, query, slug).Scan(&metadata.CreatedAt, &metadata.HasPassword)
+	err := s.db.QueryRow(ctx, query, slug).Scan(&metadata.CreatedAt, &metadata.HasPassword, &readAt)
 	if errors.Is(err, pgx.ErrNoRows) {
+		return dtos.NoteMetadata{}, models.ErrNoteNotFound
+	}
+
+	if !readAt.IsZero() {
 		return dtos.NoteMetadata{}, models.ErrNoteNotFound
 	}
 
