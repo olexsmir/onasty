@@ -1,4 +1,4 @@
-module Api.Note exposing (create, fetchMetadata, get)
+module Api.Note exposing (create, getMetadata, get)
 
 import Api
 import Data.Note as Note exposing (CreateResponse, Metadata, Note)
@@ -84,12 +84,12 @@ get options =
         }
 
 
-fetchMetadata :
+getMetadata :
     { onResponse : Result Api.Error Metadata -> msg
     , slug : String
     }
     -> Effect msg
-fetchMetadata options =
+getMetadata options =
     Effect.sendApiRequest
         { endpoint = "/api/v1/note/" ++ options.slug ++ "/meta"
         , method = "GET"

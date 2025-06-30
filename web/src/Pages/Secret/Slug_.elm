@@ -52,7 +52,7 @@ init slug () =
       , slug = slug
       , password = Nothing
       }
-    , Api.Note.fetchMetadata
+    , Api.Note.getMetadata
         { onResponse = ApiGetMetadataResponded
         , slug = slug
         }
