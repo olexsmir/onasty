@@ -249,9 +249,9 @@ viewNoteNotFound slug =
                 [ H.p []
                     [ H.text "This note may have:"
                     , H.ul [ A.class "text-sm space-y-1 list-disc list-inside text-left max-w-md mx-auto" ]
-                        [ H.li [] [ H.text "Expired and been automatically deleted" ]
+                        [ H.li [] [ H.text "Expired and been deleted" ]
                         , H.li [] [ H.text "Been deleted by the creator" ]
-                        , H.li [] [ H.text "Been burned after reading (if it was a one-time view)" ]
+                        , H.li [] [ H.text "Been burned after reading" ]
                         , H.li [] [ H.text "Never existed or the URL is incorrect" ]
                         ]
                     ]
