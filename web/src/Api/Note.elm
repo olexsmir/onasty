@@ -7,6 +7,7 @@ import Http
 import ISO8601
 import Json.Encode as E
 import Time exposing (Posix)
+import Url
 
 
 create :
@@ -65,20 +66,19 @@ get :
     }
     -> Effect msg
 get options =
-    let
-        body : Http.Body
-        body =
-            case options.password of
-                Just password ->
-                    E.object [ ( "password", E.string password ) ] |> Http.jsonBody
-
-                Nothing ->
-                    Http.emptyBody
-    in
     Effect.sendApiRequest
-        { endpoint = "/api/v1/note/" ++ options.slug
+        { endpoint =
+            "/api/v1/note/"
+                ++ options.slug
+                ++ (case options.password of
+                        Just p ->
+                            "?password=" ++ Url.percentEncode p
+
+                        Nothing ->
+                            ""
+                   )
         , method = "GET"
-        , body = body
+        , body = Http.emptyBody
         , onResponse = options.onResponse
         , decoder = Note.decode
         }
