@@ -1,4 +1,4 @@
-module Api exposing (Error(..), Response(..), errorMessage, is404)
+module Api exposing (Error(..), Response(..), errorMessage)
 
 import Http
 import Json.Decode
@@ -29,13 +29,3 @@ errorMessage error =
 
         JsonDecodeError err ->
             err.message
-
-
-is404 : Error -> Bool
-is404 error =
-    case error of
-        HttpError { reason } ->
-            reason == Http.BadStatus 404
-
-        _ ->
-            False

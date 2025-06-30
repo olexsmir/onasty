@@ -134,11 +134,7 @@ view model =
 
                         Api.Loading ->
                             [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
-                            , viewOpenNote
-                                { slug = model.slug
-                                , hasPassword = False
-                                , isLoading = True
-                                }
+                            , viewOpenNote { slug = model.slug, hasPassword = False, isLoading = True }
                             ]
 
                         Api.Failure error ->
@@ -157,11 +153,7 @@ viewPage slug page_ metadata =
     case page_ of
         RequestNote ->
             [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-            , viewOpenNote
-                { slug = slug
-                , hasPassword = metadata.hasPassword
-                , isLoading = False
-                }
+            , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, isLoading = False }
             ]
 
         ShowNote note ->
