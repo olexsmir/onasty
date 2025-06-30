@@ -1,4 +1,4 @@
-module Api.Note exposing (create, getMetadata, get)
+module Api.Note exposing (create, get, getMetadata)
 
 import Api
 import Data.Note as Note exposing (CreateResponse, Metadata, Note)
@@ -21,22 +21,21 @@ create :
     -> Effect msg
 create options =
     let
+        encodeMaybe : Maybe a -> b -> (a -> E.Value) -> ( b, E.Value )
+        encodeMaybe maybeData field value =
+            case maybeData of
+                Just data ->
+                    ( field, value data )
+
+                Nothing ->
+                    ( field, E.null )
+
         body : E.Value
         body =
             E.object
                 [ ( "content", E.string options.content )
-                , case options.slug of
-                    Just slug ->
-                        ( "slug", E.string slug )
-
-                    Nothing ->
-                        ( "slug", E.null )
-                , case options.password of
-                    Just password ->
-                        ( "password", E.string password )
-
-                    Nothing ->
-                        ( "password", E.null )
+                , encodeMaybe options.slug "slug" E.string
+                , encodeMaybe options.password "password" E.string
                 , ( "burn_before_expiration", E.bool options.burnBeforeExpiration )
                 , if options.expiresAt == Time.millisToPosix 0 then
                     ( "expires_at", E.null )
