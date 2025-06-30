@@ -166,9 +166,9 @@ viewPage slug page_ metadata =
 
         ShowNote note ->
             case note of
-                Api.Success noteData ->
-                    [ viewShowNoteHeader slug noteData
-                    , viewNoteContent noteData
+                Api.Success note_ ->
+                    [ viewShowNoteHeader slug note_
+                    , viewNoteContent note_
                     ]
 
                 Api.Loading ->
@@ -176,7 +176,7 @@ viewPage slug page_ metadata =
                     , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, isLoading = True }
                     ]
 
-                Api.Failure error ->
+                Api.Failure _ ->
                     [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
                     , viewNoteNotFound slug
                     ]
