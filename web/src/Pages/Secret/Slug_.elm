@@ -117,6 +117,7 @@ subscriptions _ =
 
 view : Model -> View Msg
 view model =
+    -- TODO: review the whole logic of the view functions, there's way too much branching
     { title = "View note"
     , body =
         [ H.div [ A.class "py-8 px-4" ]
@@ -185,19 +186,18 @@ viewHeader options =
 viewShowNoteHeader : String -> Note -> Html Msg
 viewShowNoteHeader slug note =
     H.div []
-        [ case note.burnBeforeExpiration of
-            Just True ->
-                H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
-                    [ H.div [ A.class "flex items-center gap-3" ]
-                        [ H.div [ A.class "w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" ]
-                            [ Components.Note.warningSvg ]
-                        , H.p [ A.class "text-orange-800 text-sm font-medium" ]
-                            [ H.text "This note was destroyed. If you need to keep it, copy it before closing this window." ]
-                        ]
+        [ if note.burnBeforeExpiration then
+            H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
+                [ H.div [ A.class "flex items-center gap-3" ]
+                    [ H.div [ A.class "w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" ]
+                        [ Components.Note.warningSvg ]
+                    , H.p [ A.class "text-orange-800 text-sm font-medium" ]
+                        [ H.text "This note was destroyed. If you need to keep it, copy it before closing this window." ]
                     ]
+                ]
 
-            _ ->
-                H.text ""
+          else
+            H.text ""
         , H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
             [ H.div [ A.class "flex justify-between items-start" ]
                 [ H.div []
