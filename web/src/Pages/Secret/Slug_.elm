@@ -68,6 +68,7 @@ init slug () =
 type Msg
     = UserClickedViewNote
     | UserClickedCopyContent
+    | UserUpdatedPassword String
     | ApiGetNoteResponded (Result Api.Error Note)
     | ApiGetMetadataResponded (Result Api.Error Metadata)
 
@@ -91,6 +92,9 @@ update msg model =
 
                 _ ->
                     ( model, Effect.none )
+
+        UserUpdatedPassword password ->
+            ( { model | password = Just password }, Effect.none )
 
         ApiGetNoteResponded (Ok note) ->
             ( { model | page = ShowNote, note = Just (Api.Success note) }, Effect.none )
@@ -120,61 +124,86 @@ subscriptions _ =
 
 view : Model -> View Msg
 view model =
-    -- TODO: review the whole logic of the view functions, there's way too much branching
     { title = "View note"
     , body =
         [ H.div [ A.class "py-8 px-4" ]
             [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    (let
-                        notFound : List (Html msg)
-                        notFound =
-                            [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
-                            , viewNoteNotFound model.slug
-                            ]
-                     in
-                     case model.page of
-                        RequestNote ->
-                            case model.metadata of
-                                Api.Success metadata ->
-                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                                    , viewOpenNote model.slug False
-                                    ]
+                    (case model.metadata of
+                        Api.Success metadata ->
+                            case model.page of
+                                RequestNote ->
+                                    viewRequestNote
+                                        { slug = model.slug
+                                        , hasPassword = metadata.hasPassword
+                                        , isLoading = model.note == Just Api.Loading
+                                        }
 
-                                _ ->
-                                    []
+                                ShowNote ->
+                                    case model.note of
+                                        Just Api.Loading ->
+                                            [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+                                            , viewOpenNote { slug = model.slug, hasPassword = metadata.hasPassword, isLoading = True }
+                                            ]
 
-                        ShowNote ->
-                            case model.note of
-                                Nothing ->
-                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                                    , viewOpenNote model.slug False
-                                    ]
+                                        Just (Api.Success note) ->
+                                            [ viewShowNoteHeader model.slug note
+                                            , viewNoteContent note
+                                            ]
 
-                                Just Api.Loading ->
-                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                                    , viewOpenNote model.slug True
-                                    ]
+                                        Just (Api.Failure error) ->
+                                            let
+                                                _ =
+                                                    Debug.log "Error loading note" error
+                                            in
+                                            viewErrorOrNotFound error model.slug
 
-                                Just (Api.Failure err) ->
-                                    if Api.is404 err then
-                                        notFound
+                                        Nothing ->
+                                            viewNotFound model.slug
 
-                                    else
-                                        [ Components.Error.error (Api.errorMessage err) ]
+                                NotFound ->
+                                    viewNotFound model.slug
 
-                                Just (Api.Success note) ->
-                                    [ viewShowNoteHeader model.slug note
-                                    , viewNoteContent note
-                                    ]
+                        Api.Loading ->
+                            viewLoading model.slug False
 
-                        NotFound ->
-                            notFound
+                        Api.Failure error ->
+                            viewErrorOrNotFound error model.slug
                     )
                 ]
             ]
         ]
     }
+
+
+viewRequestNote : { slug : String, hasPassword : Bool, isLoading : Bool } -> List (Html Msg)
+viewRequestNote opts =
+    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+    , viewOpenNote { slug = opts.slug, hasPassword = opts.hasPassword, isLoading = opts.isLoading }
+    ]
+
+
+viewLoading : String -> Bool -> List (Html Msg)
+viewLoading slug hasPassword =
+    [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
+    , viewOpenNote { slug = slug, hasPassword = hasPassword, isLoading = True }
+    ]
+
+
+viewNotFound : String -> List (Html Msg)
+viewNotFound slug =
+    [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
+    , viewNoteNotFound slug
+    ]
+
+
+viewErrorOrNotFound : Api.Error -> String -> List (Html Msg)
+viewErrorOrNotFound err slug =
+    if Api.is404 err then
+        viewNotFound slug
+
+    else
+        [ Components.Error.error (Api.errorMessage err) ]
 
 
 
@@ -260,8 +289,17 @@ viewNoteNotFound slug =
         ]
 
 
-viewOpenNote : String -> Bool -> Html Msg
-viewOpenNote slug isLoading =
+
+-- viewOpenNote : String -> Bool -> Html Msg
+
+
+viewOpenNote :
+    { slug : String
+    , hasPassword : Bool
+    , isLoading : Bool
+    }
+    -> Html Msg
+viewOpenNote opts =
     let
         buttonData : { text : String, class : String }
         buttonData =
@@ -270,7 +308,7 @@ viewOpenNote slug isLoading =
                 base =
                     "px-6 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             in
-            if isLoading then
+            if opts.isLoading then
                 { text = "Loading Note...", class = base ++ " bg-gray-300 text-gray-500 cursor-not-allowed" }
 
             else
@@ -281,16 +319,36 @@ viewOpenNote slug isLoading =
             [ H.div [ A.class "mb-6" ]
                 [ H.div [ A.class "w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
                     [ Components.Note.noteIconSvg ]
-                , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text slug ]
+                , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text opts.slug ]
 
                 -- TODO: check if note will be burnt after, and change the text
                 , H.p [ A.class "text-gray-600 mb-6" ] [ H.text "You're about read and destroy the note." ]
                 ]
-            , H.button
-                [ A.class buttonData.class
-                , E.onClick UserClickedViewNote
+            , H.form
+                [ E.onSubmit UserClickedViewNote
+                , A.class "max-w-sm mx-auto space-y-4"
                 ]
-                [ H.text buttonData.text ]
+                [ if opts.hasPassword then
+                    H.div
+                        [ A.class "space-y-2" ]
+                        [ H.label
+                            [ A.class "block text-sm font-medium text-gray-700 text-left" ]
+                            [ H.text "Password" ]
+                        , H.input
+                            [ E.onInput UserUpdatedPassword
+                            , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                            ]
+                            []
+                        ]
+
+                  else
+                    H.text ""
+                , H.button
+                    [ A.class buttonData.class
+                    , A.type_ "submit"
+                    ]
+                    [ H.text buttonData.text ]
+                ]
             ]
         ]
 
