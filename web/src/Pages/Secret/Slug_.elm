@@ -33,26 +33,24 @@ page _ route =
 
 type PageVariant
     = RequestNote
-    | ShowNote
+    | ShowNote (Api.Response Note)
     | NotFound
 
 
 type alias Model =
-    { slug : String
-    , page : PageVariant
-    , password : Maybe String
-    , note : Maybe (Api.Response Note)
+    { page : PageVariant
     , metadata : Api.Response Metadata
+    , slug : String
+    , password : Maybe String
     }
 
 
 init : String -> () -> ( Model, Effect Msg )
 init slug () =
-    ( { slug = slug
-      , page = RequestNote
-      , note = Nothing
-      , password = Nothing
+    ( { page = RequestNote
       , metadata = Api.Loading
+      , slug = slug
+      , password = Nothing
       }
     , Api.Note.fetchMetadata
         { onResponse = ApiGetMetadataResponded
@@ -77,7 +75,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UserClickedViewNote ->
-            ( { model | note = Just Api.Loading }
+            ( { model | page = ShowNote Api.Loading }
             , Api.Note.get
                 { onResponse = ApiGetNoteResponded
                 , password = model.password
@@ -86,8 +84,8 @@ update msg model =
             )
 
         UserClickedCopyContent ->
-            case model.note of
-                Just (Api.Success note) ->
+            case model.page of
+                ShowNote (Api.Success note) ->
                     ( model, Effect.sendToClipboard note.content )
 
                 _ ->
@@ -97,10 +95,10 @@ update msg model =
             ( { model | password = Just password }, Effect.none )
 
         ApiGetNoteResponded (Ok note) ->
-            ( { model | page = ShowNote, note = Just (Api.Success note) }, Effect.none )
+            ( { model | page = ShowNote (Api.Success note) }, Effect.none )
 
         ApiGetNoteResponded (Err error) ->
-            ( { model | note = Just (Api.Failure error) }, Effect.none )
+            ( { model | page = ShowNote (Api.Failure error) }, Effect.none )
 
         ApiGetMetadataResponded (Ok metadata) ->
             ( { model | metadata = Api.Success metadata }, Effect.none )
@@ -128,47 +126,25 @@ view model =
     , body =
         [ H.div [ A.class "py-8 px-4" ]
             [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
-                [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
+                [ H.div
+                    [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     (case model.metadata of
                         Api.Success metadata ->
-                            case model.page of
-                                RequestNote ->
-                                    viewRequestNote
-                                        { slug = model.slug
-                                        , hasPassword = metadata.hasPassword
-                                        , isLoading = model.note == Just Api.Loading
-                                        }
-
-                                ShowNote ->
-                                    case model.note of
-                                        Just Api.Loading ->
-                                            [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                                            , viewOpenNote { slug = model.slug, hasPassword = metadata.hasPassword, isLoading = True }
-                                            ]
-
-                                        Just (Api.Success note) ->
-                                            [ viewShowNoteHeader model.slug note
-                                            , viewNoteContent note
-                                            ]
-
-                                        Just (Api.Failure error) ->
-                                            let
-                                                _ =
-                                                    Debug.log "Error loading note" error
-                                            in
-                                            viewErrorOrNotFound error model.slug
-
-                                        Nothing ->
-                                            viewNotFound model.slug
-
-                                NotFound ->
-                                    viewNotFound model.slug
+                            viewPage model.slug model.page metadata
 
                         Api.Loading ->
-                            viewLoading model.slug False
+                            [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
+                            , viewOpenNote
+                                { slug = model.slug
+                                , hasPassword = False
+                                , isLoading = True
+                                }
+                            ]
 
                         Api.Failure error ->
-                            viewErrorOrNotFound error model.slug
+                            [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
+                            , Components.Error.error (Api.errorMessage error)
+                            ]
                     )
                 ]
             ]
@@ -176,34 +152,37 @@ view model =
     }
 
 
-viewRequestNote : { slug : String, hasPassword : Bool, isLoading : Bool } -> List (Html Msg)
-viewRequestNote opts =
-    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-    , viewOpenNote { slug = opts.slug, hasPassword = opts.hasPassword, isLoading = opts.isLoading }
-    ]
+viewPage : String -> PageVariant -> Metadata -> List (Html Msg)
+viewPage slug page_ metadata =
+    case page_ of
+        RequestNote ->
+            [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+            , viewOpenNote
+                { slug = slug
+                , hasPassword = metadata.hasPassword
+                , isLoading = False
+                }
+            ]
 
+        ShowNote note ->
+            case note of
+                Api.Success noteData ->
+                    [ viewShowNoteHeader slug noteData
+                    , viewNoteContent noteData
+                    ]
 
-viewLoading : String -> Bool -> List (Html Msg)
-viewLoading slug hasPassword =
-    [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
-    , viewOpenNote { slug = slug, hasPassword = hasPassword, isLoading = True }
-    ]
+                Api.Loading ->
+                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+                    , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, isLoading = True }
+                    ]
 
+                Api.Failure error ->
+                    [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
+                    , viewNoteNotFound slug
+                    ]
 
-viewNotFound : String -> List (Html Msg)
-viewNotFound slug =
-    [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
-    , viewNoteNotFound slug
-    ]
-
-
-viewErrorOrNotFound : Api.Error -> String -> List (Html Msg)
-viewErrorOrNotFound err slug =
-    if Api.is404 err then
-        viewNotFound slug
-
-    else
-        [ Components.Error.error (Api.errorMessage err) ]
+        NotFound ->
+            [ viewNoteNotFound slug ]
 
 
 
@@ -276,9 +255,10 @@ viewNoteNotFound slug =
                 [ H.text ("Note " ++ slug ++ " Not Found") ]
             , H.div [ A.class "text-gray-600 mb-6 space-y-2" ]
                 [ H.p []
-                    [ H.text "This note may have:"
+                    [ H.span [ A.class "font-bold" ] [ H.text "This note may have:" ]
                     , H.ul [ A.class "text-sm space-y-1 list-disc list-inside text-left max-w-md mx-auto" ]
                         [ H.li [] [ H.text "Expired and been deleted" ]
+                        , H.li [] [ H.text "Have different password" ]
                         , H.li [] [ H.text "Been deleted by the creator" ]
                         , H.li [] [ H.text "Been burned after reading" ]
                         , H.li [] [ H.text "Never existed or the URL is incorrect" ]
@@ -289,10 +269,6 @@ viewNoteNotFound slug =
         ]
 
 
-
--- viewOpenNote : String -> Bool -> Html Msg
-
-
 viewOpenNote :
     { slug : String
     , hasPassword : Bool
@@ -300,6 +276,7 @@ viewOpenNote :
     }
     -> Html Msg
 viewOpenNote opts =
+    -- TODO : move the loading logic into sep view
     let
         buttonData : { text : String, class : String }
         buttonData =
