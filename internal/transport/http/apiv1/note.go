@@ -1,8 +1,6 @@
 package apiv1
 
 import (
-	"errors"
-	"io"
 	"net/http"
 	"time"
 
@@ -49,10 +47,6 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 	c.JSON(http.StatusCreated, createNoteResponse{slug})
 }
 
-type getNoteBySlugRequest struct {
-	Password string `json:"password"`
-}
-
 type getNoteBySlugResponse struct {
 	Content              string    `json:"content"`
 	ReadAt               time.Time `json:"read_at,omitzero"`
@@ -62,17 +56,11 @@ type getNoteBySlugResponse struct {
 }
 
 func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
-	var req getNoteBySlugRequest
-	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
-		newError(c, http.StatusBadRequest, "invalid request")
-		return
-	}
-
 	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(
 		c.Request.Context(),
 		notesrv.GetNoteBySlugInput{
 			Slug:     c.Param("slug"),
-			Password: req.Password,
+			Password: c.Query("password"),
 		},
 	)
 	if err != nil {
