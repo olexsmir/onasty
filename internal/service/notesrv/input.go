@@ -8,7 +8,7 @@ type GetNoteBySlugInput struct {
 	Slug dtos.NoteSlug
 
 	// Password is a note's password.
-	// Optional, needed only if note has one.
+	// Leave it `""` if note has no password.
 	Password string
 }
 
