@@ -40,6 +40,7 @@ type PageVariant
 type alias Model =
     { slug : String
     , page : PageVariant
+    , password : Maybe String
     , note : Maybe (Api.Response Note)
     , metadata : Api.Response Metadata
     }
@@ -50,6 +51,7 @@ init slug () =
     ( { slug = slug
       , page = RequestNote
       , note = Nothing
+      , password = Nothing
       , metadata = Api.Loading
       }
     , Api.Note.fetchMetadata
@@ -77,6 +79,7 @@ update msg model =
             ( { model | note = Just Api.Loading }
             , Api.Note.get
                 { onResponse = ApiGetNoteResponded
+                , password = model.password
                 , slug = model.slug
                 }
             )
@@ -132,9 +135,14 @@ view model =
                      in
                      case model.page of
                         RequestNote ->
-                            [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                            , viewOpenNote model.slug False
-                            ]
+                            case model.metadata of
+                                Api.Success metadata ->
+                                    [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
+                                    , viewOpenNote model.slug False
+                                    ]
+
+                                _ ->
+                                    []
 
                         ShowNote ->
                             case model.note of

@@ -61,13 +61,25 @@ create options =
 get :
     { onResponse : Result Api.Error Note -> msg
     , slug : String
+    , password : Maybe String
     }
     -> Effect msg
 get options =
+    let
+        body : Http.Body
+        body =
+            case options.password of
+                Just password ->
+                    E.object [ ( "password", E.string password ) ]
+                        |> Http.jsonBody
+
+                Nothing ->
+                    Http.emptyBody
+    in
     Effect.sendApiRequest
         { endpoint = "/api/v1/note/" ++ options.slug
         , method = "GET"
-        , body = Http.emptyBody
+        , body = body
         , onResponse = options.onResponse
         , decoder = Note.decode
         }
