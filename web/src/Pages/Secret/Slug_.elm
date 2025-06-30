@@ -139,7 +139,11 @@ view model =
 
                         Api.Failure error ->
                             [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
-                            , Components.Error.error (Api.errorMessage error)
+                            , if Api.is404 error then
+                                viewNoteNotFound model.slug
+
+                              else
+                                Components.Error.error (Api.errorMessage error)
                             ]
                     )
                 ]
