@@ -130,11 +130,11 @@ view model =
                     [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     (case model.metadata of
                         Api.Success metadata ->
-                            viewPage model.slug model.page metadata
+                            viewPage model.slug model.page metadata model.password
 
                         Api.Loading ->
                             [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
-                            , viewOpenNote { slug = model.slug, hasPassword = False, isLoading = True }
+                            , viewOpenNote { slug = model.slug, hasPassword = False, password = Nothing, isLoading = True }
                             ]
 
                         Api.Failure error ->
@@ -148,12 +148,12 @@ view model =
     }
 
 
-viewPage : String -> PageVariant -> Metadata -> List (Html Msg)
-viewPage slug page_ metadata =
+viewPage : String -> PageVariant -> Metadata -> Maybe String -> List (Html Msg)
+viewPage slug page_ metadata password =
     case page_ of
         RequestNote ->
             [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-            , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, isLoading = False }
+            , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, password = password, isLoading = False }
             ]
 
         ShowNote note ->
@@ -165,7 +165,7 @@ viewPage slug page_ metadata =
 
                 Api.Loading ->
                     [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
-                    , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, isLoading = True }
+                    , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, password = password, isLoading = True }
                     ]
 
                 Api.Failure _ ->
@@ -265,11 +265,15 @@ viewOpenNote :
     { slug : String
     , hasPassword : Bool
     , isLoading : Bool
+    , password : Maybe String
     }
     -> Html Msg
 viewOpenNote opts =
-    -- TODO : move the loading logic into sep view
     let
+        isDisabled : Bool
+        isDisabled =
+            opts.hasPassword && Maybe.withDefault "" opts.password == ""
+
         buttonData : { text : String, class : String }
         buttonData =
             let
@@ -280,6 +284,9 @@ viewOpenNote opts =
             if opts.isLoading then
                 { text = "Loading Note...", class = base ++ " bg-gray-300 text-gray-500 cursor-not-allowed" }
 
+            else if isDisabled then
+                { text = "View Note", class = base ++ " bg-gray-300 text-gray-500 cursor-not-allowed" }
+
             else
                 { text = "View Note", class = base ++ " bg-black text-white hover:bg-gray-800" }
     in
@@ -289,8 +296,6 @@ viewOpenNote opts =
                 [ H.div [ A.class "w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
                     [ Components.Note.noteIconSvg ]
                 , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text opts.slug ]
-
-                -- TODO: check if note will be burnt after, and change the text
                 , H.p [ A.class "text-gray-600 mb-6" ] [ H.text "You're about read and destroy the note." ]
                 ]
             , H.form
@@ -315,6 +320,7 @@ viewOpenNote opts =
                 , H.button
                     [ A.class buttonData.class
                     , A.type_ "submit"
+                    , A.disabled isDisabled
                     ]
                     [ H.text buttonData.text ]
                 ]

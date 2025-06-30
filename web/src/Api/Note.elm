@@ -70,8 +70,7 @@ get options =
         body =
             case options.password of
                 Just password ->
-                    E.object [ ( "password", E.string password ) ]
-                        |> Http.jsonBody
+                    E.object [ ( "password", E.string password ) ] |> Http.jsonBody
 
                 Nothing ->
                     Http.emptyBody
