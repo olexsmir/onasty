@@ -210,11 +210,9 @@ viewBanner model =
 viewBannerSuccess : Maybe Posix -> Maybe Posix -> Html Msg
 viewBannerSuccess now lastClicked =
     let
-        buttonClassesBase : String
         buttonClassesBase =
             "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
 
-        buttonClasses : Bool -> String
         buttonClasses active =
             if active then
                 buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
@@ -227,7 +225,6 @@ viewBannerSuccess now lastClicked =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
                     let
-                        remainingMs : Int
                         remainingMs =
                             30 * 1000 - (Time.posixToMillis now_ - Time.posixToMillis last)
                     in
@@ -287,7 +284,6 @@ viewHeader variant =
 viewChangeVariant : Variant -> Html Msg
 viewChangeVariant variant =
     let
-        base : String
         base =
             "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
 

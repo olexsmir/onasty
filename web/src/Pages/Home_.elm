@@ -105,7 +105,6 @@ update shared msg model =
 
         UserClickedSubmit ->
             let
-                expiresAt : Posix
                 expiresAt =
                     case ( model.now, model.expirationTime ) of
                         ( Just now, Just expirationTime ) ->
@@ -442,7 +441,6 @@ viewNoteCreated userClickedCopyLink appUrl slug =
 viewCopyLinkButton : Bool -> Html Msg
 viewCopyLinkButton isClicked =
     let
-        base : String
         base =
             "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
     in

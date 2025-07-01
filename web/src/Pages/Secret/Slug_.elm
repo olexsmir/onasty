@@ -273,14 +273,11 @@ viewOpenNote :
     -> Html Msg
 viewOpenNote opts =
     let
-        isDisabled : Bool
         isDisabled =
             opts.hasPassword && Maybe.withDefault "" opts.password == ""
 
-        buttonData : { text : String, class : String }
         buttonData =
             let
-                base : String
                 base =
                     "px-6 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             in
