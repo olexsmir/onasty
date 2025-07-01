@@ -124,47 +124,46 @@ view : Model -> View Msg
 view model =
     { title = "View note"
     , body =
-        [ H.div [ A.class "py-8 px-4" ]
-            [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
-                [ H.div
-                    [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    (case model.metadata of
-                        Api.Success metadata ->
-                            viewPage model.slug model.page metadata model.password
+        [ H.div
+            [ A.class "w-full max-w-4xl mx-auto" ]
+            [ H.div
+                [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
+                (case model.metadata of
+                    Api.Success metadata ->
+                        viewPage model.slug model.page metadata model.password
 
-                        Api.Loading ->
-                            [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
-                            , viewOpenNote { slug = model.slug, hasPassword = False, password = Nothing, isLoading = True }
-                            ]
+                    Api.Loading ->
+                        [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
+                        , viewOpenNote { slug = model.slug, hasPassword = False, password = Nothing, isLoading = True }
+                        ]
 
-                        Api.Failure error ->
-                            [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
-                            , if Api.is404 error then
-                                viewNoteNotFound model.slug
+                    Api.Failure error ->
+                        [ viewHeader { title = "Note Not Found", subtitle = "The note you're looking for doesn't exist or has expired" }
+                        , if Api.is404 error then
+                            viewNoteNotFound model.slug
 
-                              else
-                                Components.Error.error (Api.errorMessage error)
-                            ]
-                    )
-                ]
+                          else
+                            Components.Error.error (Api.errorMessage error)
+                        ]
+                )
             ]
         ]
     }
 
 
 viewPage : String -> PageVariant -> Metadata -> Maybe String -> List (Html Msg)
-viewPage slug page_ metadata password =
-    case page_ of
+viewPage slug variant metadata password =
+    case variant of
         RequestNote ->
             [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
             , viewOpenNote { slug = slug, hasPassword = metadata.hasPassword, password = password, isLoading = False }
             ]
 
-        ShowNote note ->
-            case note of
-                Api.Success note_ ->
-                    [ viewShowNoteHeader slug note_
-                    , viewNoteContent note_
+        ShowNote apiResp ->
+            case apiResp of
+                Api.Success note ->
+                    [ viewShowNoteHeader slug note
+                    , viewNoteContent note
                     ]
 
                 Api.Loading ->
