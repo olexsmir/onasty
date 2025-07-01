@@ -1,12 +1,13 @@
-module Api.Note exposing (create)
+module Api.Note exposing (create, get, getMetadata)
 
 import Api
-import Data.Note as Note exposing (CreateResponse)
+import Data.Note as Note exposing (CreateResponse, Metadata, Note)
 import Effect exposing (Effect)
 import Http
 import ISO8601
 import Json.Encode as E
 import Time exposing (Posix)
+import Url
 
 
 create :
@@ -20,22 +21,21 @@ create :
     -> Effect msg
 create options =
     let
+        encodeMaybe : Maybe a -> b -> (a -> E.Value) -> ( b, E.Value )
+        encodeMaybe maybeData field value =
+            case maybeData of
+                Just data ->
+                    ( field, value data )
+
+                Nothing ->
+                    ( field, E.null )
+
         body : E.Value
         body =
             E.object
                 [ ( "content", E.string options.content )
-                , case options.slug of
-                    Just slug ->
-                        ( "slug", E.string slug )
-
-                    Nothing ->
-                        ( "slug", E.null )
-                , case options.password of
-                    Just password ->
-                        ( "password", E.string password )
-
-                    Nothing ->
-                        ( "password", E.null )
+                , encodeMaybe options.slug "slug" E.string
+                , encodeMaybe options.password "password" E.string
                 , ( "burn_before_expiration", E.bool options.burnBeforeExpiration )
                 , if options.expiresAt == Time.millisToPosix 0 then
                     ( "expires_at", E.null )
@@ -55,4 +55,44 @@ create options =
         , body = Http.jsonBody body
         , onResponse = options.onResponse
         , decoder = Note.decodeCreateResponse
+        }
+
+
+get :
+    { onResponse : Result Api.Error Note -> msg
+    , slug : String
+    , password : Maybe String
+    }
+    -> Effect msg
+get options =
+    Effect.sendApiRequest
+        { endpoint =
+            "/api/v1/note/"
+                ++ options.slug
+                ++ (case options.password of
+                        Just p ->
+                            "?password=" ++ Url.percentEncode p
+
+                        Nothing ->
+                            ""
+                   )
+        , method = "GET"
+        , body = Http.emptyBody
+        , onResponse = options.onResponse
+        , decoder = Note.decode
+        }
+
+
+getMetadata :
+    { onResponse : Result Api.Error Metadata -> msg
+    , slug : String
+    }
+    -> Effect msg
+getMetadata options =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note/" ++ options.slug ++ "/meta"
+        , method = "GET"
+        , body = Http.emptyBody
+        , onResponse = options.onResponse
+        , decoder = Note.decodeMetadata
         }
