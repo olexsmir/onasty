@@ -4,7 +4,7 @@ import Api
 import Data.Note as Note exposing (CreateResponse, Metadata, Note)
 import Effect exposing (Effect)
 import Http
-import ISO8601
+import Iso8601
 import Json.Encode as E
 import Time exposing (Posix)
 import Url
@@ -43,8 +43,7 @@ create options =
                   else
                     ( "expires_at"
                     , options.expiresAt
-                        |> ISO8601.fromPosix
-                        |> ISO8601.toString
+                        |> Iso8601.fromTime
                         |> E.string
                     )
                 ]

@@ -13,16 +13,18 @@ import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
+import Time exposing (Zone)
+import Time.Format as T
 import View exposing (View)
 
 
 page : Shared.Model -> Route { slug : String } -> Page Model Msg
-page _ route =
+page shared route =
     Page.new
         { init = init route.params.slug
         , update = update
         , subscriptions = subscriptions
-        , view = view
+        , view = view shared
         }
         |> Page.withLayout (\_ -> Layouts.Header {})
 
@@ -120,8 +122,8 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> View Msg
-view model =
+view : Shared.Model -> Model -> View Msg
+view shared model =
     { title = "View note"
     , body =
         [ H.div
@@ -130,7 +132,7 @@ view model =
                 [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 (case model.metadata of
                     Api.Success metadata ->
-                        viewPage model.slug model.page metadata model.password
+                        viewPage shared.timeZone model.slug model.page metadata model.password
 
                     Api.Loading ->
                         [ viewHeader { title = "View note", subtitle = "Loading note metadata..." }
@@ -151,8 +153,8 @@ view model =
     }
 
 
-viewPage : String -> PageVariant -> Metadata -> Maybe String -> List (Html Msg)
-viewPage slug variant metadata password =
+viewPage : Zone -> String -> PageVariant -> Metadata -> Maybe String -> List (Html Msg)
+viewPage zone slug variant metadata password =
     case variant of
         RequestNote ->
             [ viewHeader { title = "View note", subtitle = "Click the button below to view the note content" }
@@ -162,7 +164,7 @@ viewPage slug variant metadata password =
         ShowNote apiResp ->
             case apiResp of
                 Api.Success note ->
-                    [ viewShowNoteHeader slug note
+                    [ viewShowNoteHeader zone slug note
                     , viewNoteContent note
                     ]
 
@@ -194,8 +196,8 @@ viewHeader options =
         ]
 
 
-viewShowNoteHeader : String -> Note -> Html Msg
-viewShowNoteHeader slug note =
+viewShowNoteHeader : Zone -> String -> Note -> Html Msg
+viewShowNoteHeader zone slug note =
     H.div []
         [ if note.burnBeforeExpiration then
             H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
@@ -214,11 +216,10 @@ viewShowNoteHeader slug note =
                 [ H.div []
                     [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text ("Note: " ++ slug) ]
                     , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
-                        [ H.p [] [ H.text ("Created: " ++ note.createdAt) ]
+                        [ H.p [] [ H.text ("Created: " ++ T.toString zone note.createdAt) ]
                         , case note.expiresAt of
                             Just expiresAt ->
-                                -- TODO: format time properly
-                                H.p [] [ H.text ("Expires at: " ++ expiresAt) ]
+                                H.p [] [ H.text ("Expires at: " ++ T.toString zone expiresAt) ]
 
                             Nothing ->
                                 H.text ""
