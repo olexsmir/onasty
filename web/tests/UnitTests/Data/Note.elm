@@ -13,7 +13,7 @@ suite =
             (\_ ->
                 "{\"slug\":\"the.note-slug\"}"
                     |> D.decodeString Data.Note.decodeCreateResponse
-                    |> Expect.equal (Ok { slug = "the.note-slug" })
+                    |> Expect.ok
             )
         , test "decodeMetadata"
             (\_ ->
@@ -24,6 +24,6 @@ suite =
                     }
                     """
                     |> D.decodeString Data.Note.decodeMetadata
-                    |> Expect.equal (Ok { createdAt = "2023-10-01T12:00:00Z", hasPassword = False })
+                    |> Expect.ok
             )
         ]

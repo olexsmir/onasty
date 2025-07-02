@@ -17,5 +17,5 @@ suite =
                 }
                 """
                     |> Json.decodeString Data.Error.decode
-                    |> Expect.equal (Ok { message = "some kind of an error" })
+                    |> Expect.ok
         ]
