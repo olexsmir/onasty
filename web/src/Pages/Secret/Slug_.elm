@@ -219,7 +219,6 @@ viewShowNoteHeader zone slug note =
                         [ H.p [] [ H.text ("Created: " ++ T.toString zone note.createdAt) ]
                         , case note.expiresAt of
                             Just expiresAt ->
-                                -- TODO: format time properly
                                 H.p [] [ H.text ("Expires at: " ++ T.toString zone expiresAt) ]
 
                             Nothing ->

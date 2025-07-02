@@ -11,8 +11,7 @@ type alias CreateResponse =
 
 decodeCreateResponse : Decoder CreateResponse
 decodeCreateResponse =
-    D.map CreateResponse
-        (D.field "slug" D.string)
+    D.map CreateResponse (D.field "slug" D.string)
 
 
 type alias Note =
