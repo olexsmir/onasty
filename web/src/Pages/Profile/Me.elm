@@ -10,6 +10,7 @@ import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
+import Time.Format as T
 import View exposing (View)
 
 
@@ -91,8 +92,8 @@ viewProfileContent shared userResponse =
 
 
 viewUserDetails : Shared.Model -> Me -> Html Msg
-viewUserDetails _ me =
+viewUserDetails shared me =
     Html.div []
         [ Html.p [] [ Html.text ("Email: " ++ me.email) ]
-        , Html.p [] [ Html.text ("Joined: " ++ me.createdAt) ]
+        , Html.p [] [ Html.text ("Joined: " ++ T.toString shared.timeZone me.createdAt) ]
         ]
