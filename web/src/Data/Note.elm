@@ -1,6 +1,8 @@
 module Data.Note exposing (CreateResponse, Metadata, Note, decode, decodeCreateResponse, decodeMetadata)
 
+import Iso8601
 import Json.Decode as D exposing (Decoder)
+import Time exposing (Posix)
 
 
 type alias CreateResponse =
@@ -15,10 +17,10 @@ decodeCreateResponse =
 
 type alias Note =
     { content : String
-    , readAt : Maybe String -- TODO: use Posix
+    , readAt : Maybe Posix
     , burnBeforeExpiration : Bool
-    , createdAt : String -- TODO: use Posix
-    , expiresAt : Maybe String -- TODO: use Posix
+    , createdAt : Posix
+    , expiresAt : Maybe Posix
     }
 
 
@@ -26,14 +28,14 @@ decode : Decoder Note
 decode =
     D.map5 Note
         (D.field "content" D.string)
-        (D.maybe (D.field "read_at" D.string))
+        (D.maybe (D.field "read_at" Iso8601.decoder))
         (D.field "burn_before_expiration" D.bool)
-        (D.field "created_at" D.string)
-        (D.maybe (D.field "expires_at" D.string))
+        (D.field "created_at" Iso8601.decoder)
+        (D.maybe (D.field "expires_at" Iso8601.decoder))
 
 
 type alias Metadata =
-    { createdAt : String -- TODO: use Posix
+    { createdAt : Posix
     , hasPassword : Bool
     }
 
@@ -41,5 +43,5 @@ type alias Metadata =
 decodeMetadata : Decoder Metadata
 decodeMetadata =
     D.map2 Metadata
-        (D.field "created_at" D.string)
+        (D.field "created_at" Iso8601.decoder)
         (D.field "has_password" D.bool)
