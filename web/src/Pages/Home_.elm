@@ -3,6 +3,7 @@ module Pages.Home_ exposing (Model, Msg, PageVariant, page)
 import Api
 import Api.Note
 import Components.Error
+import Components.Form
 import Data.Note as Note
 import Effect exposing (Effect)
 import ExpirationOptions exposing (expirationOptions)
@@ -257,23 +258,31 @@ viewCreateNoteForm model appUrl =
         , A.class "space-y-6"
         ]
         [ viewTextarea
-        , viewFormInput
-            { field = Slug
+        , Components.Form.input
+            { id = "slug"
+            , field = Slug
             , label = "Custom URL Slug (optional)"
             , placeholder = "my-unique-slug"
             , type_ = "text"
-            , help = "Leave empty to generate a random slug"
+            , helpText = Just "Leave empty to generate a random slug"
             , prefix = Just (secretUrl appUrl "")
+            , onInput = UserUpdatedInput Slug
+            , required = False
+            , value = Maybe.withDefault "" model.slug
             }
         , H.div [ A.class "grid grid-cols-1 md:grid-cols-2 gap-6" ]
             [ H.div [ A.class "space-y-6" ]
-                [ viewFormInput
-                    { field = Password
+                [ Components.Form.input
+                    { id = "password"
+                    , field = Password
                     , label = "Password Protection (optional)"
-                    , type_ = "text"
+                    , type_ = "text" -- TODO: change to password?
                     , placeholder = "Enter password to protect this paste"
-                    , help = "Viewers will need this password to access the paste"
+                    , helpText = Just "Viewers will need this password to access the paste"
                     , prefix = Nothing
+                    , onInput = UserUpdatedInput Password
+                    , required = False
+                    , value = Maybe.withDefault "" model.password
                     }
                 ]
             , H.div [ A.class "space-y-6" ]
@@ -302,34 +311,6 @@ viewTextarea =
             , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-vertical font-mono text-sm"
             ]
             []
-        ]
-
-
-viewFormInput : { field : Field, label : String, placeholder : String, type_ : String, prefix : Maybe String, help : String } -> Html Msg
-viewFormInput options =
-    H.div [ A.class "space-y-2" ]
-        [ H.label
-            [ A.for (fromFieldToName options.field)
-            , A.class "block text-sm font-medium text-gray-700 mb-2"
-            ]
-            [ H.text options.label ]
-        , H.div [ A.class "flex items-center" ]
-            [ case options.prefix of
-                Just prefix ->
-                    H.span [ A.class "text-gray-500 text-md mr-2 whitespace-nowrap" ] [ H.text prefix ]
-
-                Nothing ->
-                    H.text ""
-            , H.input
-                [ E.onInput (UserUpdatedInput options.field)
-                , A.id (fromFieldToName options.field)
-                , A.type_ options.type_
-                , A.placeholder options.placeholder
-                , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                ]
-                []
-            ]
-        , H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text options.help ]
         ]
 
 
