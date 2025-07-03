@@ -4,6 +4,7 @@ import Api
 import Api.Auth
 import Auth.User
 import Components.Error
+import Components.Form
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -336,22 +337,15 @@ viewForm model =
 
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
-    H.div [ A.class "space-y-2" ]
-        [ H.label
-            [ A.class "block text-sm font-medium text-gray-700" ]
-            [ H.text (fromFieldToLabel opts.field) ]
-        , H.div []
-            [ H.input
-                [ A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                , A.type_ (fromFieldToInputType opts.field)
-                , A.value opts.value
-                , A.placeholder (fromFieldToLabel opts.field)
-                , A.required True
-                , E.onInput (UserUpdatedInput opts.field)
-                ]
-                []
-            ]
-        ]
+    Components.Form.input
+        { field = opts.field
+        , label = fromFieldToLabel opts.field
+        , type_ = fromFieldToInputType opts.field
+        , value = opts.value
+        , placeholder = fromFieldToLabel opts.field
+        , required = True
+        , onInput = UserUpdatedInput opts.field
+        }
 
 
 viewForgotPassword : Html Msg
