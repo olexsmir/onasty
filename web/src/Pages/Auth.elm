@@ -249,13 +249,9 @@ viewBannerSuccess now lastClicked =
             ]
             [ H.text "Resend verification email" ]
         , Components.Utils.viewIf (not canClick)
-            (H.p [ A.class "text-gray-600 text-xs mt-2" ]
-                [ H.text
-                    ("You can request a new verification email in "
-                        ++ String.fromInt timeLeftSeconds
-                        ++ " seconds."
-                    )
-                ]
+            (H.p
+                [ A.class "text-gray-600 text-xs mt-2" ]
+                [ H.text ("You can request a new verification email in " ++ String.fromInt timeLeftSeconds ++ " seconds.") ]
             )
         ]
 
@@ -338,11 +334,11 @@ viewFormInput opts =
         , label = fromFieldToLabel opts.field
         , type_ = fromFieldToInputType opts.field
         , value = opts.value
-        , prefix = Nothing
         , placeholder = fromFieldToLabel opts.field
         , required = True
         , onInput = UserUpdatedInput opts.field
         , helpText = Nothing
+        , prefix = Nothing
         }
 
 
