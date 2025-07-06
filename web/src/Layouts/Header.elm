@@ -97,15 +97,6 @@ viewNav user =
         viewLink text path =
             H.a [ A.class "text-gray-600 hover:text-black transition-colors", Route.Path.href path ]
                 [ H.text text ]
-
-        viewNotSignedInNav =
-            [ viewLink "About" Route.Path.Home_ -- TODO: or add about page, or delete the link
-            , H.a
-                [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
-                , Route.Path.href Route.Path.Auth
-                ]
-                [ H.text "Sign In/Up" ]
-            ]
     in
     case user of
         Auth.User.SignedIn _ ->
@@ -117,8 +108,11 @@ viewNav user =
                 [ H.text "Logout" ]
             ]
 
-        Auth.User.NotSignedIn ->
-            viewNotSignedInNav
-
-        Auth.User.RefreshingTokens ->
-            viewNotSignedInNav
+        _ ->
+            [ viewLink "About" Route.Path.Home_ -- TODO: or add about page, or delete the link
+            , H.a
+                [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
+                , Route.Path.href Route.Path.Auth
+                ]
+                [ H.text "Sign In/Up" ]
+            ]
