@@ -247,17 +247,15 @@ viewBannerSuccess now lastClicked =
             , A.disabled (not canClick)
             ]
             [ H.text "Resend verification email" ]
-        , if canClick then
-            H.text ""
-
-          else
-            H.p [ A.class "text-gray-600 text-xs mt-2" ]
+        , Components.Utils.viewIf (not canClick)
+            (H.p [ A.class "text-gray-600 text-xs mt-2" ]
                 [ H.text
                     ("You can request a new verification email in "
                         ++ String.fromInt timeLeftSeconds
                         ++ " seconds."
                     )
                 ]
+            )
         ]
 
 

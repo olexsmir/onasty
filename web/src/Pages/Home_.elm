@@ -4,6 +4,7 @@ import Api
 import Api.Note
 import Components.Error
 import Components.Form
+import Components.Utils
 import Data.Note as Note
 import Effect exposing (Effect)
 import ExpirationOptions exposing (expirationOptions)
@@ -210,12 +211,7 @@ view shared model =
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     [ viewHeader model.pageVariant
                     , H.div [ A.class "p-6 space-y-6" ]
-                        [ case model.apiError of
-                            Just error ->
-                                Components.Error.error (Api.errorMessage error)
-
-                            Nothing ->
-                                H.text ""
+                        [ Components.Utils.viewMaybe model.apiError (\e -> Components.Error.error (Api.errorMessage e))
                         , case model.pageVariant of
                             CreateNote ->
                                 viewCreateNoteForm model shared.appURL
