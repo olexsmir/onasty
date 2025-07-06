@@ -5,6 +5,7 @@ import Api.Auth
 import Auth.User
 import Components.Error
 import Components.Form
+import Components.Utils
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -17,7 +18,6 @@ import Route.Path
 import Shared
 import Time exposing (Posix)
 import View exposing (View)
-import Components.Utils
 
 
 page : Shared.Model -> Route () -> Page Model Msg
