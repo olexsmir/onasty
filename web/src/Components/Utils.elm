@@ -1,6 +1,7 @@
-module Components.Utils exposing (viewIf, viewMaybe)
+module Components.Utils exposing (loadSvg, viewIf, viewMaybe)
 
-import Html exposing (Html)
+import Html as H exposing (Html)
+import Html.Attributes as A
 
 
 viewIf : Bool -> Html msg -> Html msg
@@ -9,7 +10,7 @@ viewIf condition html =
         html
 
     else
-        Html.text ""
+        H.text ""
 
 
 viewMaybe : Maybe a -> (a -> Html msg) -> Html msg
@@ -19,4 +20,9 @@ viewMaybe maybeValue toHtml =
             toHtml value
 
         Nothing ->
-            Html.text ""
+            H.text ""
+
+
+loadSvg : { path : String, class : String } -> Html msg
+loadSvg { path, class } =
+    H.img [ A.src ("/static/" ++ path), A.class class ] []

@@ -3,7 +3,6 @@ module Pages.Secret.Slug_ exposing (Model, Msg, PageVariant, page)
 import Api
 import Api.Note
 import Components.Error
-import Components.Note
 import Components.Utils
 import Data.Note exposing (Metadata, Note)
 import Effect exposing (Effect)
@@ -204,7 +203,7 @@ viewShowNoteHeader zone slug note =
             (H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
                 [ H.div [ A.class "flex items-center gap-3" ]
                     [ H.div [ A.class "w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" ]
-                        [ Components.Note.warningSvg ]
+                        [ Components.Utils.loadSvg { path = "warning.svg", class = "w-4 h-4 text-orange-600" } ]
                     , H.p [ A.class "text-orange-800 text-sm font-medium" ]
                         [ H.text "This note was destroyed. If you need to keep it, copy it before closing this window." ]
                     ]
@@ -240,7 +239,7 @@ viewNoteNotFound slug =
     H.div [ A.class "p-6" ]
         [ H.div [ A.class "text-center py-12" ]
             [ H.div [ A.class "w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
-                [ Components.Note.noteNotFoundSvg ]
+                [ Components.Utils.loadSvg { path = "note-not-found.svg", class = "w-8 h-8 text-red-500" } ]
             , H.h2 [ A.class "text-xl font-semibold text-gray-900 mb-2" ]
                 [ H.text ("Note " ++ slug ++ " Not Found") ]
             , H.div [ A.class "text-gray-600 mb-6 space-y-2" ]
@@ -283,7 +282,7 @@ viewOpenNote opts =
         [ H.div [ A.class "text-center py-12" ]
             [ H.div [ A.class "mb-6" ]
                 [ H.div [ A.class "w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
-                    [ Components.Note.noteIconSvg ]
+                    [ Components.Utils.loadSvg { path = "note-icon.svg", class = "w-8 h-8 text-gray-400" } ]
                 , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text opts.slug ]
                 , H.p [ A.class "text-gray-600 mb-6" ] [ H.text "You're about read and destroy the note." ]
                 ]
