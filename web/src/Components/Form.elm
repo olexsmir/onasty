@@ -6,6 +6,7 @@ import Html.Events as E
 
 
 input :
+    -- TODO: add `error : Maybe String`, to input to show that field is not correct and message
     { id : String
     , field : field
     , label : String

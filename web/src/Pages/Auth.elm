@@ -144,6 +144,7 @@ update msg model =
             ( { model | isSubmittingForm = False }, Effect.signin credentials )
 
         ApiSignInResponded (Err error) ->
+            -- TODO: check if error is Unauthorized and prompt use to activate account
             ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
         ApiSignUpResponded (Ok ()) ->
