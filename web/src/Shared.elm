@@ -1,14 +1,4 @@
-module Shared exposing
-    ( Flags, decoder
-    , Model, Msg, init, update, subscriptions
-    )
-
-{-|
-
-@docs Flags, decoder
-@docs Model, Msg, init, update, subscriptions
-
--}
+module Shared exposing (Flags, Model, Msg, decoder, init, subscriptions, update)
 
 import Api.Auth
 import Auth.User
