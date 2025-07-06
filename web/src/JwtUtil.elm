@@ -21,10 +21,6 @@ isExpired now token =
     timeDiff <= expirationThreshold
 
 
-{-| Extracts the expiration time (in millis) from a JWT token.
-Returns 0 if cannot parse token.
--}
 getTokenExpiration : String -> Int
 getTokenExpiration token =
-    Jwt.getTokenExpirationMillis token
-        |> Result.withDefault 0
+    Jwt.getTokenExpirationMillis token |> Result.withDefault 0

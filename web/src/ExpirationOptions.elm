@@ -1,11 +1,7 @@
-module ExpirationOptions exposing (ExpiresAt, expirationOptions)
+module ExpirationOptions exposing (expirationOptions)
 
 
-type alias ExpiresAt =
-    { text : String, value : Int }
-
-
-expirationOptions : List ExpiresAt
+expirationOptions : List { text : String, value : Int }
 expirationOptions =
     [ { text = "Never expires (default)", value = 0 }
     , { text = "1 hour", value = 60 * 60 * 1000 }
