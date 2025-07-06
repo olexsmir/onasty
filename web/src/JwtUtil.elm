@@ -9,11 +9,9 @@ import Time
 isExpired : Time.Posix -> String -> Bool
 isExpired now token =
     let
-        expirationThreshold : number
         expirationThreshold =
             40 * 1000
 
-        timeDiff : Int
         timeDiff =
             getTokenExpiration token
                 |> (\expiration -> expiration - Time.posixToMillis now)
