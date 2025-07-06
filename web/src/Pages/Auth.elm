@@ -226,14 +226,10 @@ viewBannerSuccess now lastClicked =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
                     let
-                        remainingMs =
-                            30 * 1000 - (Time.posixToMillis now_ - Time.posixToMillis last)
+                        elapsedMs =
+                            Time.posixToMillis now_ - Time.posixToMillis last
                     in
-                    if remainingMs > 0 then
-                        remainingMs // 1000
-
-                    else
-                        0
+                    max 0 ((30 * 1000 - elapsedMs) // 1000)
 
                 _ ->
                     0
