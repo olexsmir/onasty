@@ -281,11 +281,11 @@ viewHeader variant =
 viewChangeVariant : Variant -> Html Msg
 viewChangeVariant variant =
     let
-        base =
-            "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
-
-        buttonClasses : Bool -> String
         buttonClasses active =
+            let
+                base =
+                    "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
+            in
             if active then
                 base ++ " bg-black text-white"
 

@@ -15,8 +15,6 @@ input :
     , required : Bool
     , helpText : Maybe String
     , prefix : Maybe String
-
-    -- , error : Maybe String  -- show user the error
     , onInput : String -> msg
     }
     -> Html msg
