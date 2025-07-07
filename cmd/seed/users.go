@@ -21,7 +21,7 @@ var usersData = []struct {
 		activated: true,
 	},
 	{ //nolint:exhaustruct
-		email:     "users@onasty.local",
+		email:     "user@onasty.local",
 		activated: false,
 		password:  "qwerty123",
 	},
