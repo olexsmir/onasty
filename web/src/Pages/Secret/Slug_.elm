@@ -3,7 +3,7 @@ module Pages.Secret.Slug_ exposing (Model, Msg, PageVariant, page)
 import Api
 import Api.Note
 import Components.Error
-import Components.Note
+import Components.Utils
 import Data.Note exposing (Metadata, Note)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -199,30 +199,23 @@ viewHeader options =
 viewShowNoteHeader : Zone -> String -> Note -> Html Msg
 viewShowNoteHeader zone slug note =
     H.div []
-        [ if note.burnBeforeExpiration then
-            H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
+        [ Components.Utils.viewIf note.burnBeforeExpiration
+            (H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
                 [ H.div [ A.class "flex items-center gap-3" ]
                     [ H.div [ A.class "w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" ]
-                        [ Components.Note.warningSvg ]
+                        [ Components.Utils.loadSvg { path = "warning.svg", class = "w-4 h-4 text-orange-600" } ]
                     , H.p [ A.class "text-orange-800 text-sm font-medium" ]
                         [ H.text "This note was destroyed. If you need to keep it, copy it before closing this window." ]
                     ]
                 ]
-
-          else
-            H.text ""
+            )
         , H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
             [ H.div [ A.class "flex justify-between items-start" ]
                 [ H.div []
                     [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text ("Note: " ++ slug) ]
                     , H.div [ A.class "text-sm text-gray-500 mt-2 space-y-1" ]
                         [ H.p [] [ H.text ("Created: " ++ T.toString zone note.createdAt) ]
-                        , case note.expiresAt of
-                            Just expiresAt ->
-                                H.p [] [ H.text ("Expires at: " ++ T.toString zone expiresAt) ]
-
-                            Nothing ->
-                                H.text ""
+                        , Components.Utils.viewMaybe note.expiresAt (\n -> H.p [] [ H.text ("Expires at: " ++ T.toString zone n) ])
                         ]
                     ]
                 , H.div [ A.class "flex gap-2" ]
@@ -246,7 +239,7 @@ viewNoteNotFound slug =
     H.div [ A.class "p-6" ]
         [ H.div [ A.class "text-center py-12" ]
             [ H.div [ A.class "w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
-                [ Components.Note.noteNotFoundSvg ]
+                [ Components.Utils.loadSvg { path = "note-not-found.svg", class = "w-8 h-8 text-red-500" } ]
             , H.h2 [ A.class "text-xl font-semibold text-gray-900 mb-2" ]
                 [ H.text ("Note " ++ slug ++ " Not Found") ]
             , H.div [ A.class "text-gray-600 mb-6 space-y-2" ]
@@ -265,13 +258,7 @@ viewNoteNotFound slug =
         ]
 
 
-viewOpenNote :
-    { slug : String
-    , hasPassword : Bool
-    , isLoading : Bool
-    , password : Maybe String
-    }
-    -> Html Msg
+viewOpenNote : { slug : String, hasPassword : Bool, isLoading : Bool, password : Maybe String } -> Html Msg
 viewOpenNote opts =
     let
         isDisabled =
@@ -295,7 +282,7 @@ viewOpenNote opts =
         [ H.div [ A.class "text-center py-12" ]
             [ H.div [ A.class "mb-6" ]
                 [ H.div [ A.class "w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4" ]
-                    [ Components.Note.noteIconSvg ]
+                    [ Components.Utils.loadSvg { path = "note-icon.svg", class = "w-8 h-8 text-gray-400" } ]
                 , H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-2" ] [ H.text opts.slug ]
                 , H.p [ A.class "text-gray-600 mb-6" ] [ H.text "You're about read and destroy the note." ]
                 ]
@@ -303,8 +290,8 @@ viewOpenNote opts =
                 [ E.onSubmit UserClickedViewNote
                 , A.class "max-w-sm mx-auto space-y-4"
                 ]
-                [ if opts.hasPassword then
-                    H.div
+                [ Components.Utils.viewIf opts.hasPassword
+                    (H.div
                         [ A.class "space-y-2" ]
                         [ H.label
                             [ A.class "block text-sm font-medium text-gray-700 text-left" ]
@@ -315,9 +302,7 @@ viewOpenNote opts =
                             ]
                             []
                         ]
-
-                  else
-                    H.text ""
+                    )
                 , H.button
                     [ A.class buttonData.class
                     , A.type_ "submit"

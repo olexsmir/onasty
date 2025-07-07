@@ -93,44 +93,26 @@ viewHeader user =
 
 viewNav : Auth.User.SignInStatus -> List (Html Msg)
 viewNav user =
+    let
+        viewLink text path =
+            H.a [ A.class "text-gray-600 hover:text-black transition-colors", Route.Path.href path ]
+                [ H.text text ]
+    in
     case user of
         Auth.User.SignedIn _ ->
-            viewSignedInNav
+            [ viewLink "Profile" Route.Path.Profile_Me
+            , H.button
+                [ A.class "text-gray-600 hover:text-red-600 transition-colors"
+                , E.onClick UserClickedLogout
+                ]
+                [ H.text "Logout" ]
+            ]
 
-        Auth.User.NotSignedIn ->
-            viewNotSignedInNav
-
-        Auth.User.RefreshingTokens ->
-            viewNotSignedInNav
-
-
-viewSignedInNav : List (Html Msg)
-viewSignedInNav =
-    [ viewLink "Profile" Route.Path.Profile_Me
-    , H.button
-        [ A.class "text-gray-600 hover:text-red-600 transition-colors"
-        , E.onClick UserClickedLogout
-        ]
-        [ H.text "Logout" ]
-    ]
-
-
-viewNotSignedInNav : List (Html Msg)
-viewNotSignedInNav =
-    -- TODO: or add about page, or delete the link
-    [ viewLink "About" Route.Path.Home_
-    , H.a
-        [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
-        , Route.Path.href Route.Path.Auth
-        ]
-        [ H.text "Sign In/Up" ]
-    ]
-
-
-viewLink : String -> Route.Path.Path -> Html Msg
-viewLink text path =
-    H.a
-        [ A.class "text-gray-600 hover:text-black transition-colors"
-        , Route.Path.href path
-        ]
-        [ H.text text ]
+        _ ->
+            [ viewLink "About" Route.Path.Home_ -- TODO: or add about page, or delete the link
+            , H.a
+                [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
+                , Route.Path.href Route.Path.Auth
+                ]
+                [ H.text "Sign In/Up" ]
+            ]

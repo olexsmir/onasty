@@ -21,16 +21,15 @@ create :
     -> Effect msg
 create options =
     let
-        encodeMaybe : Maybe a -> b -> (a -> E.Value) -> ( b, E.Value )
-        encodeMaybe maybeData field value =
-            case maybeData of
+        encodeMaybe : Maybe a -> String -> (a -> E.Value) -> ( String, E.Value )
+        encodeMaybe maybe field value =
+            case maybe of
                 Just data ->
                     ( field, value data )
 
                 Nothing ->
                     ( field, E.null )
 
-        body : E.Value
         body =
             E.object
                 [ ( "content", E.string options.content )
@@ -41,11 +40,7 @@ create options =
                     ( "expires_at", E.null )
 
                   else
-                    ( "expires_at"
-                    , options.expiresAt
-                        |> Iso8601.fromTime
-                        |> E.string
-                    )
+                    ( "expires_at", options.expiresAt |> Iso8601.fromTime |> E.string )
                 ]
     in
     Effect.sendApiRequest

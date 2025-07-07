@@ -1,20 +1,7 @@
-module Shared exposing
-    ( Flags, decoder
-    , Model, Msg
-    , init, update, subscriptions
-    )
-
-{-|
-
-@docs Flags, decoder
-@docs Model, Msg
-@docs init, update, subscriptions
-
--}
+module Shared exposing (Flags, Model, Msg, decoder, init, subscriptions, update)
 
 import Api.Auth
 import Auth.User
-import Data.Credentials exposing (Credentials)
 import Dict
 import Effect exposing (Effect)
 import Json.Decode
@@ -57,18 +44,14 @@ type alias Model =
 init : Result Json.Decode.Error Flags -> Route () -> ( Model, Effect Msg )
 init flagsResult _ =
     let
-        flags : Flags
         flags =
             flagsResult |> Result.withDefault { accessToken = Nothing, refreshToken = Nothing, appUrl = "" }
 
-        maybeCredentials : Maybe Credentials
         maybeCredentials =
-            Maybe.map2
-                (\access refresh -> { accessToken = access, refreshToken = refresh })
+            Maybe.map2 (\access refresh -> { accessToken = access, refreshToken = refresh })
                 flags.accessToken
                 flags.refreshToken
 
-        user : Auth.User.SignInStatus
         user =
             case maybeCredentials of
                 Just credentials ->
@@ -76,15 +59,11 @@ init flagsResult _ =
 
                 Nothing ->
                     Auth.User.NotSignedIn
-
-        initModel : Model
-        initModel =
-            { user = user
-            , timeZone = Time.utc
-            , appURL = flags.appUrl
-            }
     in
-    ( initModel
+    ( { user = user
+      , timeZone = Time.utc
+      , appURL = flags.appUrl
+      }
     , Effect.batch
         [ Time.now |> Task.perform Shared.Msg.CheckTokenExpiration |> Effect.sendCmd
         , Time.here |> Task.perform Shared.Msg.GotZone |> Effect.sendCmd

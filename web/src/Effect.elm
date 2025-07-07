@@ -1,31 +1,17 @@
 module Effect exposing
-    ( Effect
-    , none, batch
-    , sendCmd, sendMsg
-    , pushRoute, replaceRoute
-    , pushRoutePath, replaceRoutePath
-    , loadExternalUrl, back
-    , sendApiRequest, refreshTokens
-    , sendToClipboard
-    , signin, logout, saveUser, clearUser
+    ( Effect, none, batch, sendCmd, sendMsg
+    , pushRoute, replaceRoute, pushRoutePath, replaceRoutePath, loadExternalUrl, back
+    , sendApiRequest, sendToClipboard
+    , signin, logout, refreshTokens, saveUser, clearUser
     , map, toCmd
     )
 
 {-|
 
-@docs Effect
-
-@docs none, batch
-@docs sendCmd, sendMsg
-
-@docs pushRoute, replaceRoute
-@docs pushRoutePath, replaceRoutePath
-@docs loadExternalUrl, back
-
-@docs sendApiRequest, refreshTokens
-@docs sendToClipboard
-@docs signin, logout, saveUser, clearUser
-
+@docs Effect, none, batch, sendCmd, sendMsg
+@docs pushRoute, replaceRoute, pushRoutePath, replaceRoutePath, loadExternalUrl, back
+@docs sendApiRequest, sendToClipboard
+@docs signin, logout, refreshTokens, saveUser, clearUser
 @docs map, toCmd
 
 -}
@@ -62,16 +48,13 @@ type Effect msg
     | SendSharedMsg Shared.Msg.Msg
     | SendToLocalStorage { key : String, value : Json.Encode.Value }
     | SendToClipboard String
-    | SendApiRequest (HttpRequestDetails msg)
-
-
-type alias HttpRequestDetails msg =
-    { endpoint : String
-    , method : String
-    , body : Http.Body
-    , decoder : Json.Decode.Decoder msg
-    , onHttpError : Api.Error -> msg
-    }
+    | SendApiRequest
+        { endpoint : String
+        , method : String
+        , body : Http.Body
+        , decoder : Json.Decode.Decoder msg
+        , onHttpError : Api.Error -> msg
+        }
 
 
 
@@ -230,9 +213,6 @@ clearUser =
 -- INTERNALS
 
 
-{-| Elm Land depends on this function to connect pages and layouts
-together into the overall app.
--}
 map : (msg1 -> msg2) -> Effect msg1 -> Effect msg2
 map fn effect =
     case effect of
@@ -276,8 +256,6 @@ map fn effect =
                 }
 
 
-{-| Elm Land depends on this function to perform your effects.
--}
 toCmd :
     { key : Browser.Navigation.Key
     , url : Url
@@ -351,14 +329,14 @@ toCmd options effect =
                                 Err err ->
                                     opts.onHttpError err
                         )
-                        (\resp -> fromHttpResponseToCustomError opts.decoder resp)
+                        (\resp -> httpResponseToCustomError opts.decoder resp)
                 , timeout = Just (1000 * 60) -- 60 second timeout
                 , tracker = Nothing
                 }
 
 
-fromHttpResponseToCustomError : Json.Decode.Decoder msg -> Http.Response String -> Result Api.Error msg
-fromHttpResponseToCustomError decoder response =
+httpResponseToCustomError : Json.Decode.Decoder msg -> Http.Response String -> Result Api.Error msg
+httpResponseToCustomError decoder response =
     case response of
         Http.GoodStatus_ _ body ->
             case

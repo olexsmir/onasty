@@ -2,15 +2,15 @@ module Shared.Msg exposing (Msg(..))
 
 import Api
 import Data.Credentials exposing (Credentials)
-import Time
+import Time exposing (Posix, Zone)
 
 
 type Msg
-    = GotZone Time.Zone
+    = GotZone Zone
       -- Auth
     | Logout
     | SignedIn Credentials
       -- Session
-    | CheckTokenExpiration Time.Posix
+    | CheckTokenExpiration Posix
     | TriggerTokenRefresh
     | ApiRefreshTokensResponded (Result Api.Error Credentials)

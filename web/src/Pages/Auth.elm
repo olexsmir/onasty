@@ -4,6 +4,8 @@ import Api
 import Api.Auth
 import Auth.User
 import Components.Error
+import Components.Form
+import Components.Utils
 import Data.Credentials exposing (Credentials)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -142,6 +144,7 @@ update msg model =
             ( { model | isSubmittingForm = False }, Effect.signin credentials )
 
         ApiSignInResponded (Err error) ->
+            -- TODO: check if error is Unauthorized and prompt use to activate account
             ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
         ApiSignUpResponded (Ok ()) ->
@@ -225,14 +228,10 @@ viewBannerSuccess now lastClicked =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
                     let
-                        remainingMs =
-                            30 * 1000 - (Time.posixToMillis now_ - Time.posixToMillis last)
+                        elapsedMs =
+                            Time.posixToMillis now_ - Time.posixToMillis last
                     in
-                    if remainingMs > 0 then
-                        remainingMs // 1000
-
-                    else
-                        0
+                    max 0 ((30 * 1000 - elapsedMs) // 1000)
 
                 _ ->
                     0
@@ -250,17 +249,11 @@ viewBannerSuccess now lastClicked =
             , A.disabled (not canClick)
             ]
             [ H.text "Resend verification email" ]
-        , if canClick then
-            H.text ""
-
-          else
-            H.p [ A.class "text-gray-600 text-xs mt-2" ]
-                [ H.text
-                    ("You can request a new verification email in "
-                        ++ String.fromInt timeLeftSeconds
-                        ++ " seconds."
-                    )
-                ]
+        , Components.Utils.viewIf (not canClick)
+            (H.p
+                [ A.class "text-gray-600 text-xs mt-2" ]
+                [ H.text ("You can request a new verification email in " ++ String.fromInt timeLeftSeconds ++ " seconds.") ]
+            )
         ]
 
 
@@ -284,11 +277,11 @@ viewHeader variant =
 viewChangeVariant : Variant -> Html Msg
 viewChangeVariant variant =
     let
-        base =
-            "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
-
-        buttonClasses : Bool -> String
         buttonClasses active =
+            let
+                base =
+                    "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
+            in
             if active then
                 base ++ " bg-black text-white"
 
@@ -336,22 +329,18 @@ viewForm model =
 
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
-    H.div [ A.class "space-y-2" ]
-        [ H.label
-            [ A.class "block text-sm font-medium text-gray-700" ]
-            [ H.text (fromFieldToLabel opts.field) ]
-        , H.div []
-            [ H.input
-                [ A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                , A.type_ (fromFieldToInputType opts.field)
-                , A.value opts.value
-                , A.placeholder (fromFieldToLabel opts.field)
-                , A.required True
-                , E.onInput (UserUpdatedInput opts.field)
-                ]
-                []
-            ]
-        ]
+    Components.Form.input
+        { id = fromFieldToInputType opts.field
+        , field = opts.field
+        , label = fromFieldToLabel opts.field
+        , type_ = fromFieldToInputType opts.field
+        , value = opts.value
+        , placeholder = fromFieldToLabel opts.field
+        , required = True
+        , onInput = UserUpdatedInput opts.field
+        , helpText = Nothing
+        , prefix = Nothing
+        }
 
 
 viewForgotPassword : Html Msg

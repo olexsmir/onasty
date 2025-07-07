@@ -1,14 +1,4 @@
-module Data.Credentials exposing
-    ( Credentials
-    , decode
-    )
-
-{-|
-
-@docs Credentials
-@docs decode
-
--}
+module Data.Credentials exposing (Credentials, decode)
 
 import Json.Decode as Decode exposing (Decoder)
 
