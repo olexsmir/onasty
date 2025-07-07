@@ -41,7 +41,7 @@ type alias Model =
     , passwordAgain : String
     , isSubmittingForm : Bool
     , formVariant : Variant
-    , gotSignedUp : Bool
+    , showVerifyBanner : Bool
     , lastClicked : Maybe Posix
     , apiError : Maybe Api.Error
     , now : Maybe Posix
@@ -50,12 +50,12 @@ type alias Model =
 
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init shared _ =
-    ( { email = ""
+    ( { formVariant = SignIn
+      , isSubmittingForm = False
+      , email = ""
       , password = ""
       , passwordAgain = ""
-      , isSubmittingForm = False
-      , formVariant = SignIn
-      , gotSignedUp = False
+      , showVerifyBanner = False
       , lastClicked = Nothing
       , apiError = Nothing
       , now = Nothing
@@ -144,11 +144,14 @@ update msg model =
             ( { model | isSubmittingForm = False }, Effect.signin credentials )
 
         ApiSignInResponded (Err error) ->
-            -- TODO: check if error is Unauthorized and prompt use to activate account
-            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
+            if Api.isNotVerified error then
+                ( { model | isSubmittingForm = False, apiError = Nothing, showVerifyBanner = True }, Effect.none )
+
+            else
+                ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
         ApiSignUpResponded (Ok ()) ->
-            ( { model | isSubmittingForm = False, gotSignedUp = True }, Effect.none )
+            ( { model | isSubmittingForm = False, showVerifyBanner = True }, Effect.none )
 
         ApiSignUpResponded (Err error) ->
             ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
@@ -166,7 +169,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.gotSignedUp then
+    if model.showVerifyBanner then
         Time.every 1000 Tick
 
     else
@@ -199,19 +202,19 @@ view model =
 
 viewBanner : Model -> Html Msg
 viewBanner model =
-    case ( model.apiError, model.gotSignedUp ) of
+    case ( model.apiError, model.showVerifyBanner ) of
         ( Just error, False ) ->
             Components.Error.error (Api.errorMessage error)
 
         ( Nothing, True ) ->
-            viewBannerSuccess model.now model.lastClicked
+            viewVerificationBanner model.now model.lastClicked
 
         _ ->
             H.text ""
 
 
-viewBannerSuccess : Maybe Posix -> Maybe Posix -> Html Msg
-viewBannerSuccess now lastClicked =
+viewVerificationBanner : Maybe Posix -> Maybe Posix -> Html Msg
+viewVerificationBanner now lastClicked =
     let
         buttonClassesBase =
             "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
@@ -223,7 +226,6 @@ viewBannerSuccess now lastClicked =
             else
                 buttonClassesBase ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
 
-        timeLeftSeconds : Int
         timeLeftSeconds =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
@@ -242,7 +244,7 @@ viewBannerSuccess now lastClicked =
     in
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-4 mb-4" ]
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
-        , H.p [ A.class "text-green-800 text-sm" ] [ H.text "We've sent you a verification link. Please check your email and click the link to activate your account." ]
+        , H.p [ A.class "text-green-800 text-sm" ] [ H.text "Please verify your account to continue. We've sent a verification link to your email — click it to activate your account." ]
         , H.button
             [ A.class (buttonClasses canClick)
             , E.onClick UserClickedResendActivationEmail
