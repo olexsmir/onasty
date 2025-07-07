@@ -45,8 +45,7 @@ isNotVerified : Error -> Bool
 isNotVerified error =
     case error of
         HttpError { reason, message } ->
-            (reason == Http.BadStatus 400)
-                && String.contains "user is not activated" message
+            (reason == Http.BadStatus 400) && String.contains "user is not activated" message
 
         _ ->
             False
