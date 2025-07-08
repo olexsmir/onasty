@@ -103,7 +103,7 @@ func (e *AppTestSuite) initDeps() {
 	vertokrepo := vertokrepo.New(e.postgresDB)
 	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(e.postgresDB)
 
-	stubOAuthProvider := newOauthProviderMock()
+	stubOAuthProvider := newOauthProviderStub()
 
 	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)
 	noterepo := noterepo.New(e.postgresDB)
