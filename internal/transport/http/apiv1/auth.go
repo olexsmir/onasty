@@ -264,8 +264,10 @@ func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
 }
 
 type getMeResponse struct {
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
+	Email        string    `json:"email"`
+	CreatedAt    time.Time `json:"created_at"`
+	LastLoginAt  time.Time `json:"last_login_at"`
+	NotesCreated int       `json:"notes_created"`
 }
 
 func (a *APIV1) getMeHandler(c *gin.Context) {
@@ -276,7 +278,9 @@ func (a *APIV1) getMeHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, getMeResponse{
-		Email:     uinfo.Email,
-		CreatedAt: uinfo.CreatedAt,
+		Email:        uinfo.Email,
+		CreatedAt:    uinfo.CreatedAt,
+		LastLoginAt:  uinfo.LastLoginAt,
+		NotesCreated: uinfo.NotesCreated,
 	})
 }

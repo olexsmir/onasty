@@ -41,6 +41,8 @@ type Tokens struct {
 }
 
 type UserInfo struct {
-	Email     string
-	CreatedAt time.Time
+	Email        string
+	CreatedAt    time.Time
+	LastLoginAt  time.Time
+	NotesCreated int
 }

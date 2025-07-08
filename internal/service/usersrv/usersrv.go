@@ -13,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/oauth"
+	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/userepo"
@@ -51,6 +52,7 @@ type UserSrv struct {
 	sessionstore sessionrepo.SessionStorer
 	vertokrepo   vertokrepo.VerificationTokenStorer
 	pwdtokrepo   passwordtokrepo.PasswordResetTokenStorer
+	notestore    noterepo.NoteStorer
 	cache        usercache.UserCacheer
 
 	hasher       hasher.Hasher
@@ -70,6 +72,7 @@ func New(
 	sessionstore sessionrepo.SessionStorer,
 	vertokrepo vertokrepo.VerificationTokenStorer,
 	pwdtokrepo passwordtokrepo.PasswordResetTokenStorer,
+	notestore noterepo.NoteStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailermq mailermq.Mailer,
@@ -82,6 +85,7 @@ func New(
 		sessionstore:          sessionstore,
 		vertokrepo:            vertokrepo,
 		pwdtokrepo:            pwdtokrepo,
+		notestore:             notestore,
 		cache:                 cache,
 		hasher:                hasher,
 		jwtTokenizer:          jwtTokenizer,
@@ -174,9 +178,16 @@ func (u *UserSrv) GetUserInfo(ctx context.Context, userID uuid.UUID) (dtos.UserI
 		return dtos.UserInfo{}, err
 	}
 
+	count, err := u.notestore.GetCountOfNotesByAuthorID(ctx, userID)
+	if err != nil {
+		return dtos.UserInfo{}, err
+	}
+
 	return dtos.UserInfo{
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt,
+		Email:        user.Email,
+		CreatedAt:    user.CreatedAt,
+		LastLoginAt:  user.LastLoginAt,
+		NotesCreated: int(count),
 	}, nil
 }
 
