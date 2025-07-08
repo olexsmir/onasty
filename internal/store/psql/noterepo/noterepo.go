@@ -28,6 +28,7 @@ type NoteStorer interface {
 	// GetAllByAuthorID returns all notes with specified author.
 	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
 
+	// GetCountOfNotesByAuthorID returns count of notes created by specified author.
 	GetCountOfNotesByAuthorID(ctx context.Context, authorID uuid.UUID) (int64, error)
 
 	// GetBySlugAndPassword gets a note by slug and password.
