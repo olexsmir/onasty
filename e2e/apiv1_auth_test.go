@@ -449,13 +449,15 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
 }
 
 type getMeResponse struct {
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
+	Email        string    `json:"email"`
+	CreatedAt    time.Time `json:"created_at"`
+	LastLoginAt  time.Time `json:"last_login_at"`
+	NotesCreated int       `json:"notes_created"`
 }
 
 func (e *AppTestSuite) TestApiV1_getMe() {
 	email := e.uuid() + "@test.com"
-	_, toks := e.createAndSingIn(email, "password")
+	uid, toks := e.createAndSingIn(email, "password")
 
 	httpResp := e.httpRequest(http.MethodGet, "/api/v1/me", nil, toks.AccessToken)
 
@@ -466,6 +468,15 @@ func (e *AppTestSuite) TestApiV1_getMe() {
 
 	e.Equal(email, body.Email)
 	e.NotZero(body.CreatedAt)
+	e.NotZero(body.LastLoginAt)
+
+	var notesCount int
+	err := e.postgresDB.
+		QueryRow(e.ctx, "select count(*) from notes_authors where user_id = $1", uid).
+		Scan(&notesCount)
+	e.require.NoError(err)
+
+	e.Equal(body.NotesCreated, notesCount)
 }
 
 // createAndSingIn creates an activated user, logs them in,
