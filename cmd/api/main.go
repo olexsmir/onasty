@@ -95,6 +95,10 @@ func run(ctx context.Context) error {
 	vertokrepo := vertokrepo.New(psqlDB)
 	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(psqlDB)
 
+	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)
+	noterepo := noterepo.New(psqlDB)
+	notesrv := notesrv.New(noterepo, notePasswordHasher, notecache)
+
 	userepo := userepo.New(psqlDB)
 	usercache := usercache.New(redisDB, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
@@ -102,6 +106,7 @@ func run(ctx context.Context) error {
 		sessionrepo,
 		vertokrepo,
 		pwdtokrepo,
+		noterepo,
 		userPasswordHasher,
 		jwtTokenizer,
 		mailermq,
@@ -112,10 +117,6 @@ func run(ctx context.Context) error {
 		cfg.VerificationTokenTTL,
 		cfg.ResetPasswordTokenTTL,
 	)
-
-	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)
-	noterepo := noterepo.New(psqlDB)
-	notesrv := notesrv.New(noterepo, notePasswordHasher, notecache)
 
 	rateLimiterConfig := ratelimit.Config{
 		RPS:   cfg.RateLimiterRPS,

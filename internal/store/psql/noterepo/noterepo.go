@@ -28,6 +28,8 @@ type NoteStorer interface {
 	// GetAllByAuthorID returns all notes with specified author.
 	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
 
+	GetCountOfNotesByAuthorID(ctx context.Context, authorID uuid.UUID) (int64, error)
+
 	// GetBySlugAndPassword gets a note by slug and password.
 	// the "password" should be hashed.
 	//
@@ -170,6 +172,20 @@ func (s *NoteRepo) GetAllByAuthorID(
 	}
 
 	return notes, rows.Err()
+}
+
+func (s *NoteRepo) GetCountOfNotesByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) (int64, error) {
+	var count int64
+	err := s.db.QueryRow(
+		ctx,
+		`select count(*) from notes_authors where user_id = $1`,
+		authorID.String(),
+	).Scan(&count)
+
+	return count, err
 }
 
 func (s *NoteRepo) GetBySlugAndPassword(

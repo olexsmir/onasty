@@ -105,6 +105,10 @@ func (e *AppTestSuite) initDeps() {
 
 	stubOAuthProvider := newOauthProviderMock()
 
+	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)
+	noterepo := noterepo.New(e.postgresDB)
+	notesrv := notesrv.New(noterepo, e.hasher, notecache)
+
 	userepo := userepo.New(e.postgresDB)
 	usercache := usercache.New(e.redisDB, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
@@ -112,6 +116,7 @@ func (e *AppTestSuite) initDeps() {
 		sessionrepo,
 		vertokrepo,
 		pwdtokrepo,
+		noterepo,
 		e.hasher,
 		e.jwtTokenizer,
 		newMailerMockService(),
@@ -122,10 +127,6 @@ func (e *AppTestSuite) initDeps() {
 		cfg.VerificationTokenTTL,
 		cfg.ResetPasswordTokenTTL,
 	)
-
-	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)
-	noterepo := noterepo.New(e.postgresDB)
-	notesrv := notesrv.New(noterepo, e.hasher, notecache)
 
 	// for testing purposes, it's ok to have high values ig
 	ratelimitCfg := ratelimit.Config{
