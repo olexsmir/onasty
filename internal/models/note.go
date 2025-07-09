@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -10,6 +11,7 @@ import (
 var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
+	ErrNoteSlugIsInvalid      = errors.New("note: slug is invalid")
 	ErrNoteExpired            = errors.New("note: expired")
 	ErrNoteNotFound           = errors.New("note: not found")
 )
@@ -28,6 +30,10 @@ type Note struct {
 func (n Note) Validate() error {
 	if n.Content == "" {
 		return ErrNoteContentIsEmpty
+	}
+
+	if n.Slug == "" || strings.Contains(n.Slug, " ") {
+		return ErrNoteSlugIsInvalid
 	}
 
 	if n.IsExpired() {
