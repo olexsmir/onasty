@@ -124,7 +124,6 @@ update msg model =
             , Api.Auth.resendVerificationEmail
                 { onResponse = ApiResendVerificationEmail
                 , email = model.email
-                , password = model.password
                 }
             )
 

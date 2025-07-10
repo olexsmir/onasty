@@ -97,8 +97,12 @@ func (a *APIV1) verifyHandler(c *gin.Context) {
 	c.String(http.StatusOK, "email verified")
 }
 
+type resendVerificationEmailRequest struct {
+	Email string `json:"email"`
+}
+
 func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
-	var req signInRequest
+	var req resendVerificationEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		newError(c, http.StatusBadRequest, "invalid request")
 		return
@@ -106,9 +110,8 @@ func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 
 	if err := a.usersrv.ResendVerificationEmail(
 		c.Request.Context(),
-		dtos.SignIn{
-			Email:    req.Email,
-			Password: req.Password,
+		dtos.ResendVerificationEmail{
+			Email: req.Email,
 		}); err != nil {
 		errorResponse(c, err)
 		return
