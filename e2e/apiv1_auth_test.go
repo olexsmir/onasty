@@ -97,6 +97,10 @@ func (e *AppTestSuite) TestAuthV1_VerifyEmail() {
 	e.Equal(user.Activated, true)
 }
 
+type apiv1AuthResendVerificationEmailRequest struct {
+	Email string `json:"email"`
+}
+
 func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	email, password := e.uuid()+"email@email.com", e.uuid()
 
@@ -116,9 +120,8 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail() {
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/resend-verification-email",
-		e.jsonify(apiv1AuthSignInRequest{
-			Email:    email,
-			Password: password,
+		e.jsonify(apiv1AuthResendVerificationEmailRequest{
+			Email: email,
 		}),
 	)
 
@@ -133,23 +136,20 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 	tests := []struct {
 		name         string
 		email        string
-		password     string
 		expectedCode int
 		expectedMsg  string
 	}{
 		{
-			name:         "already activated account",
+			name:         "already verified account",
 			email:        email,
-			password:     password,
 			expectedCode: http.StatusBadRequest,
 			expectedMsg:  models.ErrUserIsAlreadyVerified.Error(),
 		},
 		{
-			name:         "wrong credentials",
-			email:        email,
-			password:     e.uuid(),
+			name:         "user not found",
+			email:        e.uuid() + "@at.com",
 			expectedCode: http.StatusBadRequest,
-			expectedMsg:  models.ErrUserWrongCredentials.Error(),
+			expectedMsg:  models.ErrUserNotFound.Error(),
 		},
 	}
 
@@ -157,9 +157,8 @@ func (e *AppTestSuite) TestAuthV1_ResendVerificationEmail_wrong() {
 		httpResp := e.httpRequest(
 			http.MethodPost,
 			"/api/v1/auth/resend-verification-email",
-			e.jsonify(apiv1AuthSignInRequest{
-				Email:    t.email,
-				Password: t.password,
+			e.jsonify(apiv1AuthResendVerificationEmailRequest{
+				Email: t.email,
 			}))
 
 		e.Equal(httpResp.Code, t.expectedCode)
