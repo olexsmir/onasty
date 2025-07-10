@@ -37,7 +37,7 @@ type UserServicer interface {
 	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
 
 	Verify(ctx context.Context, verificationKey string) error
-	ResendVerificationEmail(ctx context.Context, credentials dtos.SignIn) error
+	ResendVerificationEmail(ctx context.Context, inp dtos.ResendVerificationEmail) error
 
 	ParseJWTToken(token string) (jwtutil.Payload, error)
 
@@ -297,14 +297,13 @@ func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {
 	return u.userstore.MarkUserAsActivated(ctx, uid)
 }
 
-func (u *UserSrv) ResendVerificationEmail(ctx context.Context, inp dtos.SignIn) error {
+func (u *UserSrv) ResendVerificationEmail(
+	ctx context.Context,
+	inp dtos.ResendVerificationEmail,
+) error {
 	user, err := u.userstore.GetByEmail(ctx, inp.Email)
 	if err != nil {
 		return err
-	}
-
-	if err = u.hasher.Compare(user.Password, inp.Password); err != nil {
-		return models.ErrUserWrongCredentials
 	}
 
 	if user.Activated {

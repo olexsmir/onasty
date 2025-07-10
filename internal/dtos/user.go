@@ -16,6 +16,10 @@ type SignIn struct {
 	Password string
 }
 
+type ResendVerificationEmail struct {
+	Email string
+}
+
 type ChangeUserPassword struct {
 	CurrentPassword string
 	NewPassword     string
