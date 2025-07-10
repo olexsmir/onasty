@@ -75,20 +75,11 @@ refreshToken options =
         }
 
 
-resendVerificationEmail :
-    { onResponse : Result Api.Error () -> msg
-    , email : String
-    , password : String
-    }
-    -> Effect msg
+resendVerificationEmail : { onResponse : Result Api.Error () -> msg, email : String } -> Effect msg
 resendVerificationEmail options =
     let
-        body : Encode.Value
         body =
-            Encode.object
-                [ ( "email", Encode.string options.email )
-                , ( "password", Encode.string options.password )
-                ]
+            Encode.object [ ( "email", Encode.string options.email ) ]
     in
     Effect.sendApiRequest
         { endpoint = "/api/v1/auth/resend-verification-email"
