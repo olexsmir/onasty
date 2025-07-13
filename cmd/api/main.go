@@ -124,6 +124,12 @@ func run(ctx context.Context) error {
 		Burst: cfg.RateLimiterBurst,
 	}
 
+	slowRateLimiterConfig := ratelimit.Config{
+		RPS:   cfg.SlowRateLimiterRPS,
+		TTL:   cfg.SlowRateLimiterTTL,
+		Burst: cfg.SlowRateLimiterBurst,
+	}
+
 	handler := httptransport.NewTransport(
 		usersrv,
 		notesrv,
@@ -132,6 +138,7 @@ func run(ctx context.Context) error {
 		cfg.CORSAllowedOrigins,
 		cfg.CORSMaxAge,
 		rateLimiterConfig,
+		slowRateLimiterConfig,
 	)
 
 	// http server

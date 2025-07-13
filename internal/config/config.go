@@ -60,9 +60,12 @@ type Config struct {
 	LogFormat   string
 	LogShowLine bool
 
-	RateLimiterRPS   int
-	RateLimiterBurst int
-	RateLimiterTTL   time.Duration
+	RateLimiterRPS       int
+	RateLimiterBurst     int
+	RateLimiterTTL       time.Duration
+	SlowRateLimiterRPS   int
+	SlowRateLimiterBurst int
+	SlowRateLimiterTTL   time.Duration
 }
 
 func NewConfig() *Config {
@@ -116,9 +119,12 @@ func NewConfig() *Config {
 		LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),
 		LogShowLine: getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
 
-		RateLimiterRPS:   mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
-		RateLimiterBurst: mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
-		RateLimiterTTL:   mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
+		RateLimiterRPS:       mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
+		RateLimiterBurst:     mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
+		RateLimiterTTL:       mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
+		SlowRateLimiterRPS:   mustGetenvOrDefaultInt("SLOW_RATELIMITER_RPS", 2),
+		SlowRateLimiterBurst: mustGetenvOrDefaultInt("SLOW_RATELIMITER_BURST", 2),
+		SlowRateLimiterTTL:   mustParseDuration(getenvOrDefault("SLOW_RATELIMITER_TTL", "1m")),
 	}
 }
 

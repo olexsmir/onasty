@@ -23,6 +23,7 @@ type Transport struct {
 	corsAllowedOrigins []string
 	corsMaxAge         time.Duration
 	ratelimitCfg       ratelimit.Config
+	slowRatelimitCfg   ratelimit.Config
 }
 
 func NewTransport(
@@ -33,6 +34,7 @@ func NewTransport(
 	corsAllowedOrigins []string,
 	corsMaxAge time.Duration,
 	ratelimitCfg ratelimit.Config,
+	slowRatelimitCfg ratelimit.Config,
 ) *Transport {
 	return &Transport{
 		usersrv:            us,
@@ -42,6 +44,7 @@ func NewTransport(
 		corsAllowedOrigins: corsAllowedOrigins,
 		corsMaxAge:         corsMaxAge,
 		ratelimitCfg:       ratelimitCfg,
+		slowRatelimitCfg:   slowRatelimitCfg,
 	}
 }
 
@@ -56,8 +59,12 @@ func (t *Transport) Handler() http.Handler {
 	)
 
 	api := r.Group("/api")
-	api.GET("/ping", t.pingHandler)
-	apiv1.NewAPIV1(t.usersrv, t.notesrv, t.env, t.domain).Routes(api.Group("/v1"))
+	{
+		api.GET("/ping", t.pingHandler)
+		apiv1.
+			NewAPIV1(t.usersrv, t.notesrv, t.slowRatelimitCfg, t.env, t.domain).
+			Routes(api.Group("/v1"))
+	}
 
 	return r.Handler()
 }
