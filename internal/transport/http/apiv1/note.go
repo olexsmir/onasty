@@ -60,7 +60,44 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		c.Request.Context(),
 		notesrv.GetNoteBySlugInput{
 			Slug:     c.Param("slug"),
-			Password: c.Query("password"),
+			Password: notesrv.EmptyPassword,
+		},
+	)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	status := http.StatusOK
+	if !note.ReadAt.IsZero() {
+		status = http.StatusNotFound
+	}
+
+	c.JSON(status, getNoteBySlugResponse{
+		Content:              note.Content,
+		ReadAt:               note.ReadAt,
+		CreatedAt:            note.CreatedAt,
+		ExpiresAt:            note.ExpiresAt,
+		BurnBeforeExpiration: note.BurnBeforeExpiration,
+	})
+}
+
+type getNoteBuySlugAndPasswordRequest struct {
+	Password string `json:"password"`
+}
+
+func (a *APIV1) getNoteBySlugAndPasswordHandler(c *gin.Context) {
+	var req getNoteBuySlugAndPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(
+		c.Request.Context(),
+		notesrv.GetNoteBySlugInput{
+			Slug:     c.Param("slug"),
+			Password: req.Password,
 		},
 	)
 	if err != nil {
