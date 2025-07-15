@@ -143,6 +143,7 @@ func (e *AppTestSuite) initDeps() {
 		cfg.CORSAllowedOrigins,
 		cfg.CORSMaxAge,
 		ratelimitCfg,
+		ratelimitCfg,
 	)
 	e.router = handler.Handler()
 }

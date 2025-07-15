@@ -5,26 +5,30 @@ import (
 	"github.com/olexsmir/onasty/internal/config"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
 )
 
 type APIV1 struct {
-	usersrv usersrv.UserServicer
-	notesrv notesrv.NoteServicer
-	env     config.Environment
-	domain  string
+	usersrv          usersrv.UserServicer
+	notesrv          notesrv.NoteServicer
+	slowRatelimitCfg ratelimit.Config
+	env              config.Environment
+	domain           string
 }
 
 func NewAPIV1(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
+	slowRatelimitCfg ratelimit.Config,
 	env config.Environment,
 	domain string,
 ) *APIV1 {
 	return &APIV1{
-		usersrv: us,
-		notesrv: ns,
-		env:     env,
-		domain:  domain,
+		usersrv:          us,
+		notesrv:          ns,
+		slowRatelimitCfg: slowRatelimitCfg,
+		env:              env,
+		domain:           domain,
 	}
 }
 
@@ -36,8 +40,8 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		auth.POST("/signin", a.signInHandler)
 		auth.POST("/refresh-tokens", a.refreshTokensHandler)
 		auth.GET("/verify/:token", a.verifyHandler)
-		auth.POST("/resend-verification-email", a.resendVerificationEmailHandler)
-		auth.POST("/reset-password", a.requestResetPasswordHandler)
+		auth.POST("/resend-verification-email", a.slowRateLimit(), a.resendVerificationEmailHandler)
+		auth.POST("/reset-password", a.slowRateLimit(), a.requestResetPasswordHandler)
 		auth.POST("/reset-password/:token", a.resetPasswordHandler)
 
 		oauth := r.Group("/oauth")
@@ -74,4 +78,8 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 			authorized.DELETE(":slug", a.deleteNoteHandler)
 		}
 	}
+}
+
+func (a *APIV1) slowRateLimit() gin.HandlerFunc {
+	return ratelimit.MiddlewareWithConfig(a.slowRatelimitCfg)
 }
