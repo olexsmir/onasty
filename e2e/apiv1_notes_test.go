@@ -139,6 +139,10 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 	e.Equal(dbNote.ReadAt.IsZero(), false)
 }
 
+type apiv1NoteGetWithPasswordRequest struct {
+	Password string `json:"password"`
+}
+
 func (e *AppTestSuite) TestNoteV1_GetWithPassword() {
 	content := e.uuid()
 	passwd := e.uuid()
@@ -156,9 +160,11 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword() {
 	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
 
 	httpResp = e.httpRequest(
-		http.MethodGet,
-		"/api/v1/note/"+bodyCreated.Slug+"?password="+passwd,
-		nil,
+		http.MethodPost,
+		"/api/v1/note/"+bodyCreated.Slug+"/view",
+		e.jsonify(apiv1NoteGetWithPasswordRequest{
+			Password: passwd,
+		}),
 	)
 	e.Equal(httpResp.Code, http.StatusOK)
 
@@ -208,9 +214,11 @@ func (e *AppTestSuite) TestNoteV1_GetWithPassword_wrong() {
 	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
 
 	httpResp = e.httpRequest(
-		http.MethodGet,
-		"/api/v1/note/"+bodyCreated.Slug+"?password="+e.uuid(),
-		nil,
+		http.MethodPost,
+		"/api/v1/note/"+bodyCreated.Slug+"/view",
+		e.jsonify(apiv1NoteGetWithPasswordRequest{
+			Password: e.uuid(),
+		}),
 	)
 	e.Equal(httpResp.Code, http.StatusNotFound)
 }
