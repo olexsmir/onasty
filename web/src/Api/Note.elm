@@ -59,22 +59,24 @@ get :
     }
     -> Effect msg
 get options =
-    Effect.sendApiRequest
-        { endpoint =
-            "/api/v1/note/"
-                ++ options.slug
-                ++ (case options.password of
-                        Just p ->
-                            "?password=" ++ Url.percentEncode p
+    case options.password of
+        Just passwd ->
+            Effect.sendApiRequest
+                { endpoint = "/api/v1/note/" ++ options.slug ++ "/view"
+                , method = "POST"
+                , body = E.object [ ( "password", E.string passwd ) ] |> Http.jsonBody
+                , onResponse = options.onResponse
+                , decoder = Note.decode
+                }
 
-                        Nothing ->
-                            ""
-                   )
-        , method = "GET"
-        , body = Http.emptyBody
-        , onResponse = options.onResponse
-        , decoder = Note.decode
-        }
+        Nothing ->
+            Effect.sendApiRequest
+                { endpoint = "/api/v1/note/" ++ options.slug
+                , method = "GET"
+                , body = Http.emptyBody
+                , onResponse = options.onResponse
+                , decoder = Note.decode
+                }
 
 
 getMetadata :
