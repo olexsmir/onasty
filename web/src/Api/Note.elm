@@ -7,7 +7,6 @@ import Http
 import Iso8601
 import Json.Encode as E
 import Time exposing (Posix)
-import Url
 
 
 create :
