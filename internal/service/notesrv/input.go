@@ -2,6 +2,8 @@ package notesrv
 
 import "github.com/olexsmir/onasty/internal/dtos"
 
+const EmptyPassword = ""
+
 // GetNoteBySlugInput used as input for [GetBySlugAndRemoveIfNeeded]
 type GetNoteBySlugInput struct {
 	// Slug is a note's slug :) *Required*
@@ -13,5 +15,5 @@ type GetNoteBySlugInput struct {
 }
 
 func (i GetNoteBySlugInput) HasPassword() bool {
-	return i.Password != ""
+	return i.Password != EmptyPassword
 }

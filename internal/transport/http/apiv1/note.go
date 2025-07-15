@@ -60,7 +60,7 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		c.Request.Context(),
 		notesrv.GetNoteBySlugInput{
 			Slug:     c.Param("slug"),
-			Password: "",
+			Password: notesrv.EmptyPassword,
 		},
 	)
 	if err != nil {
