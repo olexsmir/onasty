@@ -20,8 +20,8 @@ create :
     -> Effect msg
 create options =
     let
-        encodeMaybe : Maybe a -> String -> (a -> E.Value) -> ( String, E.Value )
-        encodeMaybe maybe field value =
+        encodeMaybe : String -> (a -> E.Value) -> Maybe a -> ( String, E.Value )
+        encodeMaybe field value maybe =
             case maybe of
                 Just data ->
                     ( field, value data )
@@ -32,8 +32,8 @@ create options =
         body =
             E.object
                 [ ( "content", E.string options.content )
-                , encodeMaybe options.slug "slug" E.string
-                , encodeMaybe options.password "password" E.string
+                , encodeMaybe "slug" E.string options.slug
+                , encodeMaybe "password" E.string options.password
                 , ( "burn_before_expiration", E.bool options.burnBeforeExpiration )
                 , if options.expiresAt == Time.millisToPosix 0 then
                     ( "expires_at", E.null )
@@ -63,7 +63,9 @@ get options =
             Effect.sendApiRequest
                 { endpoint = "/api/v1/note/" ++ options.slug ++ "/view"
                 , method = "POST"
-                , body = E.object [ ( "password", E.string passwd ) ] |> Http.jsonBody
+                , body =
+                    E.object [ ( "password", E.string passwd ) ]
+                        |> Http.jsonBody
                 , onResponse = options.onResponse
                 , decoder = Note.decode
                 }

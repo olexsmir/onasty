@@ -16,7 +16,6 @@ signin :
     -> Effect msg
 signin options =
     let
-        body : Encode.Value
         body =
             Encode.object
                 [ ( "email", Encode.string options.email )
@@ -40,7 +39,6 @@ signup :
     -> Effect msg
 signup options =
     let
-        body : Encode.Value
         body =
             Encode.object
                 [ ( "email", Encode.string options.email )
@@ -56,11 +54,7 @@ signup options =
         }
 
 
-refreshToken :
-    { onResponse : Result Api.Error Credentials -> msg
-    , refreshToken : String
-    }
-    -> Effect msg
+refreshToken : { onResponse : Result Api.Error Credentials -> msg, refreshToken : String } -> Effect msg
 refreshToken options =
     let
         body =
