@@ -49,10 +49,6 @@ type alias Model =
     }
 
 
-
--- TODO: store slug as Slug type
-
-
 type PageVariant
     = CreateNote
     | NoteCreated String
@@ -79,8 +75,8 @@ init _ () =
 
 
 type Msg
-    = CopyButtonReset
-    | Tick Posix
+    = Tick Posix
+    | CopyButtonReset
     | UserUpdatedInput Field String
     | UserClickedCheckbox Bool
     | UserClickedSubmit
@@ -149,14 +145,14 @@ update shared msg model =
             ( { model | content = content }, Effect.none )
 
         UserUpdatedInput Slug slug ->
-            if slug == "" then
+            if String.isEmpty slug then
                 ( { model | slug = Nothing }, Effect.none )
 
             else
                 ( { model | slug = Just slug }, Effect.none )
 
         UserUpdatedInput Password password ->
-            if password == "" then
+            if String.isEmpty password then
                 ( { model | password = Nothing }, Effect.none )
 
             else
@@ -177,10 +173,6 @@ update shared msg model =
 
         ApiCreateNoteResponded (Err error) ->
             ( { model | apiError = Just error }, Effect.none )
-
-
-
--- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
@@ -240,7 +232,7 @@ viewHeader pageVariant =
 
 
 -- VIEW CREATE NOTE
--- TODO: validate form
+-- TODO: validate the form
 
 
 viewCreateNoteForm : Model -> String -> Html Msg
