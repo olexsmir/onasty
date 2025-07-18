@@ -1,4 +1,4 @@
-module Pages.Auth exposing (Model, Msg, Variant, page)
+module Pages.Auth exposing (FormVariant, Model, Msg, page)
 
 import Api
 import Api.Auth
@@ -40,7 +40,7 @@ type alias Model =
     , password : String
     , passwordAgain : String
     , isSubmittingForm : Bool
-    , formVariant : Variant
+    , formVariant : FormVariant
     , showVerifyBanner : Bool
     , lastClicked : Maybe Posix
     , apiError : Maybe Api.Error
@@ -76,7 +76,7 @@ init shared _ =
 type Msg
     = Tick Posix
     | UserUpdatedInput Field String
-    | UserChangedFormVariant Variant
+    | UserChangedFormVariant FormVariant
     | UserClickedSubmit
     | UserClickedResendActivationEmail
     | ApiSignInResponded (Result Api.Error Credentials)
@@ -90,7 +90,7 @@ type Field
     | PasswordAgain
 
 
-type Variant
+type FormVariant
     = SignIn
     | SignUp
 
@@ -258,7 +258,7 @@ viewVerificationBanner now lastClicked =
         ]
 
 
-viewHeader : Variant -> Html Msg
+viewHeader : FormVariant -> Html Msg
 viewHeader variant =
     let
         ( title, description ) =
@@ -275,7 +275,7 @@ viewHeader variant =
         ]
 
 
-viewChangeVariant : Variant -> Html Msg
+viewChangeVariant : FormVariant -> Html Msg
 viewChangeVariant variant =
     let
         buttonClasses active =
@@ -390,7 +390,7 @@ isFormDisabled model =
                 || (model.password /= model.passwordAgain)
 
 
-fromVariantToLabel : Variant -> String
+fromVariantToLabel : FormVariant -> String
 fromVariantToLabel variant =
     case variant of
         SignIn ->
