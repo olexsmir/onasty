@@ -206,20 +206,16 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Onasty"
     , body =
-        [ H.div [ A.class "py-8 px-4 " ]
-            [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
-                [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    [ viewHeader model.pageVariant
-                    , H.div [ A.class "p-6 space-y-6" ]
-                        [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
-                        , case model.pageVariant of
-                            CreateNote ->
-                                viewCreateNoteForm model shared.appURL
+        [ Components.Utils.commonContainer
+            [ viewHeader model.pageVariant
+            , H.div [ A.class "p-6 space-y-6" ]
+                [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
+                , case model.pageVariant of
+                    CreateNote ->
+                        viewCreateNoteForm model shared.appURL
 
-                            NoteCreated slug ->
-                                viewNoteCreated model.userClickedCopyLink shared.appURL slug
-                        ]
-                    ]
+                    NoteCreated slug ->
+                        viewNoteCreated model.userClickedCopyLink shared.appURL slug
                 ]
             ]
         ]
