@@ -5,9 +5,9 @@ import Api.Note
 import Components.Box
 import Components.Form
 import Components.Utils
+import Constants exposing (expirationOptions)
 import Data.Note as Note
 import Effect exposing (Effect)
-import ExpirationOptions exposing (expirationOptions)
 import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
