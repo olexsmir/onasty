@@ -5,9 +5,9 @@ import Api.Note
 import Components.Error
 import Components.Form
 import Components.Utils
+import Constants exposing (expirationOptions)
 import Data.Note as Note
 import Effect exposing (Effect)
-import ExpirationOptions exposing (expirationOptions)
 import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
@@ -49,10 +49,6 @@ type alias Model =
     }
 
 
-
--- TODO: store slug as Slug type
-
-
 type PageVariant
     = CreateNote
     | NoteCreated String
@@ -79,8 +75,8 @@ init _ () =
 
 
 type Msg
-    = CopyButtonReset
-    | Tick Posix
+    = Tick Posix
+    | CopyButtonReset
     | UserUpdatedInput Field String
     | UserClickedCheckbox Bool
     | UserClickedSubmit
@@ -149,14 +145,14 @@ update shared msg model =
             ( { model | content = content }, Effect.none )
 
         UserUpdatedInput Slug slug ->
-            if slug == "" then
+            if String.isEmpty slug then
                 ( { model | slug = Nothing }, Effect.none )
 
             else
                 ( { model | slug = Just slug }, Effect.none )
 
         UserUpdatedInput Password password ->
-            if password == "" then
+            if String.isEmpty password then
                 ( { model | password = Nothing }, Effect.none )
 
             else
@@ -177,10 +173,6 @@ update shared msg model =
 
         ApiCreateNoteResponded (Err error) ->
             ( { model | apiError = Just error }, Effect.none )
-
-
-
--- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
@@ -206,20 +198,16 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Onasty"
     , body =
-        [ H.div [ A.class "py-8 px-4 " ]
-            [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
-                [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    [ viewHeader model.pageVariant
-                    , H.div [ A.class "p-6 space-y-6" ]
-                        [ Components.Utils.viewMaybe model.apiError (\e -> Components.Error.error (Api.errorMessage e))
-                        , case model.pageVariant of
-                            CreateNote ->
-                                viewCreateNoteForm model shared.appURL
+        [ Components.Utils.commonContainer
+            [ viewHeader model.pageVariant
+            , H.div [ A.class "p-6 space-y-6" ]
+                [ Components.Utils.viewMaybe model.apiError (\e -> Components.Error.error (Api.errorMessage e))
+                , case model.pageVariant of
+                    CreateNote ->
+                        viewCreateNoteForm model shared.appURL
 
-                            NoteCreated slug ->
-                                viewNoteCreated model.userClickedCopyLink shared.appURL slug
-                        ]
-                    ]
+                    NoteCreated slug ->
+                        viewNoteCreated model.userClickedCopyLink shared.appURL slug
                 ]
             ]
         ]
@@ -244,7 +232,7 @@ viewHeader pageVariant =
 
 
 -- VIEW CREATE NOTE
--- TODO: validate form
+-- TODO: validate the form
 
 
 viewCreateNoteForm : Model -> String -> Html Msg

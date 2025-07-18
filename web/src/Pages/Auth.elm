@@ -1,4 +1,4 @@
-module Pages.Auth exposing (Model, Msg, Variant, page)
+module Pages.Auth exposing (FormVariant, Model, Msg, page)
 
 import Api
 import Api.Auth
@@ -40,7 +40,7 @@ type alias Model =
     , password : String
     , passwordAgain : String
     , isSubmittingForm : Bool
-    , formVariant : Variant
+    , formVariant : FormVariant
     , showVerifyBanner : Bool
     , lastClicked : Maybe Posix
     , apiError : Maybe Api.Error
@@ -76,7 +76,7 @@ init shared _ =
 type Msg
     = Tick Posix
     | UserUpdatedInput Field String
-    | UserChangedFormVariant Variant
+    | UserChangedFormVariant FormVariant
     | UserClickedSubmit
     | UserClickedResendActivationEmail
     | ApiSignInResponded (Result Api.Error Credentials)
@@ -90,7 +90,7 @@ type Field
     | PasswordAgain
 
 
-type Variant
+type FormVariant
     = SignIn
     | SignUp
 
@@ -186,8 +186,16 @@ view model =
         [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
-                [ viewBanner model
-                , viewHeader model.formVariant
+                [ case ( model.apiError, model.showVerifyBanner ) of
+                    ( Just error, False ) ->
+                        Components.Error.error (Api.errorMessage error)
+
+                    ( Nothing, True ) ->
+                        viewVerificationBanner model.now model.lastClicked
+
+                    _ ->
+                        H.text ""
+                , viewBoxHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
                     , H.div [ A.class "border-t border-gray-200" ] []
@@ -197,19 +205,6 @@ view model =
             ]
         ]
     }
-
-
-viewBanner : Model -> Html Msg
-viewBanner model =
-    case ( model.apiError, model.showVerifyBanner ) of
-        ( Just error, False ) ->
-            Components.Error.error (Api.errorMessage error)
-
-        ( Nothing, True ) ->
-            viewVerificationBanner model.now model.lastClicked
-
-        _ ->
-            H.text ""
 
 
 viewVerificationBanner : Maybe Posix -> Maybe Posix -> Html Msg
@@ -258,8 +253,8 @@ viewVerificationBanner now lastClicked =
         ]
 
 
-viewHeader : Variant -> Html Msg
-viewHeader variant =
+viewBoxHeader : FormVariant -> Html Msg
+viewBoxHeader variant =
     let
         ( title, description ) =
             case variant of
@@ -275,7 +270,7 @@ viewHeader variant =
         ]
 
 
-viewChangeVariant : Variant -> Html Msg
+viewChangeVariant : FormVariant -> Html Msg
 viewChangeVariant variant =
     let
         buttonClasses active =
@@ -390,7 +385,7 @@ isFormDisabled model =
                 || (model.password /= model.passwordAgain)
 
 
-fromVariantToLabel : Variant -> String
+fromVariantToLabel : FormVariant -> String
 fromVariantToLabel variant =
     case variant of
         SignIn ->
