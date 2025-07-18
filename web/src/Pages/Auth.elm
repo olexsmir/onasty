@@ -220,8 +220,8 @@ view : Model -> View Msg
 view model =
     { title = "Authentication"
     , body =
-        [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50" ]
-            [ Components.Utils.roundedBoxContainer
+        [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
+            [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
                 [ case ( model.apiError, model.showVerifyBanner ) of
                     ( Just error, False ) ->
