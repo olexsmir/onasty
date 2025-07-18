@@ -1,4 +1,4 @@
-module Components.Utils exposing (commonContainer, viewIf, viewMaybe, roundedBoxContainer)
+module Components.Utils exposing (commonContainer, viewIf, viewMaybe)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -25,9 +25,5 @@ viewMaybe maybeValue toHtml =
 
 commonContainer : List (Html msg) -> Html msg
 commonContainer child =
-    H.div [ A.class "py-8 w-full max-w-4xl mx-auto " ] [ roundedBoxContainer child ]
-
-
-roundedBoxContainer : List (Html msg) -> Html msg
-roundedBoxContainer child =
-    H.div [ A.class "rounded-lg border border-gray-200 shadow-sm" ] child
+    H.div [ A.class "py-8 w-full max-w-4xl mx-auto " ]
+        [ H.div [ A.class "rounded-lg border border-gray-200 shadow-sm" ] child ]
