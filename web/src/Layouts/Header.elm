@@ -109,8 +109,7 @@ viewNav user =
             ]
 
         _ ->
-            [ viewLink "About" Route.Path.Home_ -- TODO: or add about page, or delete the link
-            , H.a
+            [ H.a
                 [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
                 , Route.Path.href Route.Path.Auth
                 ]
