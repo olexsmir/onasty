@@ -6,7 +6,9 @@ import (
 )
 
 type Config struct {
-	AppURL        string
+	AppURL      string
+	FrontendURL string
+
 	NatsURL       string
 	MailgunFrom   string
 	MailgunDomain string
@@ -23,6 +25,7 @@ type Config struct {
 func NewConfig() *Config {
 	return &Config{
 		AppURL:         getenvOrDefault("APP_URL", ""),
+		FrontendURL:    getenvOrDefault("FRONTEND_URL", ""),
 		NatsURL:        getenvOrDefault("NATS_URL", ""),
 		MailgunFrom:    getenvOrDefault("MAILGUN_FROM", ""),
 		MailgunDomain:  getenvOrDefault("MAILGUN_DOMAIN", ""),
