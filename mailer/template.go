@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var ErrInvalidTemplate = errors.New("failed to get template")
+
 type Template struct {
 	Subject string
 	Body    string
@@ -17,9 +19,9 @@ func getTemplate(appURL, frontendURL string, templateName string) (TemplateFunc,
 	case "email_verification":
 		return emailVerificationTemplate(appURL), nil
 	case "reset_password":
-		return passwordResetTemplate(appURL), nil
+		return passwordResetTemplate(frontendURL), nil
 	default:
-		return nil, errors.New("failed to get template") //nolint:err113
+		return nil, ErrInvalidTemplate
 	}
 }
 
