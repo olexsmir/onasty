@@ -7,6 +7,7 @@ import Components.Error
 import Components.Form
 import Components.Utils
 import Data.Credentials exposing (Credentials)
+import Dict
 import Effect exposing (Effect)
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -21,9 +22,9 @@ import View exposing (View)
 
 
 page : Shared.Model -> Route () -> Page Model Msg
-page shared _ =
+page shared route =
     Page.new
-        { init = init shared
+        { init = init shared route
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -48,9 +49,18 @@ type alias Model =
     }
 
 
-init : Shared.Model -> () -> ( Model, Effect Msg )
-init shared _ =
-    ( { formVariant = SignIn
+init : Shared.Model -> Route () -> () -> ( Model, Effect Msg )
+init shared route () =
+    let
+        formVariant =
+            case Dict.get "token" route.query of
+                Just token ->
+                    SetNewPassword token
+
+                Nothing ->
+                    SignIn
+    in
+    ( { formVariant = formVariant
       , isSubmittingForm = False
       , email = ""
       , password = ""
@@ -81,6 +91,8 @@ type Msg
     | UserClickedResendActivationEmail
     | ApiSignInResponded (Result Api.Error Credentials)
     | ApiSignUpResponded (Result Api.Error ())
+    | ApiForgotPasswordResponded (Result Api.Error ())
+    | ApiSetNewPasswordResponded (Result Api.Error ())
     | ApiResendVerificationEmail (Result Api.Error ())
 
 
@@ -90,9 +102,15 @@ type Field
     | PasswordAgain
 
 
+type alias ResetPasswordToken =
+    String
+
+
 type Variant
     = SignIn
     | SignUp
+    | ForgotPassword
+    | SetNewPassword ResetPasswordToken
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -117,6 +135,12 @@ update msg model =
                         , email = model.email
                         , password = model.password
                         }
+
+                ForgotPassword ->
+                    Api.Auth.forgotPassword { onResponse = ApiForgotPasswordResponded, email = model.email }
+
+                SetNewPassword token ->
+                    Api.Auth.resetPassword { onResponse = ApiSetNewPasswordResponded, token = token, password = model.password }
             )
 
         UserClickedResendActivationEmail ->
@@ -160,6 +184,18 @@ update msg model =
 
         ApiResendVerificationEmail (Err err) ->
             ( { model | apiError = Just err }, Effect.none )
+
+        ApiSetNewPasswordResponded (Ok ()) ->
+            ( { model | isSubmittingForm = False, formVariant = SignIn, password = "", passwordAgain = "" }, Effect.replaceRoutePath Route.Path.Auth )
+
+        ApiSetNewPasswordResponded (Err error) ->
+            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
+
+        ApiForgotPasswordResponded (Ok ()) ->
+            ( { model | isSubmittingForm = False }, Effect.none )
+
+        ApiForgotPasswordResponded (Err error) ->
+            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
 
 
 
@@ -268,6 +304,12 @@ viewHeader variant =
 
                 SignUp ->
                     ( "Create Account", "Enter your information to create your account" )
+
+                ForgotPassword ->
+                    ( "Forgot Password", "Enter your email to reset your password" )
+
+                SetNewPassword _ ->
+                    ( "Set New Password", "Enter your new password to reset your account" )
     in
     H.div [ A.class "p-6 pb-4" ]
         [ H.h1 [ A.class "text-2xl font-bold text-center mb-2" ] [ H.text title ]
@@ -325,6 +367,18 @@ viewForm model =
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
                 , viewSubmitButton model
                 ]
+
+            ForgotPassword ->
+                [ viewFormInput { field = Email, value = model.email }
+                , viewSubmitButton model
+                ]
+
+            SetNewPassword token ->
+                [ viewFormInput { field = Password, value = model.password }
+                , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
+                , H.input [ A.type_ "hidden", A.value token, A.name "token" ] []
+                , viewSubmitButton model
+                ]
         )
 
 
@@ -350,9 +404,7 @@ viewForgotPassword =
         [ H.button
             [ A.class "text-sm text-black hover:underline focus:outline-none"
             , A.type_ "button"
-
-            -- TODO: implement forgot password
-            -- , E.onClick (UserChangedFormVariant ForgotPassword)
+            , E.onClick (UserChangedFormVariant ForgotPassword)
             ]
             [ H.text "Forgot password?" ]
         ]
@@ -389,6 +441,15 @@ isFormDisabled model =
                 || String.isEmpty model.passwordAgain
                 || (model.password /= model.passwordAgain)
 
+        ForgotPassword ->
+            model.isSubmittingForm || String.isEmpty model.email
+
+        SetNewPassword _ ->
+            model.isSubmittingForm
+                || String.isEmpty model.password
+                || String.isEmpty model.passwordAgain
+                || (model.password /= model.passwordAgain)
+
 
 fromVariantToLabel : Variant -> String
 fromVariantToLabel variant =
@@ -398,6 +459,12 @@ fromVariantToLabel variant =
 
         SignUp ->
             "Sign Up"
+
+        ForgotPassword ->
+            "Forgot Password"
+
+        SetNewPassword _ ->
+            "Set new password"
 
 
 fromFieldToLabel : Field -> String
