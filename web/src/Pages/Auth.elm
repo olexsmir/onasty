@@ -1,9 +1,9 @@
-module Pages.Auth exposing (Model, Msg, Variant, page)
+module Pages.Auth exposing (Banner, Model, Msg, Variant, page)
 
 import Api
 import Api.Auth
 import Auth.User
-import Components.Error
+import Components.Box
 import Components.Form
 import Components.Utils
 import Data.Credentials exposing (Credentials)
@@ -42,9 +42,8 @@ type alias Model =
     , passwordAgain : String
     , isSubmittingForm : Bool
     , formVariant : Variant
-    , showVerifyBanner : Bool
+    , banner : Banner
     , lastClicked : Maybe Posix
-    , apiError : Maybe Api.Error
     , now : Maybe Posix
     }
 
@@ -65,9 +64,8 @@ init shared route () =
       , email = ""
       , password = ""
       , passwordAgain = ""
-      , showVerifyBanner = False
       , lastClicked = Nothing
-      , apiError = Nothing
+      , banner = Hidden
       , now = Nothing
       }
     , case shared.user of
@@ -113,6 +111,13 @@ type Variant
     | SetNewPassword ResetPasswordToken
 
 
+type Banner
+    = Hidden
+    | ResendVerificationEmail
+    | Error Api.Error
+    | CheckEmail
+
+
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
@@ -120,7 +125,7 @@ update msg model =
             ( { model | now = Just now }, Effect.none )
 
         UserClickedSubmit ->
-            ( { model | isSubmittingForm = True, apiError = Nothing }
+            ( { model | isSubmittingForm = True }
             , case model.formVariant of
                 SignIn ->
                     Api.Auth.signin
@@ -166,45 +171,41 @@ update msg model =
         ApiSignInResponded (Ok credentials) ->
             ( { model | isSubmittingForm = False }, Effect.signin credentials )
 
-        ApiSignInResponded (Err error) ->
-            if Api.isNotVerified error then
-                ( { model | isSubmittingForm = False, apiError = Nothing, showVerifyBanner = True }, Effect.none )
+        ApiSignInResponded (Err err) ->
+            if Api.isNotVerified err then
+                ( { model | isSubmittingForm = False, banner = ResendVerificationEmail }, Effect.none )
 
             else
-                ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
+                ( { model | isSubmittingForm = False, banner = Error err }, Effect.none )
 
         ApiSignUpResponded (Ok ()) ->
-            ( { model | isSubmittingForm = False, showVerifyBanner = True }, Effect.none )
+            ( { model | isSubmittingForm = False, banner = ResendVerificationEmail }, Effect.none )
 
-        ApiSignUpResponded (Err error) ->
-            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
+        ApiSignUpResponded (Err err) ->
+            ( { model | isSubmittingForm = False, banner = Error err }, Effect.none )
 
         ApiResendVerificationEmail (Ok ()) ->
-            ( { model | apiError = Nothing }, Effect.none )
+            ( model, Effect.none )
 
         ApiResendVerificationEmail (Err err) ->
-            ( { model | apiError = Just err }, Effect.none )
+            ( { model | banner = Error err }, Effect.none )
 
         ApiSetNewPasswordResponded (Ok ()) ->
             ( { model | isSubmittingForm = False, formVariant = SignIn, password = "", passwordAgain = "" }, Effect.replaceRoutePath Route.Path.Auth )
 
-        ApiSetNewPasswordResponded (Err error) ->
-            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
+        ApiSetNewPasswordResponded (Err err) ->
+            ( { model | isSubmittingForm = False, banner = Error err }, Effect.none )
 
         ApiForgotPasswordResponded (Ok ()) ->
-            ( { model | isSubmittingForm = False }, Effect.none )
+            ( { model | isSubmittingForm = False, banner = CheckEmail }, Effect.none )
 
-        ApiForgotPasswordResponded (Err error) ->
-            ( { model | isSubmittingForm = False, apiError = Just error }, Effect.none )
-
-
-
--- SUBSCRIPTIONS
+        ApiForgotPasswordResponded (Err err) ->
+            ( { model | isSubmittingForm = False, banner = Error err }, Effect.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.showVerifyBanner then
+    if model.banner == ResendVerificationEmail then
         Time.every 1000 Tick
 
     else
@@ -237,15 +238,18 @@ view model =
 
 viewBanner : Model -> Html Msg
 viewBanner model =
-    case ( model.apiError, model.showVerifyBanner ) of
-        ( Just error, False ) ->
-            Components.Error.error (Api.errorMessage error)
-
-        ( Nothing, True ) ->
-            viewVerificationBanner model.now model.lastClicked
-
-        _ ->
+    case model.banner of
+        Hidden ->
             H.text ""
+
+        Error err ->
+            Components.Box.error (Api.errorMessage err)
+
+        CheckEmail ->
+            Components.Box.success { header = "Check your email!", body = "To continue with resetting your password please check the email we've sent." }
+
+        ResendVerificationEmail ->
+            viewVerificationBanner model.now model.lastClicked
 
 
 viewVerificationBanner : Maybe Posix -> Maybe Posix -> Html Msg
@@ -277,7 +281,7 @@ viewVerificationBanner now lastClicked =
         canClick =
             timeLeftSeconds == 0
     in
-    H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-4 mb-4" ]
+    Components.Box.successBox
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "Please verify your account to continue. We've sent a verification link to your email — click it to activate your account." ]
         , H.button
