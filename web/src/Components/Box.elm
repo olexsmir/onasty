@@ -1,4 +1,4 @@
-module Components.Error exposing (error)
+module Components.Box exposing (error)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
