@@ -17,7 +17,14 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: versions
+
       - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ steps.versions.outputs.bun }}
+
 
       - name: Install deps
         run: bun install --frozen-lockfile
