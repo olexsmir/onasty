@@ -2,7 +2,7 @@ module Pages.Secret.Slug_ exposing (Model, Msg, PageVariant, page)
 
 import Api
 import Api.Note
-import Components.Error
+import Components.Box
 import Components.Utils
 import Data.Note exposing (Metadata, Note)
 import Effect exposing (Effect)
@@ -145,7 +145,7 @@ view shared model =
                             viewNoteNotFound model.slug
 
                           else
-                            Components.Error.error (Api.errorMessage error)
+                            Components.Box.error (Api.errorMessage error)
                         ]
                 )
             ]

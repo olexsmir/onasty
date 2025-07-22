@@ -6,14 +6,17 @@ import (
 )
 
 type Service struct {
-	appURL string
-	mg     *Mailgun
+	appURL      string
+	frontendURL string
+
+	mg *Mailgun
 }
 
-func NewService(appURL string, mg *Mailgun) *Service {
+func NewService(appURL, frontendURL string, mg *Mailgun) *Service {
 	return &Service{
-		appURL: appURL,
-		mg:     mg,
+		appURL:      appURL,
+		frontendURL: frontendURL,
+		mg:          mg,
 	}
 }
 
@@ -23,7 +26,7 @@ func (s Service) Send(
 	receiver, templateName string,
 	templateOpts map[string]string,
 ) error {
-	tmpl, err := getTemplate(s.appURL, templateName)
+	tmpl, err := getTemplate(s.appURL, s.frontendURL, templateName)
 	if err != nil {
 		return err
 	}

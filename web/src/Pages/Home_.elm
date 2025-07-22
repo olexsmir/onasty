@@ -2,7 +2,7 @@ module Pages.Home_ exposing (Model, Msg, PageVariant, page)
 
 import Api
 import Api.Note
-import Components.Error
+import Components.Box
 import Components.Form
 import Components.Utils
 import Data.Note as Note
@@ -211,7 +211,7 @@ view shared model =
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                     [ viewHeader model.pageVariant
                     , H.div [ A.class "p-6 space-y-6" ]
-                        [ Components.Utils.viewMaybe model.apiError (\e -> Components.Error.error (Api.errorMessage e))
+                        [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
                         , case model.pageVariant of
                             CreateNote ->
                                 viewCreateNoteForm model shared.appURL

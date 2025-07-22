@@ -51,7 +51,7 @@ func run() error {
 	}
 
 	mg := NewMailgun(cfg.MailgunFrom, cfg.MailgunDomain, cfg.MailgunAPIKey)
-	service := NewService(cfg.AppURL, mg)
+	service := NewService(cfg.AppURL, cfg.FrontendURL, mg)
 	handlers := NewHandlers(service)
 
 	if err := handlers.RegisterAll(svc); err != nil {
