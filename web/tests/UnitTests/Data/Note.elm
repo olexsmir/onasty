@@ -11,18 +11,18 @@ suite =
     describe "Data.Note"
         [ test "decodeCreateResponse"
             (\_ ->
-                "{\"slug\":\"the.note-slug\"}"
+                """ {"slug":"the.note-slug"} """
                     |> D.decodeString Data.Note.decodeCreateResponse
                     |> Expect.ok
             )
         , test "decodeMetadata"
             (\_ ->
                 """
-                    {
-                        "created_at": "2023-10-01T12:00:00Z",
-                        "has_password": false
-                    }
-                    """
+                {
+                    "created_at": "2023-10-01T12:00:00Z",
+                    "has_password": false
+                }
+                """
                     |> D.decodeString Data.Note.decodeMetadata
                     |> Expect.ok
             )
