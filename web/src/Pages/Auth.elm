@@ -223,15 +223,7 @@ view model =
         [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
-                [ case ( model.apiError, model.showVerifyBanner ) of
-                    ( Just error, False ) ->
-                        Components.Error.error (Api.errorMessage error)
-
-                    ( Nothing, True ) ->
-                        viewVerificationBanner model.now model.lastClicked
-
-                    _ ->
-                        H.text ""
+                [ viewBanner model
                 , viewBoxHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
