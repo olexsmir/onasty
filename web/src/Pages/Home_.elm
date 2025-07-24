@@ -274,7 +274,15 @@ viewCreateNoteForm model appUrl =
                 , viewBurnBeforeExpirationCheckbox
                 ]
             ]
-        , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
+        , H.div [ A.class "flex justify-end" ]
+            [ Components.Form.button
+                { text = "Create note"
+                , type_ = "submit"
+                , style = Components.Form.Solid (isFormDisabled model)
+                , onClick = UserClickedSubmit
+                , disabled = False
+                }
+            ]
         ]
 
 
@@ -337,34 +345,9 @@ viewBurnBeforeExpirationCheckbox =
         ]
 
 
-viewSubmitButton : Model -> Html Msg
-viewSubmitButton model =
-    H.button
-        [ A.type_ "submit"
-        , A.disabled (isFormDisabled model)
-        , A.class
-            (if isFormDisabled model then
-                "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
-
-             else
-                "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-            )
-        ]
-        [ H.text "Create note" ]
-
-
 isFormDisabled : Model -> Bool
 isFormDisabled model =
     String.isEmpty model.content
-
-
-viewCreateNewNoteButton : Html Msg
-viewCreateNewNoteButton =
-    H.button
-        [ A.class "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-        , E.onClick UserClickedCreateNewNote
-        ]
-        [ H.text "Create New Paste" ]
 
 
 fromFieldToName : Field -> String
@@ -397,33 +380,19 @@ viewNoteCreated userClickedCopyLink appUrl slug =
                 [ H.text (secretUrl appUrl slug) ]
             ]
         , H.div [ A.class "flex gap-3" ]
-            [ viewCopyLinkButton userClickedCopyLink
-            , viewCreateNewNoteButton
+            [ Components.Form.button
+                { text = "TODO click"
+                , onClick = UserClickedCopyLink
+                , style = Components.Form.Bordered userClickedCopyLink
+                , type_ = "button"
+                , disabled = userClickedCopyLink
+                }
+            , Components.Form.button
+                { text = "Create New Paste"
+                , type_ = "button"
+                , onClick = UserClickedCreateNewNote
+                , style = Components.Form.Solid False
+                , disabled = False
+                }
             ]
-        ]
-
-
-viewCopyLinkButton : Bool -> Html Msg
-viewCopyLinkButton isClicked =
-    let
-        base =
-            "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-    in
-    H.button
-        [ A.class
-            (if isClicked then
-                base ++ " bg-green-100 border-green-300 text-green-700"
-
-             else
-                base ++ " border-gray-300 text-gray-700 hover:bg-gray-50"
-            )
-        , E.onClick UserClickedCopyLink
-        ]
-        [ H.text
-            (if isClicked then
-                "Copied!"
-
-             else
-                "Copy URL"
-            )
         ]

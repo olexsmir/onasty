@@ -1,10 +1,10 @@
 module Layouts.Header exposing (Model, Msg, Props, layout)
 
 import Auth.User
+import Components.Form
 import Effect exposing (Effect)
 import Html as H exposing (Html)
 import Html.Attributes as A
-import Html.Events as E
 import Layout exposing (Layout)
 import Route exposing (Route)
 import Route.Path
@@ -101,11 +101,13 @@ viewNav user =
     case user of
         Auth.User.SignedIn _ ->
             [ viewLink "Profile" Route.Path.Profile_Me
-            , H.button
-                [ A.class "text-gray-600 hover:text-red-600 transition-colors"
-                , E.onClick UserClickedLogout
-                ]
-                [ H.text "Logout" ]
+            , Components.Form.button
+                { text = "Logout"
+                , onClick = UserClickedLogout
+                , style = Components.Form.BorderedRedOnHover
+                , disabled = False
+                , type_ = "button"
+                }
             ]
 
         _ ->
