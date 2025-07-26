@@ -1,4 +1,4 @@
-module Components.Utils exposing (loadSvg, viewIf, viewMaybe)
+module Components.Utils exposing (commonContainer, viewIf, viewMaybe)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -23,6 +23,7 @@ viewMaybe maybeValue toHtml =
             H.text ""
 
 
-loadSvg : { path : String, class : String } -> Html msg
-loadSvg { path, class } =
-    H.img [ A.src ("/static/" ++ path), A.class class ] []
+commonContainer : List (Html msg) -> Html msg
+commonContainer child =
+    H.div [ A.class "py-8 w-full max-w-4xl mx-auto " ]
+        [ H.div [ A.class "rounded-lg border border-gray-200 shadow-sm" ] child ]

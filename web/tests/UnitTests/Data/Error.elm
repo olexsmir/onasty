@@ -11,11 +11,7 @@ suite =
     describe "Data.Error"
         [ test "decode" <|
             \_ ->
-                """
-                {
-                    "message": "some kind of an error"
-                }
-                """
+                """ {"message": "some kind of an error"} """
                     |> Json.decodeString Data.Error.decode
                     |> Expect.ok
         ]

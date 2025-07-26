@@ -5,9 +5,9 @@ import Api.Note
 import Components.Box
 import Components.Form
 import Components.Utils
+import Constants exposing (expirationOptions)
 import Data.Note as Note
 import Effect exposing (Effect)
-import ExpirationOptions exposing (expirationOptions)
 import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
@@ -49,10 +49,6 @@ type alias Model =
     }
 
 
-
--- TODO: store slug as Slug type
-
-
 type PageVariant
     = CreateNote
     | NoteCreated String
@@ -79,8 +75,8 @@ init _ () =
 
 
 type Msg
-    = CopyButtonReset
-    | Tick Posix
+    = Tick Posix
+    | CopyButtonReset
     | UserUpdatedInput Field String
     | UserClickedCheckbox Bool
     | UserClickedSubmit
@@ -149,14 +145,14 @@ update shared msg model =
             ( { model | content = content }, Effect.none )
 
         UserUpdatedInput Slug slug ->
-            if slug == "" then
+            if String.isEmpty slug then
                 ( { model | slug = Nothing }, Effect.none )
 
             else
                 ( { model | slug = Just slug }, Effect.none )
 
         UserUpdatedInput Password password ->
-            if password == "" then
+            if String.isEmpty password then
                 ( { model | password = Nothing }, Effect.none )
 
             else
@@ -177,10 +173,6 @@ update shared msg model =
 
         ApiCreateNoteResponded (Err error) ->
             ( { model | apiError = Just error }, Effect.none )
-
-
-
--- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
@@ -206,20 +198,16 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Onasty"
     , body =
-        [ H.div [ A.class "py-8 px-4 " ]
-            [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
-                [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    [ viewHeader model.pageVariant
-                    , H.div [ A.class "p-6 space-y-6" ]
-                        [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
-                        , case model.pageVariant of
-                            CreateNote ->
-                                viewCreateNoteForm model shared.appURL
+        [ Components.Utils.commonContainer
+            [ viewHeader model.pageVariant
+            , H.div [ A.class "p-6 space-y-6" ]
+                [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
+                , case model.pageVariant of
+                    CreateNote ->
+                        viewCreateNoteForm model shared.appURL
 
-                            NoteCreated slug ->
-                                viewNoteCreated model.userClickedCopyLink shared.appURL slug
-                        ]
-                    ]
+                    NoteCreated slug ->
+                        viewNoteCreated model.userClickedCopyLink shared.appURL slug
                 ]
             ]
         ]
@@ -244,7 +232,7 @@ viewHeader pageVariant =
 
 
 -- VIEW CREATE NOTE
--- TODO: validate form
+-- TODO: validate the form
 
 
 viewCreateNoteForm : Model -> String -> Html Msg
@@ -286,7 +274,16 @@ viewCreateNoteForm model appUrl =
                 , viewBurnBeforeExpirationCheckbox
                 ]
             ]
-        , H.div [ A.class "flex justify-end" ] [ viewSubmitButton model ]
+        , H.div [ A.class "flex justify-end" ]
+            [ Components.Form.button
+                { text = "Create note"
+                , class = Nothing
+                , type_ = "submit"
+                , style = Components.Form.Solid (isFormDisabled model)
+                , onClick = UserClickedSubmit
+                , disabled = False
+                }
+            ]
         ]
 
 
@@ -349,34 +346,9 @@ viewBurnBeforeExpirationCheckbox =
         ]
 
 
-viewSubmitButton : Model -> Html Msg
-viewSubmitButton model =
-    H.button
-        [ A.type_ "submit"
-        , A.disabled (isFormDisabled model)
-        , A.class
-            (if isFormDisabled model then
-                "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
-
-             else
-                "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-            )
-        ]
-        [ H.text "Create note" ]
-
-
 isFormDisabled : Model -> Bool
 isFormDisabled model =
     String.isEmpty model.content
-
-
-viewCreateNewNoteButton : Html Msg
-viewCreateNewNoteButton =
-    H.button
-        [ A.class "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-        , E.onClick UserClickedCreateNewNote
-        ]
-        [ H.text "Create New Paste" ]
 
 
 fromFieldToName : Field -> String
@@ -409,33 +381,21 @@ viewNoteCreated userClickedCopyLink appUrl slug =
                 [ H.text (secretUrl appUrl slug) ]
             ]
         , H.div [ A.class "flex gap-3" ]
-            [ viewCopyLinkButton userClickedCopyLink
-            , viewCreateNewNoteButton
+            [ Components.Form.button
+                { text = "TODO click"
+                , onClick = UserClickedCopyLink
+                , style = Components.Form.Bordered userClickedCopyLink
+                , type_ = "button"
+                , class = Nothing
+                , disabled = userClickedCopyLink
+                }
+            , Components.Form.button
+                { text = "Create New Paste"
+                , type_ = "button"
+                , onClick = UserClickedCreateNewNote
+                , style = Components.Form.Solid False
+                , disabled = False
+                , class = Nothing
+                }
             ]
-        ]
-
-
-viewCopyLinkButton : Bool -> Html Msg
-viewCopyLinkButton isClicked =
-    let
-        base =
-            "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-    in
-    H.button
-        [ A.class
-            (if isClicked then
-                base ++ " bg-green-100 border-green-300 text-green-700"
-
-             else
-                base ++ " border-gray-300 text-gray-700 hover:bg-gray-50"
-            )
-        , E.onClick UserClickedCopyLink
-        ]
-        [ H.text
-            (if isClicked then
-                "Copied!"
-
-             else
-                "Copy URL"
-            )
         ]

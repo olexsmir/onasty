@@ -36,6 +36,7 @@ tasks:
   test:
     - task: test:unit
     - task: test:e2e
+    - task: frontend:test
 
   test:unit:
     - '{{.gotest}} --count=1 -v --short ./...'

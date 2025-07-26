@@ -13,8 +13,6 @@ type alias User =
     Auth.User.User
 
 
-{-| Called before an auth-only page is loaded.
--}
 onPageLoad : Shared.Model -> Route () -> Auth.Action.Action User
 onPageLoad shared _ =
     case shared.user of
@@ -32,8 +30,6 @@ onPageLoad shared _ =
             Auth.Action.loadPageWithUser credentials
 
 
-{-| Renders whenever `Auth.Action.loadCustomPage` is returned from `onPageLoad`.
--}
 viewCustomPage : Shared.Model -> Route () -> View Never
 viewCustomPage _ _ =
     View.fromString "Loading..."

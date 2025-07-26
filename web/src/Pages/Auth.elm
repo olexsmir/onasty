@@ -1,4 +1,4 @@
-module Pages.Auth exposing (Banner, Model, Msg, Variant, page)
+module Pages.Auth exposing (Banner, FormVariant, Model, Msg, page)
 
 import Api
 import Api.Auth
@@ -41,8 +41,8 @@ type alias Model =
     , password : String
     , passwordAgain : String
     , isSubmittingForm : Bool
-    , formVariant : Variant
     , banner : Banner
+    , formVariant : FormVariant
     , lastClicked : Maybe Posix
     , now : Maybe Posix
     }
@@ -84,7 +84,7 @@ init shared route () =
 type Msg
     = Tick Posix
     | UserUpdatedInput Field String
-    | UserChangedFormVariant Variant
+    | UserChangedFormVariant FormVariant
     | UserClickedSubmit
     | UserClickedResendActivationEmail
     | ApiSignInResponded (Result Api.Error Credentials)
@@ -104,7 +104,7 @@ type alias ResetPasswordToken =
     String
 
 
-type Variant
+type FormVariant
     = SignIn
     | SignUp
     | ForgotPassword
@@ -224,7 +224,7 @@ view model =
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
                 [ viewBanner model
-                , viewHeader model.formVariant
+                , viewBoxHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
                     , H.div [ A.class "border-t border-gray-200" ] []
@@ -298,8 +298,8 @@ viewVerificationBanner now lastClicked =
         ]
 
 
-viewHeader : Variant -> Html Msg
-viewHeader variant =
+viewBoxHeader : FormVariant -> Html Msg
+viewBoxHeader variant =
     let
         ( title, description ) =
             case variant of
@@ -321,33 +321,25 @@ viewHeader variant =
         ]
 
 
-viewChangeVariant : Variant -> Html Msg
+viewChangeVariant : FormVariant -> Html Msg
 viewChangeVariant variant =
-    let
-        buttonClasses active =
-            let
-                base =
-                    "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
-            in
-            if active then
-                base ++ " bg-black text-white"
-
-            else
-                base ++ " bg-white text-black border border-gray-300 hover:bg-gray-50"
-    in
     H.div [ A.class "flex gap-2" ]
-        [ H.button
-            [ A.class (buttonClasses (variant == SignIn))
-            , A.disabled (variant == SignIn)
-            , E.onClick (UserChangedFormVariant SignIn)
-            ]
-            [ H.text "Sign In" ]
-        , H.button
-            [ A.class (buttonClasses (variant == SignUp))
-            , A.disabled (variant == SignUp)
-            , E.onClick (UserChangedFormVariant SignUp)
-            ]
-            [ H.text "Sign Up" ]
+        [ Components.Form.button
+            { text = "Sign In"
+            , onClick = UserChangedFormVariant SignIn
+            , style = Components.Form.Solid (variant == SignIn)
+            , disabled = variant == SignIn
+            , type_ = "button"
+            , class = Just "flex-1"
+            }
+        , Components.Form.button
+            { text = "Sign Up"
+            , onClick = UserChangedFormVariant SignUp
+            , style = Components.Form.Solid (variant == SignUp)
+            , disabled = variant == SignUp
+            , type_ = "button"
+            , class = Just "flex-1"
+            }
         ]
 
 
@@ -370,6 +362,14 @@ viewForm model =
                 , viewFormInput { field = Password, value = model.password }
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
                 , viewSubmitButton model
+                , Components.Form.button
+                    { type_ = "submit"
+                    , class = Just "w-full"
+                    , text = "Sign In"
+                    , style = Components.Form.Solid (isFormDisabled model)
+                    , disabled = isFormDisabled model
+                    , onClick = UserClickedSubmit
+                    }
                 ]
 
             ForgotPassword ->
@@ -455,7 +455,7 @@ isFormDisabled model =
                 || (model.password /= model.passwordAgain)
 
 
-fromVariantToLabel : Variant -> String
+fromVariantToLabel : FormVariant -> String
 fromVariantToLabel variant =
     case variant of
         SignIn ->
