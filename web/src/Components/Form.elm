@@ -79,16 +79,25 @@ type
 
 button :
     { text : String
+    , class : Maybe String
     , disabled : Bool
     , onClick : msg
     , style : ButtonStyle
-    , type_ : String -- FIXME: move it into sep type
+    , type_ : String
     }
     -> Html msg
 button opts =
+    -- TODO: refactor to builder pattern, and pass classes and type this way
     H.button
         [ A.type_ opts.type_
-        , A.class (buttonStyleToClass opts.style)
+        , A.class
+            (case opts.class of
+                Just cls ->
+                    cls ++ " " ++ buttonStyleToClass opts.style
+
+                Nothing ->
+                    buttonStyleToClass opts.style
+            )
         , E.onClick opts.onClick
         , A.disabled opts.disabled
         ]
@@ -99,18 +108,23 @@ buttonStyleToClass : ButtonStyle -> String
 buttonStyleToClass style =
     case style of
         Solid isDisabled ->
-            if isDisabled then
+            thisOrThat isDisabled
                 "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
-
-            else
                 "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
 
         BorderedRedOnHover ->
             "text-gray-600 hover:text-red-600 transition-colors"
 
         Bordered isDisabled ->
-            if isDisabled then
+            thisOrThat isDisabled
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors bg-green-100 border-green-300 text-green-700"
-
-            else
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
+
+
+thisOrThat : Bool -> String -> String -> String
+thisOrThat cond this that =
+    if cond then
+        this
+
+    else
+        that

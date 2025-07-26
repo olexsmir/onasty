@@ -107,6 +107,7 @@ viewNav user =
                 , style = Components.Form.BorderedRedOnHover
                 , disabled = False
                 , type_ = "button"
+                , class = Nothing
                 }
             ]
 
