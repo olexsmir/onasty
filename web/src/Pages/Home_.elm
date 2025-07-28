@@ -199,7 +199,7 @@ view shared model =
     { title = "Onasty"
     , body =
         [ Components.Utils.commonContainer
-            [ viewHeader model.pageVariant
+            [ viewHeader model.pageVariant model.apiError
             , H.div [ A.class "p-6 space-y-6" ]
                 [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
                 , case model.pageVariant of
@@ -207,15 +207,15 @@ view shared model =
                         viewCreateNoteForm model shared.appURL
 
                     NoteCreated slug ->
-                        viewNoteCreated model.userClickedCopyLink shared.appURL slug
+                        Components.Utils.viewIf (model.apiError == Nothing) (viewNoteCreated shared.appURL slug)
                 ]
             ]
         ]
     }
 
 
-viewHeader : PageVariant -> Html Msg
-viewHeader pageVariant =
+viewHeader : PageVariant -> Maybe Api.Error -> Html Msg
+viewHeader pageVariant apiError =
     H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
         [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ]
             [ H.text
@@ -224,7 +224,11 @@ viewHeader pageVariant =
                         "Create a new note"
 
                     NoteCreated _ ->
-                        "Paste Created Successfully!"
+                        if apiError == Nothing then
+                            "Paste Created Successfully!"
+
+                        else
+                            "Could not create the note."
                 )
             ]
         ]
@@ -277,11 +281,11 @@ viewCreateNoteForm model appUrl =
         , H.div [ A.class "flex justify-end" ]
             [ Components.Form.button
                 { text = "Create note"
-                , class = Nothing
                 , type_ = "submit"
                 , style = Components.Form.Solid (isFormDisabled model)
                 , onClick = UserClickedSubmit
                 , disabled = False
+                , class = ""
                 }
             ]
         ]
@@ -371,8 +375,8 @@ fromFieldToName field =
 -- VIEW NOTE CREATED
 
 
-viewNoteCreated : Bool -> String -> String -> Html Msg
-viewNoteCreated userClickedCopyLink appUrl slug =
+viewNoteCreated : String -> String -> Html Msg
+viewNoteCreated appUrl slug =
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-6" ]
         [ H.div [ A.class "bg-white border border-green-300 rounded-md p-4 mb-4" ]
             [ H.p [ A.class "text-sm text-gray-600 mb-2" ]
@@ -381,21 +385,11 @@ viewNoteCreated userClickedCopyLink appUrl slug =
                 [ H.text (secretUrl appUrl slug) ]
             ]
         , H.div [ A.class "flex gap-3" ]
-            [ Components.Form.button
-                { text = "TODO click"
-                , onClick = UserClickedCopyLink
-                , style = Components.Form.Bordered userClickedCopyLink
-                , type_ = "button"
-                , class = Nothing
-                , disabled = userClickedCopyLink
-                }
-            , Components.Form.button
+            [ Components.Form.btn
                 { text = "Create New Paste"
-                , type_ = "button"
                 , onClick = UserClickedCreateNewNote
                 , style = Components.Form.Solid False
                 , disabled = False
-                , class = Nothing
                 }
             ]
         ]
