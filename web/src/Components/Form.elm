@@ -1,7 +1,7 @@
-module Components.Form exposing (ButtonConfig, ButtonStyle(..), DisabledVariant, btn, button, input)
+module Components.Form exposing (ButtonConfig, ButtonStyle(..), DisabledVariant, btn, button, input, submitButton)
 
 import Html as H exposing (Html)
-import Html.Attributes as A
+import Html.Attributes as A exposing (disabled)
 import Html.Events as E
 
 
@@ -84,6 +84,7 @@ type
     ButtonStyle
     = Solid DisabledVariant
     | Bordered DisabledVariant
+    | BorderedGrayedOut DisabledVariant
     | BorderedRedOnHover
 
 
@@ -91,13 +92,7 @@ button : ButtonConfig msg -> Html msg
 button opts =
     H.button
         [ A.type_ opts.type_
-        , A.class
-            (if String.length opts.class > 0 then
-                opts.class ++ " " ++ buttonStyleToClass opts.style
-
-             else
-                buttonStyleToClass opts.style
-            )
+        , A.class (buttonStyleToClass opts.style opts.class)
         , E.onClick opts.onClick
         , A.disabled opts.disabled
         ]
@@ -109,17 +104,28 @@ btn opts =
     H.button
         [ A.type_ "button"
         , E.onClick opts.onClick
-        , A.class (buttonStyleToClass opts.style)
+        , A.class (buttonStyleToClass opts.style "")
         , A.disabled opts.disabled
         ]
         [ H.text opts.text ]
 
 
-buttonStyleToClass : ButtonStyle -> String
-buttonStyleToClass style =
+submitButton : { text : String, disabled : Bool, class : String, style : ButtonStyle } -> Html msg
+submitButton opts =
+    H.button
+        [ A.type_ "submit"
+        , A.class (buttonStyleToClass opts.style opts.class)
+        , A.disabled opts.disabled
+        ]
+        []
+
+
+buttonStyleToClass : ButtonStyle -> String -> String
+buttonStyleToClass style extend =
     case style of
         Solid isDisabled ->
-            thisOrThat isDisabled
+            getButtonClasses isDisabled
+                extend
                 "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
                 "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
 
@@ -127,15 +133,30 @@ buttonStyleToClass style =
             "text-gray-600 hover:text-red-600 transition-colors"
 
         Bordered isDisabled ->
-            thisOrThat isDisabled
+            getButtonClasses isDisabled
+                extend
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors bg-green-100 border-green-300 text-green-700"
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
 
+        BorderedGrayedOut isDisabled ->
+            getButtonClasses isDisabled
+                extend
+                "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-700 hover:bg-gray-50"
+                "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-400 cursor-not-allowed"
 
-thisOrThat : Bool -> String -> String -> String
-thisOrThat cond this that =
+
+getButtonClasses : Bool -> String -> String -> String -> String
+getButtonClasses cond extend whenEnabled whenDisabled =
+    let
+        cls =
+            if String.length extend < 0 then
+                extend ++ " "
+
+            else
+                ""
+    in
     if cond then
-        this
+        cls ++ whenEnabled
 
     else
-        that
+        cls ++ whenDisabled

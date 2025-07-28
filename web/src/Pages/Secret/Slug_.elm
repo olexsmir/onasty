@@ -272,10 +272,8 @@ viewOpenNote opts =
                 , A.class "max-w-sm mx-auto space-y-4"
                 ]
                 [ Components.Utils.viewIf opts.hasPassword
-                    (H.div
-                        [ A.class "space-y-2" ]
-                        [ H.label
-                            [ A.class "block text-sm font-medium text-gray-700 text-left" ]
+                    (H.div [ A.class "space-y-2" ]
+                        [ H.label [ A.class "block text-sm font-medium text-gray-700 text-left" ]
                             [ H.text "Password" ]
                         , H.input
                             [ E.onInput UserUpdatedPassword

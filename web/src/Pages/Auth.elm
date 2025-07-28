@@ -255,16 +255,6 @@ viewBanner model =
 viewVerificationBanner : Maybe Posix -> Maybe Posix -> Html Msg
 viewVerificationBanner now lastClicked =
     let
-        buttonClassesBase =
-            "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
-
-        buttonClasses active =
-            if active then
-                buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
-
-            else
-                buttonClassesBase ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
-
         timeLeftSeconds =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
@@ -284,15 +274,14 @@ viewVerificationBanner now lastClicked =
     Components.Box.successBox
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "Please verify your account to continue. We've sent a verification link to your email — click it to activate your account." ]
-        , H.button
-            [ A.class (buttonClasses canClick)
-            , E.onClick UserClickedResendActivationEmail
-            , A.disabled (not canClick)
-            ]
-            [ H.text "Resend verification email" ]
+        , Components.Form.btn
+            { text = "Resend verification email"
+            , onClick = UserClickedResendActivationEmail
+            , disabled = not canClick
+            , style = Components.Form.BorderedGrayedOut canClick
+            }
         , Components.Utils.viewIf (not canClick)
-            (H.p
-                [ A.class "text-gray-600 text-xs mt-2" ]
+            (H.p [ A.class "text-gray-600 text-xs mt-2" ]
                 [ H.text ("You can request a new verification email in " ++ String.fromInt timeLeftSeconds ++ " seconds.") ]
             )
         ]
@@ -362,13 +351,11 @@ viewForm model =
                 , viewFormInput { field = Password, value = model.password }
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
                 , viewSubmitButton model
-                , Components.Form.button
-                    { type_ = "submit"
+                , Components.Form.submitButton
+                    { text = "Sign In"
                     , class = "w-full"
-                    , text = "Sign In"
                     , style = Components.Form.Solid (isFormDisabled model)
                     , disabled = isFormDisabled model
-                    , onClick = UserClickedSubmit
                     }
                 ]
 
@@ -416,18 +403,12 @@ viewForgotPassword =
 
 viewSubmitButton : Model -> Html Msg
 viewSubmitButton model =
-    H.button
-        [ A.type_ "submit"
-        , A.disabled (isFormDisabled model)
-        , A.class
-            (if isFormDisabled model then
-                "w-full px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
-
-             else
-                "w-full px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-            )
-        ]
-        [ H.text (fromVariantToLabel model.formVariant) ]
+    Components.Form.submitButton
+        { class = "w-full"
+        , text = fromVariantToLabel model.formVariant
+        , style = Components.Form.Solid (isFormDisabled model)
+        , disabled = isFormDisabled model
+        }
 
 
 isFormDisabled : Model -> Bool
