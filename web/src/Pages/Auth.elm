@@ -330,7 +330,7 @@ viewChangeVariant variant =
             , style = Components.Form.Solid (variant == SignIn)
             , disabled = variant == SignIn
             , type_ = "button"
-            , class = Just "flex-1"
+            , class = "flex-1"
             }
         , Components.Form.button
             { text = "Sign Up"
@@ -338,7 +338,7 @@ viewChangeVariant variant =
             , style = Components.Form.Solid (variant == SignUp)
             , disabled = variant == SignUp
             , type_ = "button"
-            , class = Just "flex-1"
+            , class = "flex-1"
             }
         ]
 
@@ -364,7 +364,7 @@ viewForm model =
                 , viewSubmitButton model
                 , Components.Form.button
                     { type_ = "submit"
-                    , class = Just "w-full"
+                    , class = "w-full"
                     , text = "Sign In"
                     , style = Components.Form.Solid (isFormDisabled model)
                     , disabled = isFormDisabled model

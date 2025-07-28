@@ -1,4 +1,4 @@
-module Components.Form exposing (ButtonStyle(..), DisabledVariant, button, input)
+module Components.Form exposing (ButtonConfig, ButtonStyle(..), DisabledVariant, btn, button, input)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -69,6 +69,16 @@ type alias DisabledVariant =
     Bool
 
 
+type alias ButtonConfig msg =
+    { text : String
+    , class : String
+    , disabled : Bool
+    , onClick : msg
+    , style : ButtonStyle
+    , type_ : String
+    }
+
+
 type
     -- TODO: those styles should get better naming
     ButtonStyle
@@ -77,28 +87,29 @@ type
     | BorderedRedOnHover
 
 
-button :
-    { text : String
-    , class : Maybe String
-    , disabled : Bool
-    , onClick : msg
-    , style : ButtonStyle
-    , type_ : String
-    }
-    -> Html msg
+button : ButtonConfig msg -> Html msg
 button opts =
-    -- TODO: refactor to builder pattern, and pass classes and type this way
     H.button
         [ A.type_ opts.type_
         , A.class
-            (case opts.class of
-                Just cls ->
-                    cls ++ " " ++ buttonStyleToClass opts.style
+            (if String.length opts.class > 0 then
+                opts.class ++ " " ++ buttonStyleToClass opts.style
 
-                Nothing ->
-                    buttonStyleToClass opts.style
+             else
+                buttonStyleToClass opts.style
             )
         , E.onClick opts.onClick
+        , A.disabled opts.disabled
+        ]
+        [ H.text opts.text ]
+
+
+btn : { text : String, disabled : Bool, onClick : msg, style : ButtonStyle } -> Html msg
+btn opts =
+    H.button
+        [ A.type_ "button"
+        , E.onClick opts.onClick
+        , A.class (buttonStyleToClass opts.style)
         , A.disabled opts.disabled
         ]
         [ H.text opts.text ]
