@@ -274,7 +274,7 @@ viewVerificationBanner now lastClicked =
     Components.Box.successBox
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "Please verify your account to continue. We've sent a verification link to your email — click it to activate your account." ]
-        , Components.Form.btn
+        , Components.Form.button
             { text = "Resend verification email"
             , onClick = UserClickedResendActivationEmail
             , disabled = not canClick
@@ -313,13 +313,13 @@ viewBoxHeader variant =
 viewChangeVariant : FormVariant -> Html Msg
 viewChangeVariant variant =
     H.div [ A.class "flex [&>*]:flex-1 gap-2" ]
-        [ Components.Form.btn
+        [ Components.Form.button
             { text = "Sign In"
             , onClick = UserChangedFormVariant SignIn
             , style = Components.Form.Solid (variant == SignIn)
             , disabled = variant == SignIn
             }
-        , Components.Form.btn
+        , Components.Form.button
             { text = "Sign Up"
             , disabled = variant == SignUp
             , style = Components.Form.Solid (variant == SignUp)

@@ -101,7 +101,7 @@ viewNav user =
     case user of
         Auth.User.SignedIn _ ->
             [ viewLink "Profile" Route.Path.Profile_Me
-            , Components.Form.btn
+            , Components.Form.button
                 { text = "Logout"
                 , onClick = UserClickedLogout
                 , style = Components.Form.BorderedRedOnHover
