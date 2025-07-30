@@ -347,12 +347,6 @@ viewForm model =
                 , viewFormInput { field = Password, value = model.password }
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
                 , viewSubmitButton model
-                , Components.Form.submitButton
-                    { text = "Sign In"
-                    , class = "w-full"
-                    , style = Components.Form.Primary (isFormDisabled model)
-                    , disabled = isFormDisabled model
-                    }
                 ]
 
             ForgotPassword ->
