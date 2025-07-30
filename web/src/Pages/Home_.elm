@@ -207,7 +207,8 @@ view shared model =
                         viewCreateNoteForm model shared.appURL
 
                     NoteCreated slug ->
-                        Components.Utils.viewIf (model.apiError == Nothing) (viewNoteCreated shared.appURL slug)
+                        Components.Utils.viewIf (model.apiError == Nothing)
+                            (viewNoteCreated model.userClickedCopyLink shared.appURL slug)
                 ]
             ]
         ]
@@ -375,8 +376,8 @@ fromFieldToName field =
 -- VIEW NOTE CREATED
 
 
-viewNoteCreated : String -> String -> Html Msg
-viewNoteCreated appUrl slug =
+viewNoteCreated : Bool -> String -> String -> Html Msg
+viewNoteCreated userClickedCopyLink appUrl slug =
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-6" ]
         [ H.div [ A.class "bg-white border border-green-300 rounded-md p-4 mb-4" ]
             [ H.p [ A.class "text-sm text-gray-600 mb-2" ]
@@ -390,6 +391,17 @@ viewNoteCreated appUrl slug =
                 , onClick = UserClickedCreateNewNote
                 , style = Components.Form.Solid False
                 , disabled = False
+                }
+            , Components.Form.btn
+                { style = Components.Form.Bordered userClickedCopyLink
+                , onClick = UserClickedCopyLink
+                , disabled = userClickedCopyLink
+                , text =
+                    if userClickedCopyLink then
+                        "Copied!"
+
+                    else
+                        "Copy URL"
                 }
             ]
         ]
