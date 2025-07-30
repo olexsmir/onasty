@@ -20,3 +20,7 @@ tasks:
   dev:
     desc: runs elm-land dev server
     cmd: bunx elm-land server
+
+  build:
+    desc: runs elm-land build
+    cmd: bunx elm-land build
