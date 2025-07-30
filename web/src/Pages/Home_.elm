@@ -282,7 +282,7 @@ viewCreateNoteForm model appUrl =
         , H.div [ A.class "flex justify-end" ]
             [ Components.Form.submitButton
                 { text = "Create note"
-                , style = Components.Form.Solid (isFormDisabled model)
+                , style = Components.Form.Primary (isFormDisabled model)
                 , disabled = False
                 , class = ""
                 }
@@ -387,11 +387,11 @@ viewNoteCreated userClickedCopyLink appUrl slug =
             [ Components.Form.button
                 { text = "Create New Paste"
                 , onClick = UserClickedCreateNewNote
-                , style = Components.Form.Solid False
+                , style = Components.Form.Primary False
                 , disabled = False
                 }
             , Components.Form.button
-                { style = Components.Form.Bordered userClickedCopyLink
+                { style = Components.Form.Secondary userClickedCopyLink
                 , onClick = UserClickedCopyLink
                 , disabled = userClickedCopyLink
                 , text =

@@ -104,7 +104,7 @@ viewNav user =
             , Components.Form.button
                 { text = "Logout"
                 , onClick = UserClickedLogout
-                , style = Components.Form.BorderedRedOnHover
+                , style = Components.Form.SecondaryDanger
                 , disabled = False
                 }
             ]

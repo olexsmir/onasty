@@ -1,4 +1,4 @@
-module Components.Form exposing (ButtonStyle(..), DisabledVariant, button, input, submitButton)
+module Components.Form exposing (ButtonStyle(..), IsDisabled, button, input, submitButton)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -69,15 +69,15 @@ input opts =
 -- BUTTON
 
 
-type alias DisabledVariant =
+type alias IsDisabled =
     Bool
 
 
 type ButtonStyle
-    = Solid DisabledVariant
-    | Bordered DisabledVariant
-    | BorderedGrayedOut DisabledVariant
-    | BorderedRedOnHover
+    = Primary IsDisabled
+    | Secondary IsDisabled
+    | SecondaryDisabled IsDisabled
+    | SecondaryDanger
 
 
 button : { text : String, disabled : Bool, onClick : msg, style : ButtonStyle } -> Html msg
@@ -104,22 +104,22 @@ submitButton opts =
 buttonStyleToClass : ButtonStyle -> String -> String
 buttonStyleToClass style appendClasses =
     case style of
-        Solid isDisabled ->
+        Primary isDisabled ->
             getButtonClasses isDisabled
                 appendClasses
                 "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
                 "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
 
-        BorderedRedOnHover ->
+        SecondaryDanger ->
             "text-gray-600 hover:text-red-600 transition-colors"
 
-        Bordered isDisabled ->
+        Secondary isDisabled ->
             getButtonClasses isDisabled
                 appendClasses
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors bg-green-100 border-green-300 text-green-700"
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
 
-        BorderedGrayedOut isDisabled ->
+        SecondaryDisabled isDisabled ->
             getButtonClasses isDisabled
                 appendClasses
                 "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-700 hover:bg-gray-50"

@@ -278,7 +278,7 @@ viewVerificationBanner now lastClicked =
             { text = "Resend verification email"
             , onClick = UserClickedResendActivationEmail
             , disabled = not canClick
-            , style = Components.Form.BorderedGrayedOut canClick
+            , style = Components.Form.SecondaryDisabled canClick
             }
         , Components.Utils.viewIf (not canClick)
             (H.p [ A.class "text-gray-600 text-xs mt-2" ]
@@ -316,13 +316,13 @@ viewChangeVariant variant =
         [ Components.Form.button
             { text = "Sign In"
             , onClick = UserChangedFormVariant SignIn
-            , style = Components.Form.Solid (variant == SignIn)
+            , style = Components.Form.Primary (variant == SignIn)
             , disabled = variant == SignIn
             }
         , Components.Form.button
             { text = "Sign Up"
             , disabled = variant == SignUp
-            , style = Components.Form.Solid (variant == SignUp)
+            , style = Components.Form.Primary (variant == SignUp)
             , onClick = UserChangedFormVariant SignUp
             }
         ]
@@ -350,7 +350,7 @@ viewForm model =
                 , Components.Form.submitButton
                     { text = "Sign In"
                     , class = "w-full"
-                    , style = Components.Form.Solid (isFormDisabled model)
+                    , style = Components.Form.Primary (isFormDisabled model)
                     , disabled = isFormDisabled model
                     }
                 ]
@@ -402,7 +402,7 @@ viewSubmitButton model =
     Components.Form.submitButton
         { class = "w-full"
         , text = fromVariantToLabel model.formVariant
-        , style = Components.Form.Solid (isFormDisabled model)
+        , style = Components.Form.Primary (isFormDisabled model)
         , disabled = isFormDisabled model
         }
 
