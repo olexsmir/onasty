@@ -3,6 +3,7 @@ module Pages.Secret.Slug_ exposing (Model, Msg, PageVariant, page)
 import Api
 import Api.Note
 import Components.Box
+import Components.Form
 import Components.Icon as Icon
 import Components.Utils
 import Data.Note exposing (Metadata, Note)
@@ -243,21 +244,7 @@ viewOpenNote : { slug : String, hasPassword : Bool, isLoading : Bool, password :
 viewOpenNote opts =
     let
         isDisabled =
-            opts.hasPassword && Maybe.withDefault "" opts.password == ""
-
-        buttonData =
-            let
-                base =
-                    "px-6 py-3 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-            in
-            if opts.isLoading then
-                { text = "Loading Note...", class = base ++ " bg-gray-300 text-gray-500 cursor-not-allowed" }
-
-            else if isDisabled then
-                { text = "View Note", class = base ++ " bg-gray-300 text-gray-500 cursor-not-allowed" }
-
-            else
-                { text = "View Note", class = base ++ " bg-black text-white hover:bg-gray-800" }
+            (opts.hasPassword && Maybe.withDefault "" opts.password == "") || opts.isLoading
     in
     H.div [ A.class "p-6" ]
         [ H.div [ A.class "text-center py-12" ]
@@ -273,8 +260,7 @@ viewOpenNote opts =
                 ]
                 [ Components.Utils.viewIf opts.hasPassword
                     (H.div [ A.class "space-y-2" ]
-                        [ H.label [ A.class "block text-sm font-medium text-gray-700 text-left" ]
-                            [ H.text "Password" ]
+                        [ H.label [ A.class "block text-sm font-medium text-gray-700 text-left" ] [ H.text "Password" ]
                         , H.input
                             [ E.onInput UserUpdatedPassword
                             , A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
@@ -282,12 +268,17 @@ viewOpenNote opts =
                             []
                         ]
                     )
-                , H.button
-                    [ A.class buttonData.class
-                    , A.type_ "submit"
-                    , A.disabled isDisabled
-                    ]
-                    [ H.text buttonData.text ]
+                , Components.Form.submitButton
+                    { text =
+                        if opts.isLoading then
+                            "Loading Note..."
+
+                        else
+                            "View Note"
+                    , style = Components.Form.Solid isDisabled
+                    , disabled = isDisabled
+                    , class = "py-3"
+                    }
                 ]
             ]
         ]

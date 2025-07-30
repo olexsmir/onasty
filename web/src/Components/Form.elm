@@ -1,7 +1,7 @@
 module Components.Form exposing (ButtonConfig, ButtonStyle(..), DisabledVariant, btn, button, input, submitButton)
 
 import Html as H exposing (Html)
-import Html.Attributes as A exposing (disabled)
+import Html.Attributes as A
 import Html.Events as E
 
 
@@ -117,7 +117,7 @@ submitButton opts =
         , A.class (buttonStyleToClass opts.style opts.class)
         , A.disabled opts.disabled
         ]
-        []
+        [ H.text opts.text ]
 
 
 buttonStyleToClass : ButtonStyle -> String -> String
@@ -149,14 +149,14 @@ getButtonClasses : Bool -> String -> String -> String -> String
 getButtonClasses cond extend whenEnabled whenDisabled =
     let
         cls =
-            if String.length extend < 0 then
-                extend ++ " "
+            if String.length extend /= 0 then
+                " " ++ extend
 
             else
                 ""
     in
     if cond then
-        cls ++ whenEnabled
+        whenEnabled ++ cls
 
     else
-        cls ++ whenDisabled
+        whenDisabled ++ cls
