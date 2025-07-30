@@ -1,8 +1,12 @@
-module Components.Form exposing (ButtonConfig, ButtonStyle(..), DisabledVariant, btn, button, input, submitButton)
+module Components.Form exposing (ButtonStyle(..), DisabledVariant, btn, button, input, submitButton)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
+
+
+
+-- INPUT
 
 
 input :
@@ -69,7 +73,14 @@ type alias DisabledVariant =
     Bool
 
 
-type alias ButtonConfig msg =
+type ButtonStyle
+    = Solid DisabledVariant
+    | Bordered DisabledVariant
+    | BorderedGrayedOut DisabledVariant
+    | BorderedRedOnHover
+
+
+button :
     { text : String
     , class : String
     , disabled : Bool
@@ -77,18 +88,7 @@ type alias ButtonConfig msg =
     , style : ButtonStyle
     , type_ : String
     }
-
-
-type
-    -- TODO: those styles should get better naming
-    ButtonStyle
-    = Solid DisabledVariant
-    | Bordered DisabledVariant
-    | BorderedGrayedOut DisabledVariant
-    | BorderedRedOnHover
-
-
-button : ButtonConfig msg -> Html msg
+    -> Html msg
 button opts =
     H.button
         [ A.type_ opts.type_
@@ -121,11 +121,11 @@ submitButton opts =
 
 
 buttonStyleToClass : ButtonStyle -> String -> String
-buttonStyleToClass style extend =
+buttonStyleToClass style appendClasses =
     case style of
         Solid isDisabled ->
             getButtonClasses isDisabled
-                extend
+                appendClasses
                 "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
                 "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
 
@@ -134,13 +134,13 @@ buttonStyleToClass style extend =
 
         Bordered isDisabled ->
             getButtonClasses isDisabled
-                extend
+                appendClasses
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors bg-green-100 border-green-300 text-green-700"
                 "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
 
         BorderedGrayedOut isDisabled ->
             getButtonClasses isDisabled
-                extend
+                appendClasses
                 "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-700 hover:bg-gray-50"
                 "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-400 cursor-not-allowed"
 
@@ -149,11 +149,11 @@ getButtonClasses : Bool -> String -> String -> String -> String
 getButtonClasses cond extend whenEnabled whenDisabled =
     let
         cls =
-            if String.length extend /= 0 then
-                " " ++ extend
+            if String.isEmpty extend then
+                ""
 
             else
-                ""
+                " " ++ extend
     in
     if cond then
         whenEnabled ++ cls
