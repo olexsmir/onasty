@@ -1,4 +1,4 @@
-module Components.Form exposing (ButtonStyle(..), DisabledVariant, btn, button, input, submitButton)
+module Components.Form exposing (ButtonStyle(..), DisabledVariant, button, input, submitButton)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -80,27 +80,8 @@ type ButtonStyle
     | BorderedRedOnHover
 
 
-button :
-    { text : String
-    , class : String
-    , disabled : Bool
-    , onClick : msg
-    , style : ButtonStyle
-    , type_ : String
-    }
-    -> Html msg
+button : { text : String, disabled : Bool, onClick : msg, style : ButtonStyle } -> Html msg
 button opts =
-    H.button
-        [ A.type_ opts.type_
-        , A.class (buttonStyleToClass opts.style opts.class)
-        , E.onClick opts.onClick
-        , A.disabled opts.disabled
-        ]
-        [ H.text opts.text ]
-
-
-btn : { text : String, disabled : Bool, onClick : msg, style : ButtonStyle } -> Html msg
-btn opts =
     H.button
         [ A.type_ "button"
         , E.onClick opts.onClick
