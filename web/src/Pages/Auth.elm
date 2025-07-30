@@ -312,22 +312,18 @@ viewBoxHeader variant =
 
 viewChangeVariant : FormVariant -> Html Msg
 viewChangeVariant variant =
-    H.div [ A.class "flex gap-2" ]
-        [ Components.Form.button
+    H.div [ A.class "flex [&>*]:flex-1 gap-2" ]
+        [ Components.Form.btn
             { text = "Sign In"
             , onClick = UserChangedFormVariant SignIn
             , style = Components.Form.Solid (variant == SignIn)
             , disabled = variant == SignIn
-            , type_ = "button"
-            , class = "flex-1"
             }
-        , Components.Form.button
+        , Components.Form.btn
             { text = "Sign Up"
-            , onClick = UserChangedFormVariant SignUp
-            , style = Components.Form.Solid (variant == SignUp)
             , disabled = variant == SignUp
-            , type_ = "button"
-            , class = "flex-1"
+            , style = Components.Form.Solid (variant == SignUp)
+            , onClick = UserChangedFormVariant SignUp
             }
         ]
 
