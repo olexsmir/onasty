@@ -213,11 +213,12 @@ viewShowNoteHeader zone slug note =
                         ]
                     ]
                 , H.div [ A.class "flex gap-2" ]
-                    [ H.button
-                        [ E.onClick UserClickedCopyContent
-                        , A.class "px-3 py-2 text-sm border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-                        ]
-                        [ H.text "Copy Content" ]
+                    [ Components.Form.btn
+                        { text = "Copy Content"
+                        , style = Components.Form.BorderedGrayedOut True
+                        , onClick = UserClickedCopyContent
+                        , disabled = False
+                        }
                     ]
                 ]
             ]
