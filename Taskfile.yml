@@ -22,6 +22,7 @@ tasks:
 
   lint:
     - golangci-lint run
+    - task: frontend:lint
 
   docker:up:
     - docker compose up -d --build --remove-orphans
