@@ -215,7 +215,7 @@ viewShowNoteHeader zone slug note =
                 , H.div [ A.class "flex gap-2" ]
                     [ Components.Form.button
                         { text = "Copy Content"
-                        , style = Components.Form.SecondaryDisabled True
+                        , style = Components.Form.SecondaryDisabled False
                         , onClick = UserClickedCopyContent
                         , disabled = False
                         }
