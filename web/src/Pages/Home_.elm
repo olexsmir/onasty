@@ -196,6 +196,10 @@ secretUrl appUrl slug =
 
 view : Shared.Model -> Model -> View Msg
 view shared model =
+    let
+        appUrl =
+            secretUrl shared.appURL
+    in
     { title = "Onasty"
     , body =
         [ Components.Utils.commonContainer
@@ -204,11 +208,11 @@ view shared model =
                 [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
                 , case model.pageVariant of
                     CreateNote ->
-                        viewCreateNoteForm model shared.appURL
+                        viewCreateNoteForm model appUrl
 
                     NoteCreated slug ->
                         Components.Utils.viewIf (model.apiError == Nothing)
-                            (viewNoteCreated model.userClickedCopyLink shared.appURL slug)
+                            (viewNoteCreated model.userClickedCopyLink appUrl slug)
                 ]
             ]
         ]
@@ -240,7 +244,7 @@ viewHeader pageVariant apiError =
 -- TODO: validate the form
 
 
-viewCreateNoteForm : Model -> String -> Html Msg
+viewCreateNoteForm : Model -> (String -> String) -> Html Msg
 viewCreateNoteForm model appUrl =
     H.form
         [ E.onSubmit UserClickedSubmit
@@ -254,7 +258,7 @@ viewCreateNoteForm model appUrl =
             , placeholder = "my-unique-slug"
             , type_ = "text"
             , helpText = Just "Leave empty to generate a random slug"
-            , prefix = Just (secretUrl appUrl "")
+            , prefix = Just (appUrl "")
             , onInput = UserUpdatedInput Slug
             , required = False
             , value = Maybe.withDefault "" model.slug
@@ -374,14 +378,12 @@ fromFieldToName field =
 -- VIEW NOTE CREATED
 
 
-viewNoteCreated : Bool -> String -> String -> Html Msg
+viewNoteCreated : Bool -> (String -> String) -> String -> Html Msg
 viewNoteCreated userClickedCopyLink appUrl slug =
     H.div [ A.class "bg-green-50 border border-green-200 rounded-md p-6" ]
-        [ H.div [ A.class "bg-white border border-green-300 rounded-md p-4 mb-4" ]
-            [ H.p [ A.class "text-sm text-gray-600 mb-2" ]
-                [ H.text "Your paste is available at:" ]
-            , H.p [ A.class "font-mono text-sm text-gray-800 break-all" ]
-                [ H.text (secretUrl appUrl slug) ]
+        [ H.div [ A.class "border border-green-300 rounded-md p-4 mb-4" ]
+            [ H.p [ A.class "text-sm text-gray-600 mb-2" ] [ H.text "Your paste is available at:" ]
+            , H.p [ A.class "font-mono text-sm text-gray-800" ] [ H.text (appUrl slug) ]
             ]
         , H.div [ A.class "flex gap-3" ]
             [ Components.Form.button

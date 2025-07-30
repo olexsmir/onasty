@@ -372,12 +372,12 @@ viewForm model =
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
     Components.Form.input
-        { id = fromFieldToInputType opts.field
+        { id = (fromFieldToFieldInfo opts.field).label
         , field = opts.field
-        , label = fromFieldToLabel opts.field
-        , type_ = fromFieldToInputType opts.field
+        , label = (fromFieldToFieldInfo opts.field).label
+        , type_ = (fromFieldToFieldInfo opts.field).type_
         , value = opts.value
-        , placeholder = fromFieldToLabel opts.field
+        , placeholder = (fromFieldToFieldInfo opts.field).label
         , required = True
         , onInput = UserUpdatedInput opts.field
         , helpText = Nothing
@@ -448,27 +448,14 @@ fromVariantToLabel variant =
             "Set new password"
 
 
-fromFieldToLabel : Field -> String
-fromFieldToLabel field =
+fromFieldToFieldInfo : Field -> { label : String, type_ : String }
+fromFieldToFieldInfo field =
     case field of
         Email ->
-            "Email address"
+            { label = "Email address", type_ = "email" }
 
         Password ->
-            "Password"
+            { label = "Password", type_ = "password" }
 
         PasswordAgain ->
-            "Confirm password"
-
-
-fromFieldToInputType : Field -> String
-fromFieldToInputType field =
-    case field of
-        Email ->
-            "email"
-
-        Password ->
-            "password"
-
-        PasswordAgain ->
-            "password"
+            { label = "Confirm password", type_ = "password" }
