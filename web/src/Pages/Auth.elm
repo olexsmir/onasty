@@ -1,4 +1,4 @@
-module Pages.Auth exposing (Banner, Model, Msg, Variant, page)
+module Pages.Auth exposing (Banner, FormVariant, Model, Msg, page)
 
 import Api
 import Api.Auth
@@ -41,8 +41,8 @@ type alias Model =
     , password : String
     , passwordAgain : String
     , isSubmittingForm : Bool
-    , formVariant : Variant
     , banner : Banner
+    , formVariant : FormVariant
     , lastClicked : Maybe Posix
     , now : Maybe Posix
     }
@@ -84,7 +84,7 @@ init shared route () =
 type Msg
     = Tick Posix
     | UserUpdatedInput Field String
-    | UserChangedFormVariant Variant
+    | UserChangedFormVariant FormVariant
     | UserClickedSubmit
     | UserClickedResendActivationEmail
     | ApiSignInResponded (Result Api.Error Credentials)
@@ -104,7 +104,7 @@ type alias ResetPasswordToken =
     String
 
 
-type Variant
+type FormVariant
     = SignIn
     | SignUp
     | ForgotPassword
@@ -224,7 +224,7 @@ view model =
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 -- TODO: add oauth buttons
                 [ viewBanner model
-                , viewHeader model.formVariant
+                , viewBoxHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
                     , H.div [ A.class "border-t border-gray-200" ] []
@@ -255,16 +255,6 @@ viewBanner model =
 viewVerificationBanner : Maybe Posix -> Maybe Posix -> Html Msg
 viewVerificationBanner now lastClicked =
     let
-        buttonClassesBase =
-            "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3"
-
-        buttonClasses active =
-            if active then
-                buttonClassesBase ++ " border border-gray-300 text-gray-700 hover:bg-gray-50"
-
-            else
-                buttonClassesBase ++ " border border-gray-300 text-gray-400 cursor-not-allowed"
-
         timeLeftSeconds =
             case ( now, lastClicked ) of
                 ( Just now_, Just last ) ->
@@ -284,22 +274,21 @@ viewVerificationBanner now lastClicked =
     Components.Box.successBox
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text "Check your email!" ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text "Please verify your account to continue. We've sent a verification link to your email — click it to activate your account." ]
-        , H.button
-            [ A.class (buttonClasses canClick)
-            , E.onClick UserClickedResendActivationEmail
-            , A.disabled (not canClick)
-            ]
-            [ H.text "Resend verification email" ]
+        , Components.Form.button
+            { text = "Resend verification email"
+            , onClick = UserClickedResendActivationEmail
+            , disabled = not canClick
+            , style = Components.Form.SecondaryDisabled canClick
+            }
         , Components.Utils.viewIf (not canClick)
-            (H.p
-                [ A.class "text-gray-600 text-xs mt-2" ]
+            (H.p [ A.class "text-gray-600 text-xs mt-2" ]
                 [ H.text ("You can request a new verification email in " ++ String.fromInt timeLeftSeconds ++ " seconds.") ]
             )
         ]
 
 
-viewHeader : Variant -> Html Msg
-viewHeader variant =
+viewBoxHeader : FormVariant -> Html Msg
+viewBoxHeader variant =
     let
         ( title, description ) =
             case variant of
@@ -321,33 +310,21 @@ viewHeader variant =
         ]
 
 
-viewChangeVariant : Variant -> Html Msg
+viewChangeVariant : FormVariant -> Html Msg
 viewChangeVariant variant =
-    let
-        buttonClasses active =
-            let
-                base =
-                    "flex-1 px-4 py-2 rounded-md font-medium transition-colors"
-            in
-            if active then
-                base ++ " bg-black text-white"
-
-            else
-                base ++ " bg-white text-black border border-gray-300 hover:bg-gray-50"
-    in
-    H.div [ A.class "flex gap-2" ]
-        [ H.button
-            [ A.class (buttonClasses (variant == SignIn))
-            , A.disabled (variant == SignIn)
-            , E.onClick (UserChangedFormVariant SignIn)
-            ]
-            [ H.text "Sign In" ]
-        , H.button
-            [ A.class (buttonClasses (variant == SignUp))
-            , A.disabled (variant == SignUp)
-            , E.onClick (UserChangedFormVariant SignUp)
-            ]
-            [ H.text "Sign Up" ]
+    H.div [ A.class "flex [&>*]:flex-1 gap-2" ]
+        [ Components.Form.button
+            { text = "Sign In"
+            , onClick = UserChangedFormVariant SignIn
+            , style = Components.Form.Primary (variant == SignIn)
+            , disabled = variant == SignIn
+            }
+        , Components.Form.button
+            { text = "Sign Up"
+            , disabled = variant == SignUp
+            , style = Components.Form.Primary (variant == SignUp)
+            , onClick = UserChangedFormVariant SignUp
+            }
         ]
 
 
@@ -389,12 +366,12 @@ viewForm model =
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
     Components.Form.input
-        { id = fromFieldToInputType opts.field
+        { id = (fromFieldToFieldInfo opts.field).label
         , field = opts.field
-        , label = fromFieldToLabel opts.field
-        , type_ = fromFieldToInputType opts.field
+        , label = (fromFieldToFieldInfo opts.field).label
+        , type_ = (fromFieldToFieldInfo opts.field).type_
         , value = opts.value
-        , placeholder = fromFieldToLabel opts.field
+        , placeholder = (fromFieldToFieldInfo opts.field).label
         , required = True
         , onInput = UserUpdatedInput opts.field
         , helpText = Nothing
@@ -416,18 +393,12 @@ viewForgotPassword =
 
 viewSubmitButton : Model -> Html Msg
 viewSubmitButton model =
-    H.button
-        [ A.type_ "submit"
-        , A.disabled (isFormDisabled model)
-        , A.class
-            (if isFormDisabled model then
-                "w-full px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
-
-             else
-                "w-full px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
-            )
-        ]
-        [ H.text (fromVariantToLabel model.formVariant) ]
+    Components.Form.submitButton
+        { class = "w-full"
+        , text = fromVariantToLabel model.formVariant
+        , style = Components.Form.Primary (isFormDisabled model)
+        , disabled = isFormDisabled model
+        }
 
 
 isFormDisabled : Model -> Bool
@@ -455,7 +426,7 @@ isFormDisabled model =
                 || (model.password /= model.passwordAgain)
 
 
-fromVariantToLabel : Variant -> String
+fromVariantToLabel : FormVariant -> String
 fromVariantToLabel variant =
     case variant of
         SignIn ->
@@ -471,27 +442,14 @@ fromVariantToLabel variant =
             "Set new password"
 
 
-fromFieldToLabel : Field -> String
-fromFieldToLabel field =
+fromFieldToFieldInfo : Field -> { label : String, type_ : String }
+fromFieldToFieldInfo field =
     case field of
         Email ->
-            "Email address"
+            { label = "Email address", type_ = "email" }
 
         Password ->
-            "Password"
+            { label = "Password", type_ = "password" }
 
         PasswordAgain ->
-            "Confirm password"
-
-
-fromFieldToInputType : Field -> String
-fromFieldToInputType field =
-    case field of
-        Email ->
-            "email"
-
-        Password ->
-            "password"
-
-        PasswordAgain ->
-            "password"
+            { label = "Confirm password", type_ = "password" }

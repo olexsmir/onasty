@@ -1,12 +1,16 @@
-module Components.Form exposing (input)
+module Components.Form exposing (ButtonStyle(..), CanBeClicked, button, input, submitButton)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
 import Html.Events as E
 
 
+
+-- INPUT
+
+
 input :
-    -- TODO: add `error : Maybe String`, to input to show that field is not correct and message
+    -- TODO: add `error : Maybe String`, to show that field is not correct and message
     { id : String
     , field : field
     , label : String
@@ -59,3 +63,81 @@ input opts =
             Nothing ->
                 H.text ""
         ]
+
+
+
+-- BUTTON
+
+
+type alias CanBeClicked =
+    Bool
+
+
+type ButtonStyle
+    = Primary CanBeClicked
+    | Secondary CanBeClicked
+    | SecondaryDisabled CanBeClicked
+    | SecondaryDanger
+
+
+button : { text : String, disabled : Bool, onClick : msg, style : ButtonStyle } -> Html msg
+button opts =
+    H.button
+        [ A.type_ "button"
+        , E.onClick opts.onClick
+        , A.class (buttonStyleToClass opts.style "")
+        , A.disabled opts.disabled
+        ]
+        [ H.text opts.text ]
+
+
+submitButton : { text : String, disabled : Bool, class : String, style : ButtonStyle } -> Html msg
+submitButton opts =
+    H.button
+        [ A.type_ "submit"
+        , A.class (buttonStyleToClass opts.style opts.class)
+        , A.disabled opts.disabled
+        ]
+        [ H.text opts.text ]
+
+
+buttonStyleToClass : ButtonStyle -> String -> String
+buttonStyleToClass style appendClasses =
+    case style of
+        Primary canBeClicked ->
+            getButtonClasses canBeClicked
+                appendClasses
+                "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
+                "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+
+        SecondaryDanger ->
+            "text-gray-600 hover:text-red-600 transition-colors"
+
+        Secondary canBeClicked ->
+            getButtonClasses canBeClicked
+                appendClasses
+                "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors bg-green-100 border-green-300 text-green-700"
+                "px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors border-gray-300 text-gray-700 hover:bg-gray-50"
+
+        SecondaryDisabled canBeClicked ->
+            getButtonClasses canBeClicked
+                appendClasses
+                "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-400 cursor-not-allowed"
+                "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-700 hover:bg-gray-50"
+
+
+getButtonClasses : Bool -> String -> String -> String -> String
+getButtonClasses cond extend whenTrue whenFalse =
+    let
+        cls =
+            if String.isEmpty extend then
+                ""
+
+            else
+                " " ++ extend
+    in
+    if cond then
+        whenTrue ++ cls
+
+    else
+        whenFalse ++ cls

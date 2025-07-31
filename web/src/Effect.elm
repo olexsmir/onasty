@@ -1,18 +1,16 @@
 module Effect exposing
-    ( Effect, none, batch, sendCmd, sendMsg
+    ( Effect, none, batch, map, toCmd, sendCmd, sendMsg
     , pushRoute, replaceRoute, pushRoutePath, replaceRoutePath, loadExternalUrl, back
     , sendApiRequest, sendToClipboard
     , signin, logout, refreshTokens, saveUser, clearUser
-    , map, toCmd
     )
 
 {-|
 
-@docs Effect, none, batch, sendCmd, sendMsg
+@docs Effect, none, batch, map, toCmd, sendCmd, sendMsg
 @docs pushRoute, replaceRoute, pushRoutePath, replaceRoutePath, loadExternalUrl, back
 @docs sendApiRequest, sendToClipboard
 @docs signin, logout, refreshTokens, saveUser, clearUser
-@docs map, toCmd
 
 -}
 
@@ -355,17 +353,16 @@ httpResponseToCustomError decoder response =
                     Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadStatus_ { statusCode } body ->
-            case body of
-                "" ->
-                    Err (Api.HttpError { message = "Unexpected empty response", reason = Http.BadStatus statusCode })
+            if String.isEmpty body then
+                Err (Api.HttpError { message = "Unexpected empty response", reason = Http.BadStatus statusCode })
 
-                _ ->
-                    case Json.Decode.decodeString Data.Error.decode body of
-                        Ok err ->
-                            Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
+            else
+                case Json.Decode.decodeString Data.Error.decode body of
+                    Ok err ->
+                        Err (Api.HttpError { message = err.message, reason = Http.BadStatus statusCode })
 
-                        Err err ->
-                            Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
+                    Err err ->
+                        Err (Api.JsonDecodeError { message = "Failed to decode response", reason = err })
 
         Http.BadUrl_ url ->
             Err (Api.HttpError { message = "Unexpected URL format", reason = Http.BadUrl url })

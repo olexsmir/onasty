@@ -1,10 +1,10 @@
 module Layouts.Header exposing (Model, Msg, Props, layout)
 
 import Auth.User
+import Components.Form
 import Effect exposing (Effect)
 import Html as H exposing (Html)
 import Html.Attributes as A
-import Html.Events as E
 import Layout exposing (Layout)
 import Route exposing (Route)
 import Route.Path
@@ -101,16 +101,16 @@ viewNav user =
     case user of
         Auth.User.SignedIn _ ->
             [ viewLink "Profile" Route.Path.Profile_Me
-            , H.button
-                [ A.class "text-gray-600 hover:text-red-600 transition-colors"
-                , E.onClick UserClickedLogout
-                ]
-                [ H.text "Logout" ]
+            , Components.Form.button
+                { text = "Logout"
+                , onClick = UserClickedLogout
+                , style = Components.Form.SecondaryDanger
+                , disabled = False
+                }
             ]
 
         _ ->
-            [ viewLink "About" Route.Path.Home_ -- TODO: or add about page, or delete the link
-            , H.a
+            [ H.a
                 [ A.class "px-4 py-2 border border-gray-300 rounded-md text-black hover:bg-gray-50 transition-colors"
                 , Route.Path.href Route.Path.Auth
                 ]

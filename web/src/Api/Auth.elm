@@ -16,7 +16,6 @@ signin :
     -> Effect msg
 signin options =
     let
-        body : Encode.Value
         body =
             Encode.object
                 [ ( "email", Encode.string options.email )
@@ -40,7 +39,6 @@ signup :
     -> Effect msg
 signup options =
     let
-        body : Encode.Value
         body =
             Encode.object
                 [ ( "email", Encode.string options.email )
@@ -56,20 +54,12 @@ signup options =
         }
 
 
-refreshToken :
-    { onResponse : Result Api.Error Credentials -> msg
-    , refreshToken : String
-    }
-    -> Effect msg
+refreshToken : { onResponse : Result Api.Error Credentials -> msg, refreshToken : String } -> Effect msg
 refreshToken options =
-    let
-        body =
-            Encode.object [ ( "refresh_token", Encode.string options.refreshToken ) ]
-    in
     Effect.sendApiRequest
         { endpoint = "/api/v1/auth/refresh-tokens"
         , method = "POST"
-        , body = Http.jsonBody body
+        , body = Encode.object [ ( "refresh_token", Encode.string options.refreshToken ) ] |> Http.jsonBody
         , onResponse = options.onResponse
         , decoder = Credentials.decode
         }
@@ -99,14 +89,10 @@ resetPassword options =
 
 resendVerificationEmail : { onResponse : Result Api.Error () -> msg, email : String } -> Effect msg
 resendVerificationEmail options =
-    let
-        body =
-            Encode.object [ ( "email", Encode.string options.email ) ]
-    in
     Effect.sendApiRequest
         { endpoint = "/api/v1/auth/resend-verification-email"
         , method = "POST"
-        , body = Http.jsonBody body
+        , body = Encode.object [ ( "email", Encode.string options.email ) ] |> Http.jsonBody
         , onResponse = options.onResponse
         , decoder = Decode.succeed ()
         }

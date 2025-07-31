@@ -4,6 +4,12 @@ import Http
 import Json.Decode
 
 
+type Response value
+    = Loading
+    | Success value
+    | Failure Error
+
+
 type Error
     = HttpError
         { message : String
@@ -13,12 +19,6 @@ type Error
         { message : String
         , reason : Json.Decode.Error
         }
-
-
-type Response value
-    = Loading
-    | Success value
-    | Failure Error
 
 
 errorMessage : Error -> String

@@ -1,4 +1,4 @@
-module ExpirationOptions exposing (expirationOptions)
+module Constants exposing (expirationOptions)
 
 
 expirationOptions : List { text : String, value : Int }
