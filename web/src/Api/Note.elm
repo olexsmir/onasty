@@ -63,9 +63,7 @@ get options =
             Effect.sendApiRequest
                 { endpoint = "/api/v1/note/" ++ options.slug ++ "/view"
                 , method = "POST"
-                , body =
-                    E.object [ ( "password", E.string passwd ) ]
-                        |> Http.jsonBody
+                , body = E.object [ ( "password", E.string passwd ) ] |> Http.jsonBody
                 , onResponse = options.onResponse
                 , decoder = Note.decode
                 }
