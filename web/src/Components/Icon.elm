@@ -13,15 +13,15 @@ type IconType
 view : IconType -> String -> Html msg
 view t cls =
     let
-        getText img =
+        getHtml img =
             H.img [ A.src ("/static/" ++ img ++ ".svg"), A.class cls ] []
     in
     case t of
         NoteIcon ->
-            getText "note-icon"
+            getHtml "note-icon"
 
         NotFound ->
-            getText "note-not-found"
+            getHtml "note-not-found"
 
         Warning ->
-            getText "warning"
+            getHtml "warning"
