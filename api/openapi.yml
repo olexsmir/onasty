@@ -1,0 +1,50 @@
+openapi: 3.1.0
+info:
+  title: Onasty API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api
+paths:
+  # TODO: /ping
+  # TODO: /me
+
+  # -- AUTH V1 -------------------------------------------------------
+  /v1/auth/signup:
+    $ref: "./paths/auth/signup.yml"
+  /v1/auth/signin:
+    $ref: "./paths/auth/signin.yml"
+  /v1/auth/refresh-tokens:
+    $ref: "./paths/auth/refresh-tokens.yml"
+  /v1/auth/verify/{token}:
+    $ref: "./paths/auth/verify-token.yml"
+  /v1/auth/resend-verification-email:
+    $ref: "./paths/auth/resend-verification-email.yml"
+  /v1/auth/reset-password:
+    $ref: "./paths/auth/reset-password.yml"
+  /v1/auth/reset-password/{token}:
+    $ref: "./paths/auth/reset-password-token.yml"
+  /v1/auth/change-email/{token}:
+    $ref: "./paths/auth/change-email-token.yml"
+  /v1/auth/oauth/{provider}:
+    $ref: "./paths/auth/oauth-provider.yml"
+  /v1/auth/oauth/{provider}/callback:
+    $ref: "./paths/auth/oauth-provider-callback.yml"
+  # protected
+  /v1/auth/logout:
+    $ref: "./paths/auth/logout.yml"
+  /v1/auth/logout/all:
+    $ref: "./paths/auth/logout-all.yml"
+  /v1/auth/change-password:
+    $ref: "./paths/auth/change-password.yml"
+  /v1/auth/change-email:
+    $ref: "./paths/auth/change-email.yml"
+
+  # -- NOTES V1 ------------------------------------------------------
+  # TODO:
+
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

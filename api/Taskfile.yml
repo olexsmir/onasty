@@ -1,0 +1,11 @@
+version: "3"
+
+tasks:
+  bundle:
+    - bunx redocly bundle openapi.yml -o bundle.yml
+
+  lint:
+    - bunx redocly lint --config redocly.yml openapi.yml
+
+  redocly-preview:
+    - bunx redocly preview --product realm

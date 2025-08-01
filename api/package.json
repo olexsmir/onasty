@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "devDependencies": {
+    "@redocly/cli": "^2.0.8"
+  }
+}
