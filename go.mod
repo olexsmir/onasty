@@ -17,7 +17,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/testcontainers/testcontainers-go v0.38.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.38.0
-	github.com/testcontainers/testcontainers-go/modules/redis v0.37.0
+	github.com/testcontainers/testcontainers-go/modules/redis v0.38.0
 	golang.org/x/oauth2 v0.30.0
 	golang.org/x/time v0.12.0
 )
