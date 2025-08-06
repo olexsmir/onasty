@@ -7,6 +7,12 @@ updates:
       interval: monthly
       day: wednesday
 
+  - package-ecosystem: elm
+    directory: /web
+    schedule:
+      interval: monthly
+      day: wednesday
+
   - package-ecosystem: docker
     directories:
     - /
