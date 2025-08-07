@@ -366,16 +366,15 @@ viewForm model =
 viewFormInput : { field : Field, value : String } -> Html Msg
 viewFormInput opts =
     Components.Form.input
-        { id = (fromFieldToFieldInfo opts.field).label
-        , field = opts.field
+        { style = Components.Form.Simple
+        , id = (fromFieldToFieldInfo opts.field).label
         , label = (fromFieldToFieldInfo opts.field).label
         , type_ = (fromFieldToFieldInfo opts.field).type_
-        , value = opts.value
         , placeholder = (fromFieldToFieldInfo opts.field).label
-        , required = True
         , onInput = UserUpdatedInput opts.field
-        , helpText = Nothing
-        , prefix = Nothing
+        , field = opts.field
+        , value = opts.value
+        , required = True
         }
 
 

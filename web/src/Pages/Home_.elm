@@ -252,29 +252,35 @@ viewCreateNoteForm model appUrl =
         ]
         [ viewTextarea
         , Components.Form.input
-            { id = "slug"
+            { style =
+                Components.Form.Complex
+                    { prefix = appUrl ""
+                    , helpText = "Leave empty to generate a random slug"
+                    }
             , field = Slug
+            , id = "slug"
             , label = "Custom URL Slug (optional)"
-            , placeholder = "my-unique-slug"
-            , type_ = "text"
-            , helpText = Just "Leave empty to generate a random slug"
-            , prefix = Just (appUrl "")
             , onInput = UserUpdatedInput Slug
+            , placeholder = "my-unique-slug"
             , required = False
+            , type_ = "text"
             , value = Maybe.withDefault "" model.slug
             }
         , H.div [ A.class "grid grid-cols-1 md:grid-cols-2 gap-6" ]
             [ H.div [ A.class "space-y-6" ]
                 [ Components.Form.input
-                    { id = "password"
+                    { style =
+                        Components.Form.Complex
+                            { prefix = ""
+                            , helpText = "Viewers will need this password to access the paste"
+                            }
                     , field = Password
+                    , id = "password"
                     , label = "Password Protection (optional)"
-                    , type_ = "password"
-                    , placeholder = "Enter password to protect this paste"
-                    , helpText = Just "Viewers will need this password to access the paste"
-                    , prefix = Nothing
                     , onInput = UserUpdatedInput Password
+                    , placeholder = "Enter password to protect this paste"
                     , required = False
+                    , type_ = "password"
                     , value = Maybe.withDefault "" model.password
                     }
                 ]
