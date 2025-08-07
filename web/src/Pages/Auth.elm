@@ -368,6 +368,7 @@ viewFormInput opts =
     Components.Form.input
         { style = Components.Form.Simple
         , id = (fromFieldToFieldInfo opts.field).label
+        , error = Nothing
         , label = (fromFieldToFieldInfo opts.field).label
         , type_ = (fromFieldToFieldInfo opts.field).type_
         , placeholder = (fromFieldToFieldInfo opts.field).label

@@ -257,6 +257,7 @@ viewCreateNoteForm model appUrl =
                     { prefix = appUrl ""
                     , helpText = "Leave empty to generate a random slug"
                     }
+            , error = Nothing
             , field = Slug
             , id = "slug"
             , label = "Custom URL Slug (optional)"
@@ -276,6 +277,7 @@ viewCreateNoteForm model appUrl =
                             }
                     , field = Password
                     , id = "password"
+                    , error = Nothing
                     , label = "Password Protection (optional)"
                     , onInput = UserUpdatedInput Password
                     , placeholder = "Enter password to protect this paste"

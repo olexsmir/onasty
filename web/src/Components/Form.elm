@@ -18,7 +18,6 @@ type InputStyle
 
 
 input :
-    -- TODO: add `error : Maybe String`, to show that field is not correct and message
     { id : String
     , field : field
     , type_ : String
@@ -28,6 +27,7 @@ input :
     , required : Bool
     , onInput : String -> msg
     , style : InputStyle
+    , error : Maybe String
     }
     -> Html msg
 input opts =
@@ -35,12 +35,21 @@ input opts =
         options =
             case opts.style of
                 Simple ->
-                    { prefixClasses = [], prefix = H.text "", help = H.text "" }
+                    { prefix = H.text "", help = H.text "" }
 
                 Complex complex ->
-                    { prefixClasses = [ A.class "flex items-center" ]
-                    , prefix = H.span [ A.class "text-gray-500 text-md mr-2 whitespace-nowrap" ] [ H.text complex.prefix ]
+                    { prefix = H.span [ A.class "text-gray-500 text-md whitespace-nowrap" ] [ H.text complex.prefix ]
                     , help = H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text complex.helpText ]
+                    }
+
+        error =
+            case opts.error of
+                Nothing ->
+                    { element = H.text "", inputAdditionalClasses = "border-gray-300 focus:ring-black " }
+
+                Just err ->
+                    { element = H.p [ A.class "text-red-600 text-xs mt-1" ] [ H.text err ]
+                    , inputAdditionalClasses = " border-red-400 focus:ring-red-500"
                     }
     in
     H.div [ A.class "space-y-2" ]
@@ -49,10 +58,10 @@ input opts =
             , A.class "block text-sm font-medium text-gray-700"
             ]
             [ H.text opts.label ]
-        , H.div options.prefixClasses
+        , H.div [ A.class "flex items-center" ]
             [ options.prefix
             , H.input
-                [ A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                [ A.class ("w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors" ++ error.inputAdditionalClasses)
                 , A.type_ opts.type_
                 , A.value opts.value
                 , A.id opts.id
@@ -62,6 +71,7 @@ input opts =
                 ]
                 []
             ]
+        , error.element
         , options.help
         ]
 
