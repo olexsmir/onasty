@@ -354,10 +354,9 @@ viewForm model =
                 , viewSubmitButton model
                 ]
 
-            SetNewPassword token ->
+            SetNewPassword _ ->
                 [ viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
                 , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = validatePasswords model.password model.passwordAgain }
-                , H.input [ A.type_ "hidden", A.value token, A.name "token" ] []
                 , viewSubmitButton model
                 ]
         )
