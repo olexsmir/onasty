@@ -32,7 +32,7 @@ input :
     -> Html msg
 input opts =
     let
-        options =
+        style =
             case opts.style of
                 Simple ->
                     { prefix = H.text "", help = H.text "" }
@@ -59,7 +59,7 @@ input opts =
             ]
             [ H.text opts.label ]
         , H.div [ A.class "flex items-center" ]
-            [ options.prefix
+            [ style.prefix
             , H.input
                 [ A.class ("w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors" ++ error.inputAdditionalClasses)
                 , A.type_ opts.type_
@@ -72,7 +72,7 @@ input opts =
                 []
             ]
         , error.element
-        , options.help
+        , style.help
         ]
 
 
