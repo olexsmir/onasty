@@ -336,39 +336,39 @@ viewForm model =
         ]
         (case model.formVariant of
             SignIn ->
-                [ viewFormInput { field = Email, value = model.email }
-                , viewFormInput { field = Password, value = model.password }
+                [ viewFormInput { field = Email, value = model.email, error = validateEmail model.email }
+                , viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
                 , viewForgotPassword
                 , viewSubmitButton model
                 ]
 
             SignUp ->
-                [ viewFormInput { field = Email, value = model.email }
-                , viewFormInput { field = Password, value = model.password }
-                , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
+                [ viewFormInput { field = Email, value = model.email, error = validateEmail model.email }
+                , viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
+                , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = validatePasswords model.password model.passwordAgain }
                 , viewSubmitButton model
                 ]
 
             ForgotPassword ->
-                [ viewFormInput { field = Email, value = model.email }
+                [ viewFormInput { field = Email, value = model.email, error = validateEmail model.email }
                 , viewSubmitButton model
                 ]
 
             SetNewPassword token ->
-                [ viewFormInput { field = Password, value = model.password }
-                , viewFormInput { field = PasswordAgain, value = model.passwordAgain }
+                [ viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
+                , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = validatePasswords model.password model.passwordAgain }
                 , H.input [ A.type_ "hidden", A.value token, A.name "token" ] []
                 , viewSubmitButton model
                 ]
         )
 
 
-viewFormInput : { field : Field, value : String } -> Html Msg
+viewFormInput : { field : Field, value : String, error : Maybe String } -> Html Msg
 viewFormInput opts =
     Components.Form.input
         { style = Components.Form.Simple
         , id = (fromFieldToFieldInfo opts.field).label
-        , error = Nothing
+        , error = opts.error
         , label = (fromFieldToFieldInfo opts.field).label
         , type_ = (fromFieldToFieldInfo opts.field).type_
         , placeholder = (fromFieldToFieldInfo opts.field).label
@@ -406,24 +406,53 @@ isFormDisabled model =
     case model.formVariant of
         SignIn ->
             model.isSubmittingForm
-                || String.isEmpty model.email
-                || String.isEmpty model.password
+                || (validateEmail model.email /= Nothing)
+                || (validatePassword model.password /= Nothing)
 
         SignUp ->
             model.isSubmittingForm
-                || String.isEmpty model.email
-                || String.isEmpty model.password
-                || String.isEmpty model.passwordAgain
-                || (model.password /= model.passwordAgain)
+                || (validateEmail model.email /= Nothing)
+                || (validatePassword model.password /= Nothing)
+                || (validatePasswords model.password model.passwordAgain /= Nothing)
 
         ForgotPassword ->
-            model.isSubmittingForm || String.isEmpty model.email
+            model.isSubmittingForm || (validateEmail model.email /= Nothing)
 
         SetNewPassword _ ->
             model.isSubmittingForm
-                || String.isEmpty model.password
-                || String.isEmpty model.passwordAgain
-                || (model.password /= model.passwordAgain)
+                || (validateEmail model.email /= Nothing)
+                || (validatePassword model.password /= Nothing)
+                || (validatePasswords model.password model.passwordAgain /= Nothing)
+
+
+validateEmail : String -> Maybe String
+validateEmail email =
+    if
+        not (String.isEmpty email)
+            && (not (String.contains "@" email) || not (String.contains "." email))
+    then
+        Just "Please enter a valid email address."
+
+    else
+        Nothing
+
+
+validatePassword : String -> Maybe String
+validatePassword passwd =
+    if not (String.isEmpty passwd) && String.length passwd < 8 then
+        Just "Password must be at least 8 characters long."
+
+    else
+        Nothing
+
+
+validatePasswords : String -> String -> Maybe String
+validatePasswords passowrd1 password2 =
+    if not (String.isEmpty passowrd1) && passowrd1 /= password2 then
+        Just "Passwords do not match."
+
+    else
+        Nothing
 
 
 fromVariantToLabel : FormVariant -> String
