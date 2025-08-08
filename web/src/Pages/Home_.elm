@@ -241,7 +241,6 @@ viewHeader pageVariant apiError =
 
 
 -- VIEW CREATE NOTE
--- TODO: validate the form
 
 
 viewCreateNoteForm : Model -> (String -> String) -> Html Msg
@@ -257,7 +256,7 @@ viewCreateNoteForm model appUrl =
                     { prefix = appUrl ""
                     , helpText = "Leave empty to generate a random slug"
                     }
-            , error = Nothing
+            , error = validateSlugInput (Maybe.withDefault "" model.slug)
             , field = Slug
             , id = "slug"
             , label = "Custom URL Slug (optional)"
@@ -295,7 +294,7 @@ viewCreateNoteForm model appUrl =
             [ Components.Form.submitButton
                 { text = "Create note"
                 , style = Components.Form.Primary (isFormDisabled model)
-                , disabled = False
+                , disabled = isFormDisabled model
                 , class = ""
                 }
             ]
@@ -364,6 +363,16 @@ viewBurnBeforeExpirationCheckbox =
 isFormDisabled : Model -> Bool
 isFormDisabled model =
     String.isEmpty model.content
+        || (validateSlugInput (Maybe.withDefault "" model.slug) /= Nothing)
+
+
+validateSlugInput : String -> Maybe String
+validateSlugInput slug =
+    if not (String.isEmpty slug) && String.contains " " slug then
+        Just "Slug cannot contain spaces."
+
+    else
+        Nothing
 
 
 fromFieldToName : Field -> String
