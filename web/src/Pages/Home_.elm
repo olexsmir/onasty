@@ -256,7 +256,7 @@ viewCreateNoteForm model appUrl =
                     { prefix = appUrl ""
                     , helpText = "Leave empty to generate a random slug"
                     }
-            , error = validateSlugInput (Maybe.withDefault "" model.slug)
+            , error = validateSlugInput model.slug
             , field = Slug
             , id = "slug"
             , label = "Custom URL Slug (optional)"
@@ -363,12 +363,16 @@ viewBurnBeforeExpirationCheckbox =
 isFormDisabled : Model -> Bool
 isFormDisabled model =
     String.isEmpty model.content
-        || (validateSlugInput (Maybe.withDefault "" model.slug) /= Nothing)
+        || (validateSlugInput model.slug /= Nothing)
 
 
-validateSlugInput : String -> Maybe String
+validateSlugInput : Maybe String -> Maybe String
 validateSlugInput slug =
-    if not (String.isEmpty slug) && String.contains " " slug then
+    let
+        value =
+            Maybe.withDefault "" slug
+    in
+    if not (String.isEmpty value) && String.contains " " value then
         Just "Slug cannot contain spaces."
 
     else
