@@ -47,13 +47,12 @@ init flagsResult _ =
         flags =
             flagsResult |> Result.withDefault { accessToken = Nothing, refreshToken = Nothing, appUrl = "" }
 
-        maybeCredentials =
-            Maybe.map2 (\access refresh -> { accessToken = access, refreshToken = refresh })
-                flags.accessToken
-                flags.refreshToken
-
         user =
-            case maybeCredentials of
+            case
+                Maybe.map2 (\access refresh -> { accessToken = access, refreshToken = refresh })
+                    flags.accessToken
+                    flags.refreshToken
+            of
                 Just credentials ->
                     Auth.User.SignedIn credentials
 
@@ -91,11 +90,7 @@ update _ msg model =
         Shared.Msg.SignedIn credentials ->
             ( { model | user = Auth.User.SignedIn credentials }
             , Effect.batch
-                [ Effect.pushRoute
-                    { path = Route.Path.Home_
-                    , query = Dict.empty
-                    , hash = Nothing
-                    }
+                [ Effect.pushRoute { path = Route.Path.Home_, query = Dict.empty, hash = Nothing }
                 , Effect.saveUser credentials.accessToken credentials.refreshToken
                 ]
             )
