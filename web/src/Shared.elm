@@ -64,8 +64,8 @@ init flagsResult _ =
       , appURL = flags.appUrl
       }
     , Effect.batch
-        [ Time.now |> Task.perform Shared.Msg.CheckTokenExpiration |> Effect.sendCmd
-        , Time.here |> Task.perform Shared.Msg.GotZone |> Effect.sendCmd
+        [ Time.here |> Task.perform Shared.Msg.GotZone |> Effect.sendCmd
+        , Time.now |> Task.perform Shared.Msg.CheckTokenExpiration |> Effect.sendCmd
         ]
     )
 
