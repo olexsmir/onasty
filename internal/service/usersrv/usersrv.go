@@ -22,26 +22,52 @@ import (
 )
 
 type UserServicer interface {
+	// SignUp creates a new user and sends verification email.
 	SignUp(ctx context.Context, inp dtos.SignUp) (uuid.UUID, error)
+
+	// SignIn authenticates a user and returns access and refresh tokens.
 	SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, error)
+
+	// RefreshTokens refreshes the access and refresh tokens using the provided refresh token.
 	RefreshTokens(ctx context.Context, refreshToken string) (dtos.Tokens, error)
+
+	// Logout logs out a user by deleting the session associated with the provided refresh token.
 	Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error
+
+	// LogoutAll logs out a user by deleting all sessions associated with the user ID.
 	LogoutAll(ctx context.Context, userID uuid.UUID) error
+
+	// GetUserInfo retrieves user information by user ID.
 	GetUserInfo(ctx context.Context, userID uuid.UUID) (dtos.UserInfo, error)
 
+	// ChangePassword changes the user's password.
 	ChangePassword(ctx context.Context, userID uuid.UUID, inp dtos.ChangeUserPassword) error
+
+	// RequestPasswordReset initiates a password reset process by sending a reset email.
 	RequestPasswordReset(ctx context.Context, inp dtos.RequestResetPassword) error
+
+	// ResetPassword resets the user's password using the provided reset token.
 	ResetPassword(ctx context.Context, inp dtos.ResetPassword) error
 
+	// GetOAuthURL retrieves the OAuth URL for the specified provider.
 	GetOAuthURL(providerName string) (dtos.OAuthRedirect, error)
+
+	// HandleOAuthLogin handles the OAuth login process by exchanging the code for tokens.
 	HandleOAuthLogin(ctx context.Context, providerName, code string) (dtos.Tokens, error)
 
+	// Verify verifies the user's email using the provided verification key.
 	Verify(ctx context.Context, verificationKey string) error
+
+	// ResendVerificationEmail resends the verification email to the user.
 	ResendVerificationEmail(ctx context.Context, inp dtos.ResendVerificationEmail) error
 
+	// ParseJWTToken parses the JWT token and returns the payload.
 	ParseJWTToken(token string) (jwtutil.Payload, error)
 
+	// CheckIfUserExists checks if a user exists by user ID.
 	CheckIfUserExists(ctx context.Context, userID uuid.UUID) (bool, error)
+
+	// CheckIfUserIsActivated checks if a user is activated by user ID.
 	CheckIfUserIsActivated(ctx context.Context, userID uuid.UUID) (bool, error)
 }
 
