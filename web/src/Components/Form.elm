@@ -1,4 +1,4 @@
-module Components.Form exposing (ButtonStyle(..), CanBeClicked, button, input, submitButton)
+module Components.Form exposing (ButtonStyle(..), CanBeClicked, InputStyle(..), button, input, submitButton)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -9,44 +9,59 @@ import Html.Events as E
 -- INPUT
 
 
+type InputStyle
+    = Simple
+    | Complex
+        { prefix : String
+        , helpText : String
+        }
+
+
 input :
-    -- TODO: add `error : Maybe String`, to show that field is not correct and message
     { id : String
     , field : field
-    , label : String
     , type_ : String
     , value : String
+    , label : String
     , placeholder : String
     , required : Bool
-    , helpText : Maybe String
-    , prefix : Maybe String
     , onInput : String -> msg
+    , style : InputStyle
+    , error : Maybe String
     }
     -> Html msg
 input opts =
+    let
+        style =
+            case opts.style of
+                Simple ->
+                    { prefix = H.text "", help = H.text "" }
+
+                Complex complex ->
+                    { prefix = H.span [ A.class "text-gray-500 text-md whitespace-nowrap" ] [ H.text complex.prefix ]
+                    , help = H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text complex.helpText ]
+                    }
+
+        error =
+            case opts.error of
+                Nothing ->
+                    { element = H.text "", inputAdditionalClasses = "border-gray-300 focus:ring-black " }
+
+                Just err ->
+                    { element = H.p [ A.class "text-red-600 text-xs mt-1" ] [ H.text err ]
+                    , inputAdditionalClasses = " border-red-400 focus:ring-red-500"
+                    }
+    in
     H.div [ A.class "space-y-2" ]
         [ H.label
             [ A.for opts.id
             , A.class "block text-sm font-medium text-gray-700"
             ]
             [ H.text opts.label ]
-        , H.div
-            [ A.class
-                (if opts.prefix /= Nothing then
-                    "flex items-center"
-
-                 else
-                    ""
-                )
-            ]
-            [ case opts.prefix of
-                Just prefix ->
-                    H.span [ A.class "text-gray-500 text-md mr-2 whitespace-nowrap" ] [ H.text prefix ]
-
-                Nothing ->
-                    H.text ""
+        , H.div [ A.class "flex items-center" ]
+            [ style.prefix
             , H.input
-                [ A.class "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                [ A.class ("w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent transition-colors" ++ error.inputAdditionalClasses)
                 , A.type_ opts.type_
                 , A.value opts.value
                 , A.id opts.id
@@ -56,12 +71,8 @@ input opts =
                 ]
                 []
             ]
-        , case opts.helpText of
-            Just help ->
-                H.p [ A.class "text-xs text-gray-500 mt-1" ] [ H.text help ]
-
-            Nothing ->
-                H.text ""
+        , error.element
+        , style.help
         ]
 
 
