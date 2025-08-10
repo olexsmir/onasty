@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// Environment represents current app environment.
 type Environment string
 
 func (e Environment) IsDevMode() bool {
