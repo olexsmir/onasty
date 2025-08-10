@@ -12,7 +12,10 @@ import (
 const sendTopic = "mailer.send"
 
 type Mailer interface {
+	// SendVerificationEmail sends an email with a verification token to the user.
 	SendVerificationEmail(ctx context.Context, input SendVerificationEmailRequest) error
+
+	// SendPasswordResetEmail sends an email with a password reset token to the user.
 	SendPasswordResetEmail(ctx context.Context, input SendPasswordResetEmailRequest) error
 }
 

@@ -11,7 +11,7 @@ import (
 func (t *Transport) corsMiddleware() gin.HandlerFunc {
 	return cors.New(cors.Config{
 		AllowOrigins:     t.corsAllowedOrigins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE"},
 		AllowHeaders:     []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
 		MaxAge:           t.corsMaxAge,
