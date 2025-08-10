@@ -13,10 +13,19 @@ import (
 )
 
 type SessionStorer interface {
+	// Set creates new session associated with user.
 	Set(ctx context.Context, usedID uuid.UUID, refreshToken string, expiresAt time.Time) error
+
+	// GetUserIDByRefreshToken returns user ID associated with the refresh token.
 	GetUserIDByRefreshToken(ctx context.Context, refreshToken string) (uuid.UUID, error)
+
+	// Update updates refresh token with newer.
 	Update(ctx context.Context, userID uuid.UUID, refreshToken string, newRefreshToken string) error
+
+	// Delete deletes session by user ID and their refresh token.
 	Delete(ctx context.Context, userID uuid.UUID, refreshToken string) error
+
+	// DeleteAllByUserID deletes all sessions associated with user.
 	DeleteAllByUserID(ctx context.Context, userID uuid.UUID) error
 }
 

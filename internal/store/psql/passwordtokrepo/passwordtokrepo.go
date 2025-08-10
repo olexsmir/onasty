@@ -13,8 +13,14 @@ import (
 )
 
 type PasswordResetTokenStorer interface {
+	// Create a new password reset token.
 	Create(ctx context.Context, input models.ResetPasswordToken) error
 
+	// GetUserIDByTokenAndMarkAsUsed gets the token, and marks it as used.
+	//
+	// In case the token is not found, returns [model.ErrResetPasswordTokenNotFound]
+	// If token if used, or expired, returns [model.ErrResetPasswordTokenAlreadyUsed],
+	// or [models.ErrResetPasswordTokenExpired].
 	GetUserIDByTokenAndMarkAsUsed(
 		ctx context.Context,
 		token string,
