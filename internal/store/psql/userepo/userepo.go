@@ -12,14 +12,22 @@ import (
 )
 
 type UserStorer interface {
+	// Create creates a new user.
 	Create(ctx context.Context, inp models.User) (uuid.UUID, error)
 
 	// GetByEmail returns user by email and password
-	// the password should be hashed
+	// the password should be hashed.
 	GetByEmail(ctx context.Context, email string) (models.User, error)
-	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
+
+	// GetByID returns user by id.
+	// If user not found, returns [models.ErrUserNotFound].
 	GetByID(ctx context.Context, userID uuid.UUID) (models.User, error)
 
+	// GetUserIDByEmail returns user id that is associated with their email.
+	// If user not found, returns [models.ErrUserNotFound].
+	GetUserIDByEmail(ctx context.Context, email string) (uuid.UUID, error)
+
+	// MakrUserAsActivated marks user as activated by their id
 	MarkUserAsActivated(ctx context.Context, id uuid.UUID) error
 
 	// ChangePassword changes user password from oldPassword to newPassword
