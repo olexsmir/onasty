@@ -2,7 +2,9 @@ package psqlutil
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -38,4 +40,13 @@ func IsDuplicateErr(err error, constraintName string) bool {
 			pgErr.ConstraintName == constraintName
 	}
 	return false
+}
+
+// NullTimeToTime converts sql.NullTime to time.Time.
+// Returns zero [time.Time] if NullTime is not valid.
+func NullTimeToTime(t sql.NullTime) time.Time {
+	if t.Valid {
+		return t.Time
+	}
+	return time.Time{}
 }
