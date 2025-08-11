@@ -2,6 +2,7 @@ package noterepo
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"time"
 
@@ -111,12 +112,14 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.No
 	}
 
 	var note models.Note
+	var readAt sql.NullTime
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
-
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &readAt, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{}, models.ErrNoteNotFound
 	}
+
+	note.ReadAt = psqlutil.NullTimeToTime(readAt)
 
 	return note, err
 }
@@ -131,14 +134,14 @@ func (s *NoteRepo) GetMetadataBySlug(
 	where slug = $1
 	`
 
-	var readAt time.Time
+	var readAt sql.NullTime
 	var metadata dtos.NoteMetadata
 	err := s.db.QueryRow(ctx, query, slug).Scan(&metadata.CreatedAt, &metadata.HasPassword, &readAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return dtos.NoteMetadata{}, models.ErrNoteNotFound
 	}
 
-	if !readAt.IsZero() {
+	if !psqlutil.NullTimeToTime(readAt).IsZero() {
 		return dtos.NoteMetadata{}, models.ErrNoteNotFound
 	}
 
@@ -165,10 +168,13 @@ func (s *NoteRepo) GetAllByAuthorID(
 	var notes []models.Note
 	for rows.Next() {
 		var note models.Note
+		var readAt sql.NullTime
 		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
-			&note.ReadAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
+			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
 			return nil, err
 		}
+
+		note.ReadAt = psqlutil.NullTimeToTime(readAt)
 		notes = append(notes, note)
 	}
 
@@ -207,12 +213,15 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	}
 
 	var note models.Note
+	var readAt sql.NullTime
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &readAt, &note.CreatedAt, &note.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{}, models.ErrNoteNotFound
 	}
+
+	note.ReadAt = psqlutil.NullTimeToTime(readAt)
 
 	return note, err
 }
@@ -255,10 +264,8 @@ func (s *NoteRepo) RemoveBySlug(
 		Update("notes").
 		Set("content", "").
 		Set("read_at", readAt).
-		Where(pgq.Eq{
-			"slug":    slug,
-			"read_at": time.Time{}, // check if time is null
-		}).
+		Where(pgq.Eq{"slug": slug}).
+		Where("read_at is null").
 		SQL()
 	if err != nil {
 		return err

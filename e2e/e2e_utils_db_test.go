@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/henvic/pgq"
 	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
 
 // getUserByEmail queries user from db by it's email
@@ -114,12 +116,15 @@ func (e *AppTestSuite) getNoteBySlug(slug string) models.Note {
 		SQL()
 	e.require.NoError(err)
 
+	var readAt sql.NullTime
 	var note models.Note
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).
-		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password, &note.ReadAt, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.ID, &note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password, &readAt, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{} //nolint:exhaustruct
 	}
+
+	note.ReadAt = psqlutil.NullTimeToTime(readAt)
 
 	e.require.NoError(err)
 	return note
