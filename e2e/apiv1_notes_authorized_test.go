@@ -211,6 +211,49 @@ type apiv1NoteGetAllResponse struct {
 }
 
 func (e *AppTestSuite) TestNoteV1_GetAll() {
+	notesInfo := []struct {
+		slug    string
+		content string
+		read    bool
+	}{
+		{slug: e.uuid(), content: e.uuid(), read: true},
+		{slug: e.uuid(), content: e.uuid(), read: true},
+		{slug: e.uuid(), content: e.uuid(), read: false},
+		{slug: e.uuid(), content: e.uuid(), read: false},
+		{slug: e.uuid(), content: e.uuid(), read: false},
+	}
+
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+
+	// create notes
+	for _, ni := range notesInfo {
+		httpResp := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/note",
+			e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content: ni.content,
+				Slug:    ni.slug,
+			}),
+			toks.AccessToken)
+
+		e.Equal(http.StatusCreated, httpResp.Code)
+	}
+
+	// read notes
+	for _, ni := range notesInfo {
+		if ni.read {
+			httpResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+ni.slug, nil)
+			e.Equal(http.StatusOK, httpResp.Code)
+		}
+	}
+
+	httpResp := e.httpRequest(http.MethodGet, "/api/v1/note", nil, toks.AccessToken)
+
+	var body []apiv1NoteGetAllResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	e.Equal(http.StatusOK, httpResp.Code)
+	e.Len(body, len(notesInfo))
 }
 
 func (e *AppTestSuite) TestNoteV1_GetAllRead_inaccesibleForAnUnauthorized() {
