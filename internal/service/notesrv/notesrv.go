@@ -39,6 +39,9 @@ type NoteServicer interface {
 	// GetAllReadByAuthorID returns all notes that ARE READ and authored by author id.
 	GetAllReadByAuthorID(ctx context.Context, authorID uuid.UUID) ([]dtos.NoteDetailed, error)
 
+	// GetAllUnreadByAuthorID returns all notes that ARE UNREAD and authored by author id.
+	GetAllUnreadByAuthorID(ctx context.Context, authorID uuid.UUID) ([]dtos.NoteDetailed, error)
+
 	// UpdateExpirationTimeSettings updates expiresAt and burnBeforeExpiration.
 	// If notes is not found returns [models.ErrNoteNotFound].
 	UpdateExpirationTimeSettings(
@@ -185,6 +188,31 @@ func (n *NoteSrv) GetAllReadByAuthorID(
 	authorID uuid.UUID,
 ) ([]dtos.NoteDetailed, error) {
 	notes, err := n.noterepo.GetAllReadByAuthorID(ctx, authorID)
+	if err != nil {
+		return nil, err
+	}
+
+	var resNotes []dtos.NoteDetailed
+	for _, note := range notes {
+		resNotes = append(resNotes, dtos.NoteDetailed{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.Password != "",
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	return resNotes, nil
+}
+
+func (n *NoteSrv) GetAllUnreadByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]dtos.NoteDetailed, error) {
+	notes, err := n.noterepo.GetAllUnreadByAuthorID(ctx, authorID)
 	if err != nil {
 		return nil, err
 	}

@@ -75,7 +75,11 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		authorized := note.Group("", a.authorizedMiddleware)
 		{
 			authorized.GET("", a.getNotesHandler)
+
+			// FIXME: those links make slugs `read` and `unread` unavailable
 			authorized.GET("/read", a.getReadNotesHandler)
+			authorized.GET("/unread", a.getUnReadNotesHandler)
+
 			authorized.PATCH(":slug/expires", a.updateNoteHandler)
 			authorized.PATCH(":slug/password", a.setNotePasswordHandler)
 			authorized.DELETE(":slug", a.deleteNoteHandler)

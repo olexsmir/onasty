@@ -193,6 +193,29 @@ func (a *APIV1) getReadNotesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+func (a *APIV1) getUnReadNotesHandler(c *gin.Context) {
+	notes, err := a.notesrv.GetAllUnreadByAuthorID(c.Request.Context(), a.getUserID(c))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	var response []getNotesResponse
+	for _, note := range notes {
+		response = append(response, getNotesResponse{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.HasPassword,
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 type updateNoteRequest struct {
 	ExpiresAt            *time.Time `json:"expires_at,omitempty"`
 	BurnBeforeExpiration *bool      `json:"burn_before_expiration,omitempty"`
