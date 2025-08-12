@@ -163,27 +163,7 @@ from notes n
 inner join notes_authors na on n.id = na.note_id
 where na.user_id = $1`
 
-	rows, err := s.db.Query(ctx, query, authorID.String())
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var notes []models.Note
-	for rows.Next() {
-		var note models.Note
-		var readAt sql.NullTime
-		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
-			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
-			return nil, err
-		}
-
-		note.ReadAt = psqlutil.NullTimeToTime(readAt)
-		notes = append(notes, note)
-	}
-
-	return notes, rows.Err()
+	return s.getAllNotes(ctx, query, authorID)
 }
 
 func (s *NoteRepo) GetAllReadByAuthorID(
@@ -197,27 +177,7 @@ inner join notes_authors na on n.id = na.note_id
 where na.user_id = $1
 	and n.read_at is not null`
 
-	rows, err := s.db.Query(ctx, query, authorID.String())
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var notes []models.Note
-	for rows.Next() {
-		var note models.Note
-		var readAt sql.NullTime
-		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
-			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
-			return nil, err
-		}
-
-		note.ReadAt = psqlutil.NullTimeToTime(readAt)
-		notes = append(notes, note)
-	}
-
-	return notes, rows.Err()
+	return s.getAllNotes(ctx, query, authorID)
 }
 
 func (s *NoteRepo) GetAllUnreadByAuthorID(
@@ -231,27 +191,7 @@ inner join notes_authors na on n.id = na.note_id
 where na.user_id = $1
 	and n.read_at is null`
 
-	rows, err := s.db.Query(ctx, query, authorID.String())
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	var notes []models.Note
-	for rows.Next() {
-		var note models.Note
-		var readAt sql.NullTime
-		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
-			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
-			return nil, err
-		}
-
-		note.ReadAt = psqlutil.NullTimeToTime(readAt)
-		notes = append(notes, note)
-	}
-
-	return notes, rows.Err()
+	return s.getAllNotes(ctx, query, authorID)
 }
 
 func (s *NoteRepo) GetCountOfNotesByAuthorID(
@@ -431,4 +371,35 @@ where n.slug = $2
 	}
 
 	return nil
+}
+
+// getAllNotes is a helper function for [NoteRepo.GetAllByAuthorID], [NoteRepo.GetAllReadByAuthorID],
+// and [NoteRepo.GetAllUnreadByAuthorID].
+// The query's SELECT elements order should be consistent across all function calls.
+func (s *NoteRepo) getAllNotes(
+	ctx context.Context,
+	query string,
+	authorID uuid.UUID,
+) ([]models.Note, error) {
+	rows, err := s.db.Query(ctx, query, authorID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var notes []models.Note
+	for rows.Next() {
+		var note models.Note
+		var readAt sql.NullTime
+		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
+			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
+			return nil, err
+		}
+
+		note.ReadAt = psqlutil.NullTimeToTime(readAt)
+		notes = append(notes, note)
+	}
+
+	return notes, rows.Err()
 }

@@ -167,20 +167,7 @@ func (n *NoteSrv) GetAllByAuthorID(
 		return nil, err
 	}
 
-	var resNotes []dtos.NoteDetailed
-	for _, note := range notes {
-		resNotes = append(resNotes, dtos.NoteDetailed{
-			Content:              note.Content,
-			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
-			HasPassword:          note.Password != "",
-			CreatedAt:            note.CreatedAt,
-			ExpiresAt:            note.ExpiresAt,
-			ReadAt:               note.ReadAt,
-		})
-	}
-
-	return resNotes, nil
+	return n.mapNoteModelToDto(notes), nil
 }
 
 func (n *NoteSrv) GetAllReadByAuthorID(
@@ -192,20 +179,7 @@ func (n *NoteSrv) GetAllReadByAuthorID(
 		return nil, err
 	}
 
-	var resNotes []dtos.NoteDetailed
-	for _, note := range notes {
-		resNotes = append(resNotes, dtos.NoteDetailed{
-			Content:              note.Content,
-			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
-			HasPassword:          note.Password != "",
-			CreatedAt:            note.CreatedAt,
-			ExpiresAt:            note.ExpiresAt,
-			ReadAt:               note.ReadAt,
-		})
-	}
-
-	return resNotes, nil
+	return n.mapNoteModelToDto(notes), nil
 }
 
 func (n *NoteSrv) GetAllUnreadByAuthorID(
@@ -217,20 +191,7 @@ func (n *NoteSrv) GetAllUnreadByAuthorID(
 		return nil, err
 	}
 
-	var resNotes []dtos.NoteDetailed
-	for _, note := range notes {
-		resNotes = append(resNotes, dtos.NoteDetailed{
-			Content:              note.Content,
-			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
-			HasPassword:          note.Password != "",
-			CreatedAt:            note.CreatedAt,
-			ExpiresAt:            note.ExpiresAt,
-			ReadAt:               note.ReadAt,
-		})
-	}
-
-	return resNotes, nil
+	return n.mapNoteModelToDto(notes), nil
 }
 
 func (n *NoteSrv) UpdateExpirationTimeSettings(
@@ -300,4 +261,21 @@ func (n *NoteSrv) getNoteFromDBasedOnInput(
 		return n.noterepo.GetBySlugAndPassword(ctx, inp.Slug, hashedPassword)
 	}
 	return n.noterepo.GetBySlug(ctx, inp.Slug)
+}
+
+func (n *NoteSrv) mapNoteModelToDto(notes []models.Note) []dtos.NoteDetailed {
+	var resNotes []dtos.NoteDetailed
+	for _, note := range notes {
+		resNotes = append(resNotes, dtos.NoteDetailed{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.Password != "",
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	return resNotes
 }
