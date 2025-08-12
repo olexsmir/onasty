@@ -34,6 +34,9 @@ func NewAPIV1(
 
 func (a *APIV1) Routes(r *gin.RouterGroup) {
 	r.Use(a.metricsMiddleware)
+
+	r.GET("/me", a.authorizedMiddleware, a.getMeHandler)
+
 	auth := r.Group("/auth")
 	{
 		auth.POST("/signup", a.signUpHandler)
@@ -57,8 +60,6 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 			authorized.POST("/change-password", a.changePasswordHandler)
 		}
 	}
-
-	r.GET("/me", a.authorizedMiddleware, a.getMeHandler)
 
 	note := r.Group("/note")
 	{
