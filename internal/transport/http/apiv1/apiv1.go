@@ -75,6 +75,7 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		authorized := note.Group("", a.authorizedMiddleware)
 		{
 			authorized.GET("", a.getNotesHandler)
+			authorized.GET("/read", a.getReadNotesHandler)
 			authorized.PATCH(":slug/expires", a.updateNoteHandler)
 			authorized.PATCH(":slug/password", a.setNotePasswordHandler)
 			authorized.DELETE(":slug", a.deleteNoteHandler)

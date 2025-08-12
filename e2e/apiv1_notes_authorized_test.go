@@ -199,3 +199,64 @@ func (e *AppTestSuite) TestNoteV1_UpdatePassword_passwordNotProvided() {
 
 	e.Equal(httpResp.Code, http.StatusBadRequest)
 }
+
+type apiv1NoteGetAllResponse struct {
+	Content              string    `json:"content"`
+	Slug                 string    `json:"slug"`
+	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	HasPassword          bool      `json:"has_password"`
+	CreatedAt            time.Time `json:"created_at"`
+	ExpiresAt            time.Time `json:"expires_at"`
+	ReadAt               time.Time `json:"read_at"`
+}
+
+func (e *AppTestSuite) TestNoteV1_GetAll() {
+}
+
+func (e *AppTestSuite) TestNoteV1_GetAllRead_inaccesibleForAnUnauthorized() {
+	httpResp := e.httpRequest(http.MethodGet, "/api/v1/note/read", nil)
+	e.Equal(httpResp.Code, http.StatusUnauthorized)
+}
+
+func (e *AppTestSuite) TestNoteV1_GetAllRead() {
+	notesInfo := []struct {
+		slug    string
+		content string
+	}{
+		{slug: e.uuid(), content: e.uuid()},
+		{slug: e.uuid(), content: e.uuid()},
+		{slug: e.uuid(), content: e.uuid()},
+		{slug: e.uuid(), content: e.uuid()},
+	}
+
+	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+
+	// create few notes
+	for _, ni := range notesInfo {
+		httpResp := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/note",
+			e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content: ni.content,
+				Slug:    ni.slug,
+			}),
+			toks.AccessToken)
+
+		e.Equal(http.StatusCreated, httpResp.Code)
+	}
+
+	// read those notes
+	for _, ni := range notesInfo {
+		httpResp := e.httpRequest(http.MethodGet, "/api/v1/note/"+ni.slug, nil)
+		e.Equal(http.StatusOK, httpResp.Code)
+	}
+
+	// check if all notes are returned
+	httpResp := e.httpRequest(http.MethodGet, "/api/v1/note/read", nil, toks.AccessToken)
+
+	var body []apiv1NoteGetAllResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	e.Equal(http.StatusOK, httpResp.Code)
+	e.require.Len(body, len(notesInfo))
+}

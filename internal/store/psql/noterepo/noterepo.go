@@ -29,6 +29,9 @@ type NoteStorer interface {
 	// GetAllByAuthorID returns all notes with specified author.
 	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
 
+	// GetAllReadByAuthorID returns all notes that are read and authored by specified author.
+	GetAllReadByAuthorID(ctx context.Context, authorID uuid.UUID) ([]models.Note, error)
+
 	// GetCountOfNotesByAuthorID returns count of notes created by specified author.
 	GetCountOfNotesByAuthorID(ctx context.Context, authorID uuid.UUID) (int64, error)
 
@@ -129,10 +132,9 @@ func (s *NoteRepo) GetMetadataBySlug(
 	slug dtos.NoteSlug,
 ) (dtos.NoteMetadata, error) {
 	query := `--sql
-	select n.created_at, (n.password is not null and n.password <> '') has_password, n.read_at
-	from notes n
-	where slug = $1
-	`
+select n.created_at, (n.password is not null and n.password <> '') has_password, n.read_at
+from notes n
+where slug = $1`
 
 	var readAt sql.NullTime
 	var metadata dtos.NoteMetadata
@@ -153,10 +155,44 @@ func (s *NoteRepo) GetAllByAuthorID(
 	authorID uuid.UUID,
 ) ([]models.Note, error) {
 	query := `--sql
-	select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
-	from notes n
-	right join notes_authors na on n.id = na.note_id
-	where na.user_id = $1`
+select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
+from notes n
+inner join notes_authors na on n.id = na.note_id
+where na.user_id = $1`
+
+	rows, err := s.db.Query(ctx, query, authorID.String())
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var notes []models.Note
+	for rows.Next() {
+		var note models.Note
+		var readAt sql.NullTime
+		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
+			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
+			return nil, err
+		}
+
+		note.ReadAt = psqlutil.NullTimeToTime(readAt)
+		notes = append(notes, note)
+	}
+
+	return notes, rows.Err()
+}
+
+func (s *NoteRepo) GetAllReadByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]models.Note, error) {
+	query := `--sql
+select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
+from notes n
+inner join notes_authors na on n.id = na.note_id
+where na.user_id = $1
+	and n.read_at is not null`
 
 	rows, err := s.db.Query(ctx, query, authorID.String())
 	if err != nil {
