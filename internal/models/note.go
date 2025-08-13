@@ -2,11 +2,17 @@ package models
 
 import (
 	"errors"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 )
+
+// read and unread are not allowed because those slugs might and will be interpreted as api routes
+var notAllowedSlugs = map[string]struct{}{
+	"read":   {},
+	"unread": {},
+}
 
 var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
@@ -27,17 +33,23 @@ type Note struct {
 	ExpiresAt            time.Time
 }
 
+var slugPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
 func (n Note) Validate() error {
 	if n.Content == "" {
 		return ErrNoteContentIsEmpty
 	}
 
-	if n.Slug == "" || strings.Contains(n.Slug, " ") {
+	if !slugPattern.MatchString(n.Slug) {
 		return ErrNoteSlugIsInvalid
 	}
 
 	if n.IsExpired() {
 		return ErrNoteExpired
+	}
+
+	if _, exists := notAllowedSlugs[n.Slug]; exists {
+		return ErrNoteSlugIsAlreadyInUse
 	}
 
 	return nil

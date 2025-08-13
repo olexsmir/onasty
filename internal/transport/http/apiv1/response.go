@@ -32,7 +32,8 @@ func errorResponse(c *gin.Context, err error) {
 		// notes
 		errors.Is(err, notesrv.ErrNotePasswordNotProvided) ||
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||
-		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) {
+		errors.Is(err, models.ErrNoteSlugIsAlreadyInUse) ||
+		errors.Is(err, models.ErrNoteSlugIsInvalid) {
 		newError(c, http.StatusBadRequest, err.Error())
 		return
 	}

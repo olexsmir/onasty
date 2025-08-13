@@ -44,12 +44,18 @@ func TestNote_Validate(t *testing.T) {
 		assert.EqualError(t, n.Validate(), ErrNoteExpired.Error())
 	})
 	t.Run("should fail if slug is empty", func(t *testing.T) {
-		n := Note{Content: "the content", Slug: ""}
-		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
-	})
-	t.Run("should fail if slug is empty", func(t *testing.T) {
 		n := Note{Content: "the content", Slug: " "}
 		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
+	})
+	t.Run("should fail if slug has '/'", func(t *testing.T) {
+		n := Note{Content: "the content", Slug: "asdf/asdf"}
+		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
+	})
+	t.Run("should fail if slug one of not allowed slugs", func(t *testing.T) {
+		for notAllowedSlug := range notAllowedSlugs {
+			n := Note{Content: "the content", Slug: notAllowedSlug}
+			assert.EqualError(t, n.Validate(), ErrNoteSlugIsAlreadyInUse.Error())
+		}
 	})
 }
 
