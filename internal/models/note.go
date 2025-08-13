@@ -38,7 +38,7 @@ func (n Note) Validate() error {
 		return ErrNoteContentIsEmpty
 	}
 
-	if strings.Contains(n.Slug, " ") {
+	if strings.Contains(n.Slug, " ") || strings.Contains(n.Slug, "/") {
 		return ErrNoteSlugIsInvalid
 	}
 

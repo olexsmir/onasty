@@ -78,6 +78,16 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			},
 		},
 		{
+			name: "invalid slug, with slash",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Slug:    e.uuid() + "fuker/fuker",
+				Content: e.uuid(),
+			},
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
+				e.Equal(http.StatusBadRequest, r.Code)
+			},
+		},
+		{
 			name: "invalid slug, 'read'",
 			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Slug:    "read",
