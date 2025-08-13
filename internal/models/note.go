@@ -32,7 +32,7 @@ func (n Note) Validate() error {
 		return ErrNoteContentIsEmpty
 	}
 
-	if n.Slug == "" || strings.Contains(n.Slug, " ") {
+	if strings.Contains(n.Slug, " ") {
 		return ErrNoteSlugIsInvalid
 	}
 

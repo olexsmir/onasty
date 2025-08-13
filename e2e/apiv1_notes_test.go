@@ -67,13 +67,40 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			},
 		},
 		{
+			name: "invalid slug, with space",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Slug:    e.uuid() + "fuker fuker",
+				Content: e.uuid(),
+			},
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
+				e.Equal(http.StatusBadRequest, r.Code)
+			},
+		},
+		{
+			name: "slug provided but empty",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Slug:    "",
+				Content: e.uuid(),
+			},
+			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
+				e.Equal(r.Code, http.StatusCreated)
+
+				var body apiv1NoteCreateResponse
+				e.readBodyAndUnjsonify(r.Body, &body)
+
+				dbNote := e.getNoteBySlug(body.Slug)
+				e.NotEmpty(dbNote)
+				e.Equal(inp.Content, dbNote.Content)
+			},
+		},
+		{
 			name: "set password",
 			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Content:  e.uuid(),
 				Password: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 			},
 		},
 		{

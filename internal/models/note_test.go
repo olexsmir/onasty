@@ -44,10 +44,6 @@ func TestNote_Validate(t *testing.T) {
 		assert.EqualError(t, n.Validate(), ErrNoteExpired.Error())
 	})
 	t.Run("should fail if slug is empty", func(t *testing.T) {
-		n := Note{Content: "the content", Slug: ""}
-		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
-	})
-	t.Run("should fail if slug is empty", func(t *testing.T) {
 		n := Note{Content: "the content", Slug: " "}
 		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
 	})
