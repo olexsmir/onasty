@@ -34,10 +34,13 @@ type NoteServicer interface {
 	GetNoteMetadataBySlug(ctx context.Context, slug dtos.NoteSlug) (dtos.NoteMetadata, error)
 
 	// GetAllByAuthorID returns all notes by author id.
-	GetAllByAuthorID(
-		ctx context.Context,
-		authorID uuid.UUID,
-	) ([]dtos.NoteDetailed, error)
+	GetAllByAuthorID(ctx context.Context, authorID uuid.UUID) ([]dtos.NoteDetailed, error)
+
+	// GetAllReadByAuthorID returns all notes that ARE READ and authored by author id.
+	GetAllReadByAuthorID(ctx context.Context, authorID uuid.UUID) ([]dtos.NoteDetailed, error)
+
+	// GetAllUnreadByAuthorID returns all notes that ARE UNREAD and authored by author id.
+	GetAllUnreadByAuthorID(ctx context.Context, authorID uuid.UUID) ([]dtos.NoteDetailed, error)
 
 	// UpdateExpirationTimeSettings updates expiresAt and burnBeforeExpiration.
 	// If notes is not found returns [models.ErrNoteNotFound].
@@ -164,20 +167,31 @@ func (n *NoteSrv) GetAllByAuthorID(
 		return nil, err
 	}
 
-	var resNotes []dtos.NoteDetailed
-	for _, note := range notes {
-		resNotes = append(resNotes, dtos.NoteDetailed{
-			Content:              note.Content,
-			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
-			HasPassword:          note.Password != "",
-			CreatedAt:            note.CreatedAt,
-			ExpiresAt:            note.ExpiresAt,
-			ReadAt:               note.ReadAt,
-		})
+	return n.mapNoteModelToDto(notes), nil
+}
+
+func (n *NoteSrv) GetAllReadByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]dtos.NoteDetailed, error) {
+	notes, err := n.noterepo.GetAllReadByAuthorID(ctx, authorID)
+	if err != nil {
+		return nil, err
 	}
 
-	return resNotes, nil
+	return n.mapNoteModelToDto(notes), nil
+}
+
+func (n *NoteSrv) GetAllUnreadByAuthorID(
+	ctx context.Context,
+	authorID uuid.UUID,
+) ([]dtos.NoteDetailed, error) {
+	notes, err := n.noterepo.GetAllUnreadByAuthorID(ctx, authorID)
+	if err != nil {
+		return nil, err
+	}
+
+	return n.mapNoteModelToDto(notes), nil
 }
 
 func (n *NoteSrv) UpdateExpirationTimeSettings(
@@ -247,4 +261,21 @@ func (n *NoteSrv) getNoteFromDBasedOnInput(
 		return n.noterepo.GetBySlugAndPassword(ctx, inp.Slug, hashedPassword)
 	}
 	return n.noterepo.GetBySlug(ctx, inp.Slug)
+}
+
+func (n *NoteSrv) mapNoteModelToDto(notes []models.Note) []dtos.NoteDetailed {
+	var resNotes []dtos.NoteDetailed
+	for _, note := range notes {
+		resNotes = append(resNotes, dtos.NoteDetailed{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.Password != "",
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	return resNotes
 }

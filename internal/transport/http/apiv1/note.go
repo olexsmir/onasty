@@ -154,20 +154,27 @@ func (a *APIV1) getNotesHandler(c *gin.Context) {
 		return
 	}
 
-	var response []getNotesResponse
-	for _, note := range notes {
-		response = append(response, getNotesResponse{
-			Content:              note.Content,
-			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
-			HasPassword:          note.HasPassword,
-			CreatedAt:            note.CreatedAt,
-			ExpiresAt:            note.ExpiresAt,
-			ReadAt:               note.ReadAt,
-		})
+	c.JSON(http.StatusOK, mapNotesDTOToResponse(notes))
+}
+
+func (a *APIV1) getReadNotesHandler(c *gin.Context) {
+	notes, err := a.notesrv.GetAllReadByAuthorID(c.Request.Context(), a.getUserID(c))
+	if err != nil {
+		errorResponse(c, err)
+		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, mapNotesDTOToResponse(notes))
+}
+
+func (a *APIV1) getUnReadNotesHandler(c *gin.Context) {
+	notes, err := a.notesrv.GetAllUnreadByAuthorID(c.Request.Context(), a.getUserID(c))
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, mapNotesDTOToResponse(notes))
 }
 
 type updateNoteRequest struct {
@@ -235,4 +242,21 @@ func (a *APIV1) setNotePasswordHandler(c *gin.Context) {
 	}
 
 	c.Status(http.StatusOK)
+}
+
+func mapNotesDTOToResponse(notes []dtos.NoteDetailed) []getNotesResponse {
+	var response []getNotesResponse
+	for _, note := range notes {
+		response = append(response, getNotesResponse{
+			Content:              note.Content,
+			Slug:                 note.Slug,
+			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			HasPassword:          note.HasPassword,
+			CreatedAt:            note.CreatedAt,
+			ExpiresAt:            note.ExpiresAt,
+			ReadAt:               note.ReadAt,
+		})
+	}
+
+	return response
 }

@@ -34,6 +34,9 @@ func NewAPIV1(
 
 func (a *APIV1) Routes(r *gin.RouterGroup) {
 	r.Use(a.metricsMiddleware)
+
+	r.GET("/me", a.authorizedMiddleware, a.getMeHandler)
+
 	auth := r.Group("/auth")
 	{
 		auth.POST("/signup", a.signUpHandler)
@@ -58,8 +61,6 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		}
 	}
 
-	r.GET("/me", a.authorizedMiddleware, a.getMeHandler)
-
 	note := r.Group("/note")
 	{
 		note.GET("/:slug", a.getNoteBySlugHandler)
@@ -74,6 +75,11 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 		authorized := note.Group("", a.authorizedMiddleware)
 		{
 			authorized.GET("", a.getNotesHandler)
+
+			// FIXME: those links make slugs `read` and `unread` unavailable
+			authorized.GET("/read", a.getReadNotesHandler)
+			authorized.GET("/unread", a.getUnReadNotesHandler)
+
 			authorized.PATCH(":slug/expires", a.updateNoteHandler)
 			authorized.PATCH(":slug/password", a.setNotePasswordHandler)
 			authorized.DELETE(":slug", a.deleteNoteHandler)
