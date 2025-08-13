@@ -2,7 +2,7 @@ package models
 
 import (
 	"errors"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -33,12 +33,14 @@ type Note struct {
 	ExpiresAt            time.Time
 }
 
+var slugPattern = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+
 func (n Note) Validate() error {
 	if n.Content == "" {
 		return ErrNoteContentIsEmpty
 	}
 
-	if strings.Contains(n.Slug, " ") || strings.Contains(n.Slug, "/") {
+	if !slugPattern.MatchString(n.Slug) {
 		return ErrNoteSlugIsInvalid
 	}
 
