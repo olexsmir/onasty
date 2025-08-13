@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/olexsmir/onasty/internal/models"
 )
 
 type (
@@ -74,6 +75,36 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
 				e.Equal(http.StatusBadRequest, r.Code)
+			},
+		},
+		{
+			name: "invalid slug, 'read'",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Slug:    "read",
+				Content: e.uuid(),
+			},
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
+				e.Equal(r.Code, http.StatusBadRequest)
+
+				var body errorResponse
+				e.readBodyAndUnjsonify(r.Body, &body)
+
+				e.Equal(models.ErrNoteSlugIsAlreadyInUse.Error(), body.Message)
+			},
+		},
+		{
+			name: "invalid slug, 'unread'",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Slug:    "unread",
+				Content: e.uuid(),
+			},
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
+				e.Equal(r.Code, http.StatusBadRequest)
+
+				var body errorResponse
+				e.readBodyAndUnjsonify(r.Body, &body)
+
+				e.Equal(models.ErrNoteSlugIsAlreadyInUse.Error(), body.Message)
 			},
 		},
 		{

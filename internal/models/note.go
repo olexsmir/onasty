@@ -8,6 +8,12 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
+// read and unread are not allowed because those slugs might and will be interpreted as api routes
+var notAllowedSlugs = map[string]struct{}{
+	"read":   {},
+	"unread": {},
+}
+
 var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
@@ -38,6 +44,10 @@ func (n Note) Validate() error {
 
 	if n.IsExpired() {
 		return ErrNoteExpired
+	}
+
+	if _, exists := notAllowedSlugs[n.Slug]; exists {
+		return ErrNoteSlugIsAlreadyInUse
 	}
 
 	return nil

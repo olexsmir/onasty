@@ -47,6 +47,12 @@ func TestNote_Validate(t *testing.T) {
 		n := Note{Content: "the content", Slug: " "}
 		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
 	})
+	t.Run("should fail if slug one of not allowed slugs", func(t *testing.T) {
+		for notAllowedSlug := range notAllowedSlugs {
+			n := Note{Content: "the content", Slug: notAllowedSlug}
+			assert.EqualError(t, n.Validate(), ErrNoteSlugIsAlreadyInUse.Error())
+		}
+	})
 }
 
 //nolint:exhaustruct
