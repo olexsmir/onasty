@@ -1,4 +1,4 @@
-module Pages.Profile.Me exposing (Model, Msg, page)
+module Pages.Profile exposing (Model, Msg, page)
 
 import Api
 import Api.Me
