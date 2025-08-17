@@ -3,6 +3,7 @@ module Pages.Profile exposing (Model, Msg, ViewVariant, page)
 import Api
 import Api.Me
 import Auth
+import Components.Form
 import Data.Me exposing (Me)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -64,8 +65,8 @@ type Msg
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        UserChangedView _ ->
-            ( model, Effect.none )
+        UserChangedView variant ->
+            ( { model | view = variant }, Effect.none )
 
         ApiMeResponded (Ok userData) ->
             ( { model | me = Api.Success userData }, Effect.none )
@@ -87,20 +88,58 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Profile"
     , body =
-        [ case model.view of
-            Overview ->
-                viewProfileOverview shared model.me
+        [ H.div [ A.class "w-full max-w-4xl mx-auto" ]
+            [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
+                [ H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
+                    [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text "Account Settings" ]
+                    , H.p [ A.class "text-gray-600 mt-2" ] [ H.text "Manage your account preferences and security settings" ]
+                    ]
+                , H.div [ A.class "flex" ]
+                    [ viewNavigationSidebar model
+                    , H.div [ A.class "flex-1 p-6" ]
+                        [ case model.view of
+                            Overview ->
+                                viewProfileOverview shared model.me
 
-            Password ->
-                H.text "Password View"
+                            Password ->
+                                H.text "Password View"
 
-            Email ->
-                H.text "Email View"
+                            Email ->
+                                H.text "Email View"
 
-            DeleteAccount ->
-                H.text "Delete Account View"
+                            DeleteAccount ->
+                                H.text "Delete Account View"
+                        ]
+                    ]
+                ]
+            ]
         ]
     }
+
+
+viewNavigationSidebar : Model -> Html Msg
+viewNavigationSidebar model =
+    let
+        button : ViewVariant -> String -> Html Msg
+        button variant text =
+            Components.Form.button
+                { text = text
+                , onClick = UserChangedView variant
+                , disabled = model.view == variant
+                , style = Components.Form.PrimaryReverse (model.view == variant)
+                }
+    in
+    H.div [ A.class "w-64 border-r border-gray-200 p-6" ]
+        -- TODO: add icons to buttons
+        [ H.div []
+            [ H.nav [ A.class "[&>*]:w-full space-y-2" ]
+                [ button Overview "Overview"
+                , button Password "Password"
+                , button Email "Email"
+                , button DeleteAccount "Delete Account"
+                ]
+            ]
+        ]
 
 
 viewProfileOverview : Shared.Model -> Api.Response Me -> Html Msg
