@@ -1,16 +1,17 @@
-module Pages.Profile exposing (Model, Msg, page)
+module Pages.Profile exposing (Model, Msg, ViewVariant, page)
 
 import Api
 import Api.Me
 import Auth
 import Data.Me exposing (Me)
 import Effect exposing (Effect)
-import Html exposing (Html)
+import Html as H exposing (Html)
+import Html.Attributes as A
 import Layouts
 import Page exposing (Page)
 import Route exposing (Route)
 import Shared
-import Time.Format as T
+import Time.Format
 import View exposing (View)
 
 
@@ -30,12 +31,16 @@ page _ shared _ =
 
 
 type alias Model =
-    { me : Api.Response Me }
+    { view : ViewVariant
+    , me : Api.Response Me
+    }
 
 
 init : Shared.Model -> () -> ( Model, Effect Msg )
 init _ () =
-    ( { me = Api.Loading }
+    ( { view = Overview
+      , me = Api.Loading
+      }
     , Api.Me.get { onResponse = ApiMeResponded }
     )
 
@@ -44,22 +49,29 @@ init _ () =
 -- UPDATE
 
 
+type ViewVariant
+    = Overview
+    | Password
+    | Email
+    | DeleteAccount
+
+
 type Msg
-    = ApiMeResponded (Result Api.Error Me)
+    = UserChangedView ViewVariant
+    | ApiMeResponded (Result Api.Error Me)
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
+        UserChangedView _ ->
+            ( model, Effect.none )
+
         ApiMeResponded (Ok userData) ->
             ( { model | me = Api.Success userData }, Effect.none )
 
         ApiMeResponded (Err error) ->
             ( { model | me = Api.Failure error }, Effect.none )
-
-
-
--- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
@@ -74,26 +86,35 @@ subscriptions _ =
 view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Profile"
-    , body = [ viewProfileContent shared model.me ]
+    , body =
+        [ case model.view of
+            Overview ->
+                viewProfileOverview shared model.me
+
+            Password ->
+                H.text "Password View"
+
+            Email ->
+                H.text "Email View"
+
+            DeleteAccount ->
+                H.text "Delete Account View"
+        ]
     }
 
 
-viewProfileContent : Shared.Model -> Api.Response Me -> Html Msg
-viewProfileContent shared userResponse =
+viewProfileOverview : Shared.Model -> Api.Response Me -> Html Msg
+viewProfileOverview shared userResponse =
     case userResponse of
-        Api.Loading ->
-            Html.text "Loading..."
-
         Api.Success user ->
-            viewUserDetails shared user
+            H.div []
+                [ H.h1 [] [ H.text "Profile Overview" ]
+                , H.p [] [ H.text ("Created at: " ++ Time.Format.toString shared.timeZone user.createdAt) ]
+                , H.p [] [ H.text ("Email: " ++ user.email) ]
+                ]
+
+        Api.Loading ->
+            H.text "Loading..."
 
         Api.Failure err ->
-            Html.text (Api.errorMessage err)
-
-
-viewUserDetails : Shared.Model -> Me -> Html Msg
-viewUserDetails shared me =
-    Html.div []
-        [ Html.p [] [ Html.text ("Email: " ++ me.email) ]
-        , Html.p [] [ Html.text ("Joined: " ++ T.toString shared.timeZone me.createdAt) ]
-        ]
+            H.text (Api.errorMessage err)
