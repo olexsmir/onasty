@@ -35,6 +35,8 @@ page _ shared _ =
 type alias Model =
     { view : ViewVariant
     , me : Api.Response Me
+    , password : { current : String, new : String, confirm : String }
+    , email : { current : String, new : String }
     }
 
 
@@ -42,6 +44,8 @@ init : Shared.Model -> () -> ( Model, Effect Msg )
 init _ () =
     ( { view = Overview
       , me = Api.Loading
+      , password = { current = "", new = "", confirm = "" }
+      , email = { current = "", new = "" }
       }
     , Api.Me.get { onResponse = ApiMeResponded }
     )
@@ -51,30 +55,25 @@ init _ () =
 -- UPDATE
 
 
-type alias PasswordInput =
-    { current : String
-    , new : String
-    , confirm : String
-    }
-
-
 type ViewVariant
     = Overview
-    | Password PasswordInput
+    | Password
     | Email
     | DeleteAccount
 
 
-type ChangePasswqordField
-    = CurrentPassword
-    | NewPassword
-    | ConfirmPassword
+type Field
+    = PasswordCurrent
+    | PasswordNew
+    | PasswordConfirm
+    | EmailCurrent
+    | EmailNew
 
 
 type Msg
     = UserChangedView ViewVariant
-    | UserClickedSubmitChangePassword
-    | UserChangedPassword ChangePasswqordField String
+    | UserClickedSubmit
+    | UserChangedField Field String
     | ApiMeResponded (Result Api.Error Me)
 
 
@@ -84,25 +83,28 @@ update msg model =
         UserChangedView variant ->
             ( { model | view = variant }, Effect.none )
 
-        UserChangedPassword field value ->
+        UserChangedField PasswordCurrent value ->
+            ( { model | password = { current = value, new = model.password.new, confirm = model.password.confirm } }, Effect.none )
+
+        UserChangedField PasswordNew value ->
+            ( { model | password = { current = model.password.current, new = value, confirm = model.password.confirm } }, Effect.none )
+
+        UserChangedField PasswordConfirm value ->
+            ( { model | password = { current = model.password.current, new = model.password.new, confirm = value } }, Effect.none )
+
+        UserChangedField EmailCurrent value ->
+            ( { model | email = { current = value, new = model.email.new } }, Effect.none )
+
+        UserChangedField EmailNew value ->
+            ( { model | email = { current = model.email.current, new = value } }, Effect.none )
+
+        UserClickedSubmit ->
             case model.view of
-                Password password ->
-                    case field of
-                        CurrentPassword ->
-                            ( { model | view = Password { password | current = value } }, Effect.none )
-
-                        NewPassword ->
-                            ( { model | view = Password { password | new = value } }, Effect.none )
-
-                        ConfirmPassword ->
-                            ( { model | view = Password { password | confirm = value } }, Effect.none )
-
-                _ ->
+                Password ->
+                    -- FIXME: implement the api
                     ( model, Effect.none )
 
-        UserClickedSubmitChangePassword ->
-            case model.view of
-                Password _ ->
+                Email ->
                     -- FIXME: implement the api
                     ( model, Effect.none )
 
@@ -145,11 +147,11 @@ view shared model =
                                     Overview ->
                                         viewOverview shared me
 
-                                    Password password ->
-                                        viewPassword password
+                                    Password ->
+                                        viewPassword model.password (isFormDisabled model)
 
                                     Email ->
-                                        H.text "Email View"
+                                        viewEmail model.email
 
                                     DeleteAccount ->
                                         H.text "Delete Account View"
@@ -182,7 +184,7 @@ viewNavigationSidebar model =
     H.div [ A.class "w-64 border-r border-gray-200 p-6" ]
         [ H.nav [ A.class "[&>*]:w-full space-y-2" ]
             [ button Overview "Overview"
-            , button (Password { current = "", new = "", confirm = "" }) "Password"
+            , button Password "Password"
             , button Email "Email"
             , button DeleteAccount "Delete Account"
             ]
@@ -210,16 +212,16 @@ viewOverview shared me =
         }
 
 
-viewPassword : PasswordInput -> Html Msg
+viewPassword : { current : String, new : String, confirm : String } -> Html Msg
 viewPassword password =
     let
-        input : { label : String, field : ChangePasswqordField, value : String, error : Maybe String } -> Html Msg
+        input : { label : String, field : Field, value : String, error : Maybe String } -> Html Msg
         input { label, field, value, error } =
             Components.Form.input
                 { label = label
                 , id = label
                 , field = field
-                , onInput = UserChangedPassword field
+                , onInput = UserChangedField field
                 , placeholder = ""
                 , value = value
                 , required = True
@@ -233,15 +235,53 @@ viewPassword password =
         , body =
             [ H.form
                 [ A.class "space-y-4 max-w-md"
-                , Html.Events.onSubmit UserClickedSubmitChangePassword
+                , Html.Events.onSubmit UserClickedSubmit
                 ]
                 -- TODO: implement validators
-                [ input { label = "Current Password", field = CurrentPassword, value = password.current, error = Nothing }
-                , input { label = "New Password", field = NewPassword, value = password.new, error = Nothing }
-                , input { label = "Confirm New Password", field = ConfirmPassword, value = password.confirm, error = Nothing }
+                [ input { label = "Current Password", field = PasswordCurrent, value = password.current, error = Nothing }
+                , input { label = "New Password", field = PasswordNew, value = password.new, error = Nothing }
+                , input { label = "Confirm New Password", field = PasswordConfirm, value = password.confirm, error = Nothing }
                 , Components.Form.submitButton
                     { disabled = isButtonDisabled
                     , text = "Change Password"
+                    , style = Components.Form.Primary False
+                    , class = ""
+                    }
+                ]
+            ]
+        }
+
+
+viewEmail : { current : String, new : String } -> Html Msg
+viewEmail email =
+    let
+        input : { label : String, field : Field, value : String, error : Maybe String } -> Html Msg
+        input { label, field, value, error } =
+            Components.Form.input
+                { label = label
+                , id = label
+                , field = field
+                , onInput = UserChangedField field
+                , placeholder = ""
+                , value = value
+                , required = True
+                , type_ = "email"
+                , style = Components.Form.Simple
+                , error = error
+                }
+    in
+    viewWrapper
+        { title = "Change Email Address"
+        , body =
+            [ H.form
+                [ A.class "space-y-4 max-w-md"
+                , Html.Events.onSubmit UserClickedSubmit
+                ]
+                [ input { label = "New Email Address", field = EmailCurrent, value = email.current, error = Nothing }
+                , input { label = "Confirm Password", field = EmailNew, value = email.new, error = Nothing }
+                , Components.Form.submitButton
+                    { disabled = isButtonDisabled
+                    , text = "Update Email"
                     , style = Components.Form.Primary False
                     , class = ""
                     }
