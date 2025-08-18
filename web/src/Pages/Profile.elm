@@ -139,18 +139,26 @@ view shared model =
                 , H.div [ A.class "flex" ]
                     [ viewNavigationSidebar model
                     , H.div [ A.class "flex-1 p-6" ]
-                        [ case model.view of
-                            Overview ->
-                                viewOverview shared model.me
+                        [ case model.me of
+                            Api.Success me ->
+                                case model.view of
+                                    Overview ->
+                                        viewOverview shared me
 
-                            Password password ->
-                                viewPassword password
+                                    Password password ->
+                                        viewPassword password
 
-                            Email ->
-                                H.text "Email View"
+                                    Email ->
+                                        H.text "Email View"
 
-                            DeleteAccount ->
-                                H.text "Delete Account View"
+                                    DeleteAccount ->
+                                        H.text "Delete Account View"
+
+                            Api.Loading ->
+                                H.text "Loading..."
+
+                            Api.Failure err ->
+                                H.text ("ERROR: " ++ Api.errorMessage err)
                         ]
                     ]
                 ]
@@ -181,8 +189,8 @@ viewNavigationSidebar model =
         ]
 
 
-viewOverview : Shared.Model -> Api.Response Me -> Html Msg
-viewOverview shared userResponse =
+viewOverview : Shared.Model -> Me -> Html Msg
+viewOverview shared me =
     let
         infoBox title text =
             H.div [ A.class "bg-gray-50 rounded-lg p-4" ]
@@ -191,17 +199,15 @@ viewOverview shared userResponse =
                 , H.p [ A.class "text-gray-700" ] [ H.text text ]
                 ]
     in
-    genericResponseView userResponse <|
-        \user ->
-            viewWrapper
-                { title = "Account Overview"
-                , body =
-                    [ infoBox "Email Address" user.email
-                    , infoBox "Member Since" (Time.Format.toString shared.timeZone user.createdAt)
-                    , infoBox "Last Login" (Time.Format.toString shared.timeZone user.lastLoginAt)
-                    , infoBox "Total Notes Created" (String.fromInt user.notesCreated)
-                    ]
-                }
+    viewWrapper
+        { title = "Account Overview"
+        , body =
+            [ infoBox "Email Address" me.email
+            , infoBox "Member Since" (Time.Format.toString shared.timeZone me.createdAt)
+            , infoBox "Last Login" (Time.Format.toString shared.timeZone me.lastLoginAt)
+            , infoBox "Total Notes Created" (String.fromInt me.notesCreated)
+            ]
+        }
 
 
 viewPassword : PasswordInput -> Html Msg
@@ -242,19 +248,6 @@ viewPassword password =
                 ]
             ]
         }
-
-
-genericResponseView : Api.Response a -> (a -> Html Msg) -> Html Msg
-genericResponseView apiResp userView =
-    case apiResp of
-        Api.Success data ->
-            userView data
-
-        Api.Loading ->
-            H.text "Loading..."
-
-        Api.Failure err ->
-            H.text ("ERROR: " ++ Api.errorMessage err)
 
 
 viewWrapper : { title : String, body : List (Html Msg) } -> Html Msg
