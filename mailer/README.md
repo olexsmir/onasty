@@ -39,3 +39,6 @@ Example input
   - `token` the token that is used in verification link
 - `reset_password`
   - `token` the token that is used in password reset link
+- `confirm_email_change`
+  - `email` the email user want to set as new
+  - `token` the token that is used in confirm link
