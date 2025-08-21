@@ -10,6 +10,9 @@ import (
 var (
 	ErrResetPasswordTokenExpired  = errors.New("reset password token expired")
 	ErrResetPasswordTokenNotFound = errors.New("reset password token not found")
+
+	ErrChangeEmailTokenExpired  = errors.New("change email token expired")
+	ErrChangeEmailTokenNotFound = errors.New("change email token not found")
 )
 
 type ResetPasswordToken struct {
@@ -28,4 +31,24 @@ type VerificationToken struct {
 	Token     string
 	CreatedAt time.Time
 	ExpiresAt time.Time
+}
+
+type ChangeEmailToken struct {
+	UserID    uuid.UUID
+	Token     string
+	NewEmail  string
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+func (c ChangeEmailToken) IsExpired() bool {
+	return c.ExpiresAt.Before(time.Now())
+}
+
+func (c ChangeEmailToken) Validate() error {
+	if isEmailValid(c.NewEmail) {
+		return ErrUserInvalidEmail
+	}
+
+	return nil
 }

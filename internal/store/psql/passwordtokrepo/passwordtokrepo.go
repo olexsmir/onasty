@@ -42,7 +42,7 @@ func NewPasswordResetTokenRepo(db *psqlutil.DB) *PasswordResetTokenRepo {
 
 func (r *PasswordResetTokenRepo) Create(ctx context.Context, token models.ResetPasswordToken,
 ) error {
-	query, aggs, err := pgq.
+	query, args, err := pgq.
 		Insert("password_reset_tokens").
 		Columns("user_id", "token", "created_at", "expires_at").
 		Values(token.UserID, token.Token, token.CreatedAt, token.ExpiresAt).
@@ -51,7 +51,7 @@ func (r *PasswordResetTokenRepo) Create(ctx context.Context, token models.ResetP
 		return err
 	}
 
-	_, err = r.db.Exec(ctx, query, aggs...)
+	_, err = r.db.Exec(ctx, query, args...)
 	return err
 }
 

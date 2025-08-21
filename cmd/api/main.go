@@ -20,6 +20,7 @@ import (
 	"github.com/olexsmir/onasty/internal/oauth"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/changeemailrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
@@ -94,6 +95,7 @@ func run(ctx context.Context) error {
 	sessionrepo := sessionrepo.New(psqlDB)
 	vertokrepo := vertokrepo.New(psqlDB)
 	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(psqlDB)
+	changeemailrepo := changeemailrepo.New(psqlDB)
 
 	notecache := notecache.New(redisDB, cfg.CacheNoteTTL)
 	noterepo := noterepo.New(psqlDB)
@@ -106,6 +108,7 @@ func run(ctx context.Context) error {
 		sessionrepo,
 		vertokrepo,
 		pwdtokrepo,
+		changeemailrepo,
 		noterepo,
 		userPasswordHasher,
 		jwtTokenizer,
@@ -116,6 +119,7 @@ func run(ctx context.Context) error {
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.ResetPasswordTokenTTL,
+		cfg.ChangeEmailTokenTTL,
 	)
 
 	rateLimiterConfig := ratelimit.Config{

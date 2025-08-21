@@ -33,8 +33,7 @@ type User struct {
 }
 
 func (u User) Validate() error {
-	_, err := mail.ParseAddress(u.Email)
-	if err != nil {
+	if isEmailValid(u.Email) {
 		return ErrUserInvalidEmail
 	}
 
@@ -50,4 +49,9 @@ func (u User) ValidatePassword() error {
 
 func (u User) IsActivated() bool {
 	return u.Activated
+}
+
+func isEmailValid(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }

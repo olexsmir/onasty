@@ -50,3 +50,7 @@ type UserInfo struct {
 	LastLoginAt  time.Time
 	NotesCreated int
 }
+
+type ChangeEmail struct {
+	NewEmail string
+}

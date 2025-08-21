@@ -31,3 +31,11 @@ func (m *mailerMockService) SendPasswordResetEmail(
 	mockMailStore[i.Receiver] = i.Token
 	return nil
 }
+
+func (m *mailerMockService) SendChangeEmailConfirmation(
+	_ context.Context,
+	i mailermq.SendChangeEmailConfirmationRequest,
+) error {
+	// TODO: implement me
+	return nil
+}

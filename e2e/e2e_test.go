@@ -17,6 +17,7 @@ import (
 	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
+	"github.com/olexsmir/onasty/internal/store/psql/changeemailrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
@@ -102,6 +103,7 @@ func (e *AppTestSuite) initDeps() {
 	sessionrepo := sessionrepo.New(e.postgresDB)
 	vertokrepo := vertokrepo.New(e.postgresDB)
 	pwdtokrepo := passwordtokrepo.NewPasswordResetTokenRepo(e.postgresDB)
+	changeemailrepo := changeemailrepo.New(e.postgresDB)
 
 	stubOAuthProvider := newOauthProviderStub()
 
@@ -116,6 +118,7 @@ func (e *AppTestSuite) initDeps() {
 		sessionrepo,
 		vertokrepo,
 		pwdtokrepo,
+		changeemailrepo,
 		noterepo,
 		e.hasher,
 		e.jwtTokenizer,
@@ -126,6 +129,7 @@ func (e *AppTestSuite) initDeps() {
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
 		cfg.ResetPasswordTokenTTL,
+		cfg.ChangeEmailTokenTTL,
 	)
 
 	// for testing purposes, it's ok to have high values ig

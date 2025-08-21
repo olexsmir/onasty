@@ -58,6 +58,8 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 			authorized.POST("/logout", a.logOutHandler)
 			authorized.POST("/logout/all", a.logOutAllHandler)
 			authorized.POST("/change-password", a.changePasswordHandler)
+			authorized.POST("/change-email", a.requestEmailChangeHandler)
+			authorized.POST("/change-email/:token", a.changeEmailHandler)
 		}
 	}
 
