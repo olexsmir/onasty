@@ -1,6 +1,9 @@
 package e2e_test
 
 import (
+	"crypto/rand"
+	"encoding/hex"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -447,6 +450,61 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
 	e.Equal(httpResp.Code, http.StatusBadRequest)
 }
 
+type apiv1AuthChangeEmailRequest struct {
+	NewEmail string `json:"new_email"`
+}
+
+func (e *AppTestSuite) TestAuthV1_ChangeEmail() {
+	oldEmail, newEmail := e.randomEmail(), e.randomEmail()
+	uid, toks := e.createAndSingIn(oldEmail, e.uuid())
+
+	// request email change
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/change-email",
+		e.jsonify(apiv1AuthChangeEmailRequest{
+			NewEmail: newEmail,
+		}),
+		toks.AccessToken,
+	)
+	e.Equal(http.StatusOK, httpResp.Code)
+
+	token := e.getChangeEmailTokenByUserID(uid)
+	e.Empty(token.UsedAt)
+	e.Equal(mockMailStore[oldEmail], token.Token)
+
+	// confirm email change
+	httpResp = e.httpRequest(http.MethodGet, "/api/v1/auth/change-email/"+token.Token, nil)
+	e.Equal(http.StatusOK, httpResp.Code)
+
+	updatedToken := e.getChangeEmailTokenByUserID(uid)
+	e.NotEmpty(updatedToken.UsedAt)
+
+	dbUser := e.getUserByEmail(token.Extra)
+	e.Equal(dbUser.Email, newEmail)
+}
+
+func (e *AppTestSuite) TestAuthV1_ChangeEmail_wrongSameEmail() {
+	email := e.randomEmail()
+	_, toks := e.createAndSingIn(email, e.uuid())
+
+	// request email change
+	httpResp := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/auth/change-email",
+		e.jsonify(apiv1AuthChangeEmailRequest{
+			NewEmail: email,
+		}),
+		toks.AccessToken,
+	)
+	e.Equal(http.StatusBadRequest, httpResp.Code)
+
+	var body errorResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+
+	e.Equal(body.Message, models.ErrUserEmailIsAlreadyInUse.Error())
+}
+
 type getMeResponse struct {
 	Email        string    `json:"email"`
 	CreatedAt    time.Time `json:"created_at"`
@@ -499,4 +557,10 @@ func (e *AppTestSuite) createAndSingIn(
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
 
 	return uid, body
+}
+
+func (e *AppTestSuite) randomEmail() string {
+	b := make([]byte, 4)
+	_, _ = rand.Read(b)
+	return fmt.Sprintf("user-%s@test.local", hex.EncodeToString(b))
 }

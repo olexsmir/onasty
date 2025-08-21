@@ -36,6 +36,6 @@ func (m *mailerMockService) SendChangeEmailConfirmation(
 	_ context.Context,
 	i mailermq.SendChangeEmailConfirmationRequest,
 ) error {
-	// TODO: implement me
+	mockMailStore[i.Receiver] = i.Token
 	return nil
 }

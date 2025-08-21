@@ -157,6 +157,7 @@ func (e *AppTestSuite) getLastNoteAuthorsRecordByAuthorID(uid uuid.UUID) noteAut
 
 type userVerificationToken struct {
 	Token  string
+	Extra  string // Extra field (optional)
 	UsedAt *time.Time
 }
 
@@ -184,6 +185,21 @@ func (e *AppTestSuite) getResetPasswordTokenByUserID(u uuid.UUID) userVerificati
 	e.require.NoError(err)
 	var r userVerificationToken
 	err = e.postgresDB.QueryRow(e.ctx, query, args...).Scan(&r.Token, &r.UsedAt)
+	e.require.NoError(err)
+	return r
+}
+
+func (e *AppTestSuite) getChangeEmailTokenByUserID(u uuid.UUID) userVerificationToken {
+	query, args, err := pgq.
+		Select("token", "new_email", "used_at").
+		From("change_email_tokens").
+		Where(pgq.Eq{"user_id": u.String()}).
+		Limit(1).
+		SQL()
+
+	e.require.NoError(err)
+	var r userVerificationToken
+	err = e.postgresDB.QueryRow(e.ctx, query, args...).Scan(&r.Token, &r.Extra, &r.UsedAt)
 	e.require.NoError(err)
 	return r
 }
