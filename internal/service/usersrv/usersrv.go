@@ -335,8 +335,7 @@ func (u *UserSrv) RequestEmailChange(
 	}
 
 	if user.Email == inp.NewEmail {
-		//nolint:err113 // FIXME: return a specific error
-		return errors.New("new email is the same as current email")
+		return models.ErrUserEmailIsAlreadyInUse
 	}
 
 	token := uuid.Must(uuid.NewV4()).String()
@@ -366,10 +365,28 @@ func (u *UserSrv) RequestEmailChange(
 	return nil
 }
 
-func (u *UserSrv) ChangeEmail(ctx context.Context, token string) error {
-	// get new user email by token
-	// set new email for user
-	// make token as used
+func (u *UserSrv) ChangeEmail(ctx context.Context, givenToken string) error {
+	token, err := u.changeemailrepo.GetByToken(ctx, givenToken)
+	if err != nil {
+		return err
+	}
+
+	user, err := u.userstore.GetByID(ctx, token.UserID)
+	if err != nil {
+		return err
+	}
+
+	if user.Email == token.NewEmail {
+		return models.ErrUserEmailIsAlreadyInUse
+	}
+
+	if err := u.userstore.SetEmail(ctx, token.UserID, token.NewEmail); err != nil {
+		return err
+	}
+
+	if err := u.changeemailrepo.MarkAsUsed(ctx, token.Token, time.Now()); err != nil {
+		return err
+	}
 
 	return nil
 }

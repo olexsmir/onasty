@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"net/mail"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -11,8 +12,9 @@ var (
 	ErrResetPasswordTokenExpired  = errors.New("reset password token expired")
 	ErrResetPasswordTokenNotFound = errors.New("reset password token not found")
 
-	ErrChangeEmailTokenExpired  = errors.New("change email token expired")
-	ErrChangeEmailTokenNotFound = errors.New("change email token not found")
+	ErrChangeEmailTokenExpired       = errors.New("change email token expired")
+	ErrChangeEmailTokenNotFound      = errors.New("change email token not found")
+	ErrChangeEmailTokenIsAlreadyUsed = errors.New("change email token is already used")
 )
 
 type ResetPasswordToken struct {
@@ -46,7 +48,8 @@ func (c ChangeEmailToken) IsExpired() bool {
 }
 
 func (c ChangeEmailToken) Validate() error {
-	if isEmailValid(c.NewEmail) {
+	_, err := mail.ParseAddress(c.NewEmail)
+	if err != nil {
 		return ErrUserInvalidEmail
 	}
 

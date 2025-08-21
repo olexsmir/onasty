@@ -245,7 +245,12 @@ func (a *APIV1) requestEmailChangeHandler(c *gin.Context) {
 }
 
 func (a *APIV1) changeEmailHandler(c *gin.Context) {
-	c.Param("token")
+	if err := a.usersrv.ChangeEmail(c.Request.Context(), c.Param("token")); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.String(http.StatusOK, "email changed")
 }
 
 const oatuhStateCookie = "oauth_state"
