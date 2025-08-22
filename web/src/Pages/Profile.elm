@@ -88,7 +88,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UserChangedView variant ->
-            ( { model | view = variant, isFormSentSuccessfully = False }, Effect.none )
+            ( { model | view = variant, isFormSentSuccessfully = False, apiError = Nothing }, Effect.none )
 
         UserChangedField PasswordCurrent value ->
             ( { model | password = { current = value, new = model.password.new, confirm = model.password.confirm } }, Effect.none )
