@@ -39,7 +39,7 @@ type alias Model =
     { view : ViewVariant
     , me : Api.Response Me
     , password : { current : String, new : String, confirm : String }
-    , email : { current : String, new : String }
+    , email : String
     , apiError : Maybe Api.Error
     }
 
@@ -49,7 +49,7 @@ init _ () =
     ( { view = Overview
       , me = Api.Loading
       , password = { current = "", new = "", confirm = "" }
-      , email = { current = "", new = "" }
+      , email = ""
       , apiError = Nothing
       }
     , Api.Profile.me { onResponse = ApiMeResponded }
@@ -98,7 +98,7 @@ update msg model =
             ( { model | password = { current = model.password.current, new = model.password.new, confirm = value } }, Effect.none )
 
         UserChangedField EmailNew value ->
-            ( { model | email = { current = model.email.current, new = value } }, Effect.none )
+            ( { model | email = value }, Effect.none )
 
         UserClickedSubmit ->
             case model.view of
@@ -112,11 +112,10 @@ update msg model =
                     )
 
                 Email ->
-                    -- TODO: prompt user to look in inbox
                     ( model
                     , Api.Profile.requestEmailChange
                         { onResponse = ApiRequestEmailChangeResponsed
-                        , newEmail = model.email.current
+                        , newEmail = model.email
                         }
                     )
 
@@ -272,7 +271,7 @@ viewPassword password =
         }
 
 
-viewEmail : Me -> { current : String, new : String } -> Html Msg
+viewEmail : Me -> String -> Html Msg
 viewEmail me email =
     viewWrapper
         { title = "Change Email Address"
@@ -283,7 +282,7 @@ viewEmail me email =
                 ]
                 [ H.div [ A.class "mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md" ]
                     [ H.h3 [ A.class "font-medium mb-1" ] [ H.text "Note:" ]
-                    , H.p [] [ H.text "A confirmation email will be sent to your new email address. You must confirm the change by clicking the link in that email." ]
+                    , H.p [] [ H.text "A confirmation email will be sent to your current email address. You must confirm the change by clicking the link in that email." ]
                     , H.p [ A.class "mt-2 text-blue-800 text-sm" ]
                         [ H.span [ A.class "font-medium" ] [ H.text ("Current email: " ++ me.email) ]
                         ]
@@ -294,7 +293,7 @@ viewEmail me email =
                     , type_ = "email"
                     , field = EmailNew
                     , label = "New Email Address"
-                    , value = email.current
+                    , value = email
                     , placeholder = "Enter your new email address"
                     , onInput = UserChangedField EmailNew
                     , error = Validators.email email
