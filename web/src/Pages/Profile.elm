@@ -1,9 +1,11 @@
 module Pages.Profile exposing (Model, Msg, ViewVariant, page)
 
 import Api
-import Api.Me
+import Api.Profile
 import Auth
+import Components.Box
 import Components.Form
+import Components.Utils
 import Data.Me exposing (Me)
 import Effect exposing (Effect)
 import Html as H exposing (Html)
@@ -37,6 +39,7 @@ type alias Model =
     , me : Api.Response Me
     , password : { current : String, new : String, confirm : String }
     , email : { current : String, new : String }
+    , apiError : Maybe Api.Error
     }
 
 
@@ -46,8 +49,9 @@ init _ () =
       , me = Api.Loading
       , password = { current = "", new = "", confirm = "" }
       , email = { current = "", new = "" }
+      , apiError = Nothing
       }
-    , Api.Me.get { onResponse = ApiMeResponded }
+    , Api.Profile.me { onResponse = ApiMeResponded }
     )
 
 
@@ -59,14 +63,12 @@ type ViewVariant
     = Overview
     | Password
     | Email
-    | DeleteAccount
 
 
 type Field
     = PasswordCurrent
     | PasswordNew
     | PasswordConfirm
-    | EmailCurrent
     | EmailNew
 
 
@@ -75,6 +77,8 @@ type Msg
     | UserClickedSubmit
     | UserChangedField Field String
     | ApiMeResponded (Result Api.Error Me)
+    | ApiChangePasswordResponsed (Result Api.Error ())
+    | ApiRequestEmailChangeResponsed (Result Api.Error ())
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -92,21 +96,28 @@ update msg model =
         UserChangedField PasswordConfirm value ->
             ( { model | password = { current = model.password.current, new = model.password.new, confirm = value } }, Effect.none )
 
-        UserChangedField EmailCurrent value ->
-            ( { model | email = { current = value, new = model.email.new } }, Effect.none )
-
         UserChangedField EmailNew value ->
             ( { model | email = { current = model.email.current, new = value } }, Effect.none )
 
         UserClickedSubmit ->
             case model.view of
                 Password ->
-                    -- FIXME: implement the api
-                    ( model, Effect.none )
+                    ( model
+                    , Api.Profile.changePassword
+                        { onResponse = ApiChangePasswordResponsed
+                        , currentPassword = model.password.current
+                        , newPassword = model.password.new
+                        }
+                    )
 
                 Email ->
-                    -- FIXME: implement the api
-                    ( model, Effect.none )
+                    -- TODO: prompt user to look in inbox
+                    ( model
+                    , Api.Profile.requestEmailChange
+                        { onResponse = ApiRequestEmailChangeResponsed
+                        , newEmail = model.email.current
+                        }
+                    )
 
                 _ ->
                     ( model, Effect.none )
@@ -116,6 +127,18 @@ update msg model =
 
         ApiMeResponded (Err error) ->
             ( { model | me = Api.Failure error }, Effect.none )
+
+        ApiChangePasswordResponsed (Ok ()) ->
+            ( model, Effect.none )
+
+        ApiChangePasswordResponsed (Err err) ->
+            ( { model | apiError = Just err }, Effect.none )
+
+        ApiRequestEmailChangeResponsed (Ok ()) ->
+            ( model, Effect.none )
+
+        ApiRequestEmailChangeResponsed (Err err) ->
+            ( { model | apiError = Just err }, Effect.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -135,7 +158,8 @@ view shared model =
         [ H.div [ A.class "w-full p-6 max-w-4xl mx-auto" ]
             [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
                 [ H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
-                    [ H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text "Account Settings" ]
+                    [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
+                    , H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text "Account Settings" ]
                     , H.p [ A.class "text-gray-600 mt-2" ] [ H.text "Manage your account preferences and security settings" ]
                     ]
                 , H.div [ A.class "flex" ]
@@ -151,10 +175,7 @@ view shared model =
                                         viewPassword model.password (isFormDisabled model)
 
                                     Email ->
-                                        viewEmail model.email
-
-                                    DeleteAccount ->
-                                        H.text "Delete Account View"
+                                        viewEmail me model.email (isFormDisabled model)
 
                             Api.Loading ->
                                 H.text "Loading..."
@@ -186,7 +207,6 @@ viewNavigationSidebar model =
             [ button Overview "Overview"
             , button Password "Password"
             , button Email "Email"
-            , button DeleteAccount "Delete Account"
             ]
         ]
 
@@ -204,11 +224,12 @@ viewOverview shared me =
     viewWrapper
         { title = "Account Overview"
         , body =
-            [ infoBox "Email Address" me.email
-            , infoBox "Member Since" (Time.Format.toString shared.timeZone me.createdAt)
-            , infoBox "Last Login" (Time.Format.toString shared.timeZone me.lastLoginAt)
-            , infoBox "Total Notes Created" (String.fromInt me.notesCreated)
-            ]
+            H.div [ A.class "grid grid-cols-1 md:grid-cols-2 gap-6" ]
+                [ infoBox "Email Address" me.email
+                , infoBox "Member Since" (Time.Format.toString shared.timeZone me.createdAt)
+                , infoBox "Last Login" (Time.Format.toString shared.timeZone me.lastLoginAt)
+                , infoBox "Total Notes Created" (String.fromInt me.notesCreated)
+                ]
         }
 
 
@@ -233,7 +254,7 @@ viewPassword password =
     viewWrapper
         { title = "Change Password"
         , body =
-            [ H.form
+            H.form
                 [ A.class "space-y-4 max-w-md"
                 , Html.Events.onSubmit UserClickedSubmit
                 ]
@@ -248,37 +269,37 @@ viewPassword password =
                     , class = ""
                     }
                 ]
-            ]
         }
 
 
-viewEmail : { current : String, new : String } -> Html Msg
-viewEmail email =
-    let
-        input : { label : String, field : Field, value : String, error : Maybe String } -> Html Msg
-        input { label, field, value, error } =
-            Components.Form.input
-                { label = label
-                , id = label
-                , field = field
-                , onInput = UserChangedField field
-                , placeholder = ""
-                , value = value
-                , required = True
-                , type_ = "email"
-                , style = Components.Form.Simple
-                , error = error
-                }
-    in
+viewEmail : Me -> { current : String, new : String } -> Html Msg
+viewEmail me email =
     viewWrapper
         { title = "Change Email Address"
         , body =
-            [ H.form
+            H.form
                 [ A.class "space-y-4 max-w-md"
                 , Html.Events.onSubmit UserClickedSubmit
                 ]
-                [ input { label = "New Email Address", field = EmailCurrent, value = email.current, error = Nothing }
-                , input { label = "Confirm Password", field = EmailNew, value = email.new, error = Nothing }
+                [ H.div [ A.class "mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md" ]
+                    [ H.h3 [ A.class "font-medium mb-1" ] [ H.text "Note:" ]
+                    , H.p [] [ H.text "A confirmation email will be sent to your new email address. You must confirm the change by clicking the link in that email." ]
+                    , H.p [ A.class "mt-2 text-blue-800 text-sm" ]
+                        [ H.span [ A.class "font-medium" ] [ H.text ("Current email: " ++ me.email) ]
+                        ]
+                    ]
+                , Components.Form.input
+                    { style = Components.Form.Simple
+                    , id = "new-email"
+                    , type_ = "email"
+                    , field = EmailNew
+                    , label = "New Email Address"
+                    , value = email.current
+                    , placeholder = "Enter your new email address"
+                    , onInput = UserChangedField EmailNew
+                    , error = Nothing
+                    , required = True
+                    }
                 , Components.Form.submitButton
                     { disabled = isButtonDisabled
                     , text = "Update Email"
@@ -286,15 +307,14 @@ viewEmail email =
                     , class = ""
                     }
                 ]
-            ]
         }
 
 
-viewWrapper : { title : String, body : List (Html Msg) } -> Html Msg
+viewWrapper : { title : String, body : Html Msg } -> Html Msg
 viewWrapper { title, body } =
     H.div [ A.class "space-y-6" ]
         [ H.div []
             [ H.h2 [ A.class "text-lg font-semibold text-gray-900 mb-4" ] [ H.text title ]
-            , H.div [ A.class "grid grid-cols-1 md:grid-cols-2 gap-6" ] body
+            , body
             ]
         ]
