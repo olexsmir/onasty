@@ -41,6 +41,7 @@ type alias Model =
     , password : { current : String, new : String, confirm : String }
     , email : String
     , apiError : Maybe Api.Error
+    , isFormSentSuccessfully : Bool
     }
 
 
@@ -51,6 +52,7 @@ init _ () =
       , password = { current = "", new = "", confirm = "" }
       , email = ""
       , apiError = Nothing
+      , isFormSentSuccessfully = False
       }
     , Api.Profile.me { onResponse = ApiMeResponded }
     )
@@ -86,7 +88,7 @@ update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
         UserChangedView variant ->
-            ( { model | view = variant }, Effect.none )
+            ( { model | view = variant, isFormSentSuccessfully = False }, Effect.none )
 
         UserChangedField PasswordCurrent value ->
             ( { model | password = { current = value, new = model.password.new, confirm = model.password.confirm } }, Effect.none )
@@ -129,13 +131,13 @@ update msg model =
             ( { model | me = Api.Failure error }, Effect.none )
 
         ApiChangePasswordResponsed (Ok ()) ->
-            ( model, Effect.none )
+            ( { model | isFormSentSuccessfully = True }, Effect.none )
 
         ApiChangePasswordResponsed (Err err) ->
             ( { model | apiError = Just err }, Effect.none )
 
         ApiRequestEmailChangeResponsed (Ok ()) ->
-            ( model, Effect.none )
+            ( { model | isFormSentSuccessfully = True }, Effect.none )
 
         ApiRequestEmailChangeResponsed (Err err) ->
             ( { model | apiError = Just err }, Effect.none )
@@ -171,10 +173,10 @@ view shared model =
                                         viewOverview shared me
 
                                     Password ->
-                                        viewPassword model.password (isFormDisabled model)
+                                        viewPassword model.password (isFormDisabled model) model.isFormSentSuccessfully
 
                                     Email ->
-                                        viewEmail me model.email (isFormDisabled model)
+                                        viewEmail me model.email (isFormDisabled model) model.isFormSentSuccessfully
 
                             Api.Loading ->
                                 H.text "Loading..."
@@ -245,8 +247,8 @@ viewOverview shared me =
         }
 
 
-viewPassword : { current : String, new : String, confirm : String } -> Bool -> Html Msg
-viewPassword password isButtonDisabled =
+viewPassword : { current : String, new : String, confirm : String } -> Bool -> Bool -> Html Msg
+viewPassword password isButtonDisabled isFormSentSuccessfully =
     let
         input : { label : String, field : Field, value : String, error : Maybe String } -> Html Msg
         input { label, field, value, error } =
@@ -270,21 +272,22 @@ viewPassword password isButtonDisabled =
                 [ A.class "space-y-4 max-w-md"
                 , Html.Events.onSubmit UserClickedSubmit
                 ]
-                [ input { label = "Current Password", field = PasswordCurrent, value = password.current, error = Nothing }
+                [ Components.Utils.viewIf isFormSentSuccessfully (Components.Box.successText "Password updated successfully!")
+                , input { label = "Current Password", field = PasswordCurrent, value = password.current, error = Nothing }
                 , input { label = "New Password", field = PasswordNew, value = password.new, error = Validators.password password.new }
                 , input { label = "Confirm New Password", field = PasswordConfirm, value = password.confirm, error = Validators.passwords password.new password.confirm }
                 , Components.Form.submitButton
                     { disabled = isButtonDisabled
                     , text = "Change Password"
-                    , style = Components.Form.Primary False
+                    , style = Components.Form.Primary isButtonDisabled
                     , class = ""
                     }
                 ]
         }
 
 
-viewEmail : Me -> String -> Bool -> Html Msg
-viewEmail me email isButtonDisabled =
+viewEmail : Me -> String -> Bool -> Bool -> Html Msg
+viewEmail me email isButtonDisabled isFormSentSuccessfully =
     viewWrapper
         { title = "Change Email Address"
         , body =
@@ -299,6 +302,7 @@ viewEmail me email isButtonDisabled =
                         [ H.span [ A.class "font-medium" ] [ H.text ("Current email: " ++ me.email) ]
                         ]
                     ]
+                , Components.Utils.viewIf isFormSentSuccessfully (Components.Box.successText "Email updated successfully! Please check your new email for verification.")
                 , Components.Form.input
                     { style = Components.Form.Simple
                     , id = "new-email"
@@ -314,7 +318,7 @@ viewEmail me email isButtonDisabled =
                 , Components.Form.submitButton
                     { disabled = isButtonDisabled
                     , text = "Update Email"
-                    , style = Components.Form.Primary False
+                    , style = Components.Form.Primary isButtonDisabled
                     , class = ""
                     }
                 ]

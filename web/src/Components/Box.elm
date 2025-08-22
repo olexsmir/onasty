@@ -1,4 +1,4 @@
-module Components.Box exposing (error, success, successBox)
+module Components.Box exposing (error, success, successBox, successText)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -16,6 +16,11 @@ success opts =
         [ H.div [ A.class "font-medium text-green-800 mb-2" ] [ H.text opts.header ]
         , H.p [ A.class "text-green-800 text-sm" ] [ H.text opts.body ]
         ]
+
+
+successText : String -> Html msg
+successText text =
+    successBox [ H.p [ A.class "text-green-800 text-sm" ] [ H.text text ] ]
 
 
 successBox : List (Html msg) -> Html msg
