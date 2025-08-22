@@ -154,13 +154,12 @@ view : Shared.Model -> Model -> View Msg
 view shared model =
     { title = "Profile"
     , body =
-        -- FIXME: feels like there's a lot of redundant classes here
         [ H.div [ A.class "w-full p-6 max-w-4xl mx-auto" ]
-            [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                [ H.div [ A.class "p-6 pb-4 border-b border-gray-200" ]
+            [ H.div [ A.class "rounded-lg border border-gray-200 shadow-sm" ]
+                [ H.div [ A.class "p-6 border-b border-gray-200" ]
                     [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
                     , H.h1 [ A.class "text-2xl font-bold text-gray-900" ] [ H.text "Account Settings" ]
-                    , H.p [ A.class "text-gray-600 mt-2" ] [ H.text "Manage your account preferences and security settings" ]
+                    , H.p [ A.class "text-gray-600" ] [ H.text "Manage your account preferences and security settings" ]
                     ]
                 , H.div [ A.class "flex" ]
                     [ viewNavigationSidebar model
