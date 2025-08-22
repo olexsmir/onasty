@@ -53,11 +53,13 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 			oauth.GET("/:provider/callback", a.oauthCallbackHandler)
 		}
 
+		auth.GET("/change-email/:token", a.changeEmailHandler)
 		authorized := auth.Group("/", a.authorizedMiddleware)
 		{
 			authorized.POST("/logout", a.logOutHandler)
 			authorized.POST("/logout/all", a.logOutAllHandler)
 			authorized.POST("/change-password", a.changePasswordHandler)
+			authorized.POST("/change-email", a.requestEmailChangeHandler)
 		}
 	}
 

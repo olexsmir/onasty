@@ -17,6 +17,9 @@ type Mailer interface {
 
 	// SendPasswordResetEmail sends an email with a password reset token to the user.
 	SendPasswordResetEmail(ctx context.Context, input SendPasswordResetEmailRequest) error
+
+	// SendChangeEmailVerification sends an email with a change email verification token to the user.
+	SendChangeEmailConfirmation(ctx context.Context, inp SendChangeEmailConfirmationRequest) error
 }
 
 type MailerMQ struct {
@@ -80,6 +83,37 @@ func (m MailerMQ) SendPasswordResetEmail(
 		TemplateName: "reset_password",
 		Options: map[string]string{
 			"token": inp.Token,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	resp, err := m.nc.RequestWithContext(ctx, sendTopic, req)
+	if err != nil {
+		return err
+	}
+
+	return events.CheckRespForError(resp)
+}
+
+type SendChangeEmailConfirmationRequest struct {
+	Receiver string
+	Token    string
+	NewEmail string
+}
+
+func (m MailerMQ) SendChangeEmailConfirmation(
+	ctx context.Context,
+	inp SendChangeEmailConfirmationRequest,
+) error {
+	req, err := json.Marshal(sendRequest{
+		RequestID:    reqid.GetContext(ctx),
+		Receiver:     inp.Receiver,
+		TemplateName: "confirm_email_change",
+		Options: map[string]string{
+			"token": inp.Token,
+			"email": inp.NewEmail,
 		},
 	})
 	if err != nil {

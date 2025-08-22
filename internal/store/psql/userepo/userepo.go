@@ -38,6 +38,9 @@ type UserStorer interface {
 	// password should be hashed
 	SetPassword(ctx context.Context, userID uuid.UUID, newPassword string) error
 
+	// SetEmail sets new email for user by their id
+	SetEmail(ctx context.Context, userID uuid.UUID, email string) error
+
 	GetByOAuthID(ctx context.Context, provider, providerID string) (models.User, error)
 	LinkOAuthIdentity(ctx context.Context, userID uuid.UUID, provider, providerID string) error
 
@@ -217,8 +220,38 @@ func (r *UserRepo) SetPassword(ctx context.Context, userID uuid.UUID, password s
 		return err
 	}
 
-	_, err = r.db.Exec(ctx, query, args...)
-	return err
+	ct, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrUserNotFound
+	}
+
+	return nil
+}
+
+func (r *UserRepo) SetEmail(ctx context.Context, userID uuid.UUID, email string) error {
+	query, args, err := pgq.
+		Update("users").
+		Set("email", email).
+		Where(pgq.Eq{"id": userID.String()}).
+		SQL()
+	if err != nil {
+		return err
+	}
+
+	ct, err := r.db.Exec(ctx, query, args...)
+	if err != nil {
+		return err
+	}
+
+	if ct.RowsAffected() == 0 {
+		return models.ErrUserNotFound
+	}
+
+	return nil
 }
 
 func (r *UserRepo) CheckIfUserExists(ctx context.Context, id uuid.UUID) (bool, error) {

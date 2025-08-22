@@ -220,6 +220,39 @@ func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+type changeEmailRequest struct {
+	NewEmail string `json:"new_email"`
+}
+
+func (a *APIV1) requestEmailChangeHandler(c *gin.Context) {
+	var req changeEmailRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		newError(c, http.StatusBadRequest, "invalid request")
+		return
+	}
+
+	if err := a.usersrv.RequestEmailChange(
+		c.Request.Context(),
+		a.getUserID(c),
+		dtos.ChangeEmail{
+			NewEmail: req.NewEmail,
+		}); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Status(http.StatusOK)
+}
+
+func (a *APIV1) changeEmailHandler(c *gin.Context) {
+	if err := a.usersrv.ChangeEmail(c.Request.Context(), c.Param("token")); err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.String(http.StatusOK, "email changed")
+}
+
 const oatuhStateCookie = "oauth_state"
 
 func (a *APIV1) oauthLoginHandler(c *gin.Context) {

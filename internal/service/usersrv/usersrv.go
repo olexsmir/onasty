@@ -13,6 +13,7 @@ import (
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/oauth"
+	"github.com/olexsmir/onasty/internal/store/psql/changeemailrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/noterepo"
 	"github.com/olexsmir/onasty/internal/store/psql/passwordtokrepo"
 	"github.com/olexsmir/onasty/internal/store/psql/sessionrepo"
@@ -49,6 +50,10 @@ type UserServicer interface {
 	// ResetPassword resets the user's password using the provided reset token.
 	ResetPassword(ctx context.Context, inp dtos.ResetPassword) error
 
+	RequestEmailChange(ctx context.Context, userID uuid.UUID, inp dtos.ChangeEmail) error
+
+	ChangeEmail(ctx context.Context, token string) error
+
 	// GetOAuthURL retrieves the OAuth URL for the specified provider.
 	GetOAuthURL(providerName string) (dtos.OAuthRedirect, error)
 
@@ -74,12 +79,13 @@ type UserServicer interface {
 var _ UserServicer = (*UserSrv)(nil)
 
 type UserSrv struct {
-	userstore    userepo.UserStorer
-	sessionstore sessionrepo.SessionStorer
-	vertokrepo   vertokrepo.VerificationTokenStorer
-	pwdtokrepo   passwordtokrepo.PasswordResetTokenStorer
-	notestore    noterepo.NoteStorer
-	cache        usercache.UserCacheer
+	userstore       userepo.UserStorer
+	sessionstore    sessionrepo.SessionStorer
+	vertokrepo      vertokrepo.VerificationTokenStorer
+	pwdtokrepo      passwordtokrepo.PasswordResetTokenStorer
+	changeemailrepo changeemailrepo.ChangeEmailStorer
+	notestore       noterepo.NoteStorer
+	cache           usercache.UserCacheer
 
 	hasher       hasher.Hasher
 	jwtTokenizer jwtutil.JWTTokenizer
@@ -91,6 +97,7 @@ type UserSrv struct {
 	refreshTokenTTL       time.Duration
 	verificationTokenTTL  time.Duration
 	resetPasswordTokenTTL time.Duration
+	changeEmailTokenTTL   time.Duration
 }
 
 func New(
@@ -98,19 +105,21 @@ func New(
 	sessionstore sessionrepo.SessionStorer,
 	vertokrepo vertokrepo.VerificationTokenStorer,
 	pwdtokrepo passwordtokrepo.PasswordResetTokenStorer,
+	changeemailrepo changeemailrepo.ChangeEmailStorer,
 	notestore noterepo.NoteStorer,
 	hasher hasher.Hasher,
 	jwtTokenizer jwtutil.JWTTokenizer,
 	mailermq mailermq.Mailer,
 	cache usercache.UserCacheer,
 	googleOauth, githubOauth oauth.Provider,
-	refreshTokenTTL, verificationTokenTTL, resetPasswordTokenTTL time.Duration,
+	refreshTokenTTL, verificationTokenTTL, resetPasswordTokenTTL, changeEmailTokenTTL time.Duration,
 ) *UserSrv {
 	return &UserSrv{
 		userstore:             userstore,
 		sessionstore:          sessionstore,
 		vertokrepo:            vertokrepo,
 		pwdtokrepo:            pwdtokrepo,
+		changeemailrepo:       changeemailrepo,
 		notestore:             notestore,
 		cache:                 cache,
 		hasher:                hasher,
@@ -121,6 +130,7 @@ func New(
 		refreshTokenTTL:       refreshTokenTTL,
 		verificationTokenTTL:  verificationTokenTTL,
 		resetPasswordTokenTTL: resetPasswordTokenTTL,
+		changeEmailTokenTTL:   changeEmailTokenTTL,
 	}
 }
 
@@ -312,6 +322,73 @@ func (u *UserSrv) ResetPassword(ctx context.Context, inp dtos.ResetPassword) err
 	}
 
 	return u.userstore.SetPassword(ctx, uid, hashedPassword)
+}
+
+func (u *UserSrv) RequestEmailChange(
+	ctx context.Context,
+	userID uuid.UUID,
+	inp dtos.ChangeEmail,
+) error {
+	user, err := u.userstore.GetByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if user.Email == inp.NewEmail {
+		return models.ErrUserEmailIsAlreadyInUse
+	}
+
+	token := uuid.Must(uuid.NewV4()).String()
+	changeEmailInput := models.ChangeEmailToken{
+		UserID:    userID,
+		Token:     token,
+		NewEmail:  inp.NewEmail,
+		CreatedAt: time.Now(),
+		ExpiresAt: time.Now().Add(u.changeEmailTokenTTL),
+	}
+	if err := changeEmailInput.Validate(); err != nil {
+		return err
+	}
+
+	if err := u.changeemailrepo.Create(ctx, changeEmailInput); err != nil {
+		return err
+	}
+
+	if err := u.mailermq.SendChangeEmailConfirmation(ctx, mailermq.SendChangeEmailConfirmationRequest{
+		Receiver: user.Email,
+		Token:    token,
+		NewEmail: inp.NewEmail,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *UserSrv) ChangeEmail(ctx context.Context, givenToken string) error {
+	token, err := u.changeemailrepo.GetByToken(ctx, givenToken)
+	if err != nil {
+		return err
+	}
+
+	user, err := u.userstore.GetByID(ctx, token.UserID)
+	if err != nil {
+		return err
+	}
+
+	if user.Email == token.NewEmail {
+		return models.ErrUserEmailIsAlreadyInUse
+	}
+
+	if err := u.userstore.SetEmail(ctx, token.UserID, token.NewEmail); err != nil {
+		return err
+	}
+
+	if err := u.changeemailrepo.MarkAsUsed(ctx, token.Token, time.Now()); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserSrv) Verify(ctx context.Context, verificationKey string) error {

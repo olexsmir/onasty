@@ -53,6 +53,7 @@ type Config struct {
 
 	VerificationTokenTTL  time.Duration
 	ResetPasswordTokenTTL time.Duration
+	ChangeEmailTokenTTL   time.Duration
 
 	MetricsEnabled bool
 	MetricsPort    int
@@ -112,6 +113,7 @@ func NewConfig() *Config {
 
 		VerificationTokenTTL:  mustParseDuration(getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h")),
 		ResetPasswordTokenTTL: mustParseDuration(getenvOrDefault("RESET_PASSWORD_TOKEN_TTL", "1h")),
+		ChangeEmailTokenTTL:   mustParseDuration(getenvOrDefault("CHANGE_EMAIL_TOKEN_TTL", "24h")),
 
 		MetricsPort:    mustGetenvOrDefaultInt("METRICS_PORT", 3001),
 		MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",
