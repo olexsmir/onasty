@@ -190,11 +190,24 @@ view shared model =
     }
 
 
+isFormDisabled : Model -> Bool
+isFormDisabled model =
+    case model.view of
+        Overview ->
+            True
+
+        Password ->
+            (Validators.password model.password.new /= Nothing)
+                || (Validators.passwords model.password.new model.password.confirm /= Nothing)
+
+        Email ->
+            Validators.email model.email /= Nothing
+
+
 viewNavigationSidebar : Model -> Html Msg
 viewNavigationSidebar model =
     let
         button variant text =
-            -- TODO: add icons to buttons
             Components.Form.button
                 { text = text
                 , onClick = UserChangedView variant
@@ -233,8 +246,8 @@ viewOverview shared me =
         }
 
 
-viewPassword : { current : String, new : String, confirm : String } -> Html Msg
-viewPassword password =
+viewPassword : { current : String, new : String, confirm : String } -> Bool -> Html Msg
+viewPassword password isButtonDisabled =
     let
         input : { label : String, field : Field, value : String, error : Maybe String } -> Html Msg
         input { label, field, value, error } =
@@ -271,8 +284,8 @@ viewPassword password =
         }
 
 
-viewEmail : Me -> String -> Html Msg
-viewEmail me email =
+viewEmail : Me -> String -> Bool -> Html Msg
+viewEmail me email isButtonDisabled =
     viewWrapper
         { title = "Change Email Address"
         , body =
