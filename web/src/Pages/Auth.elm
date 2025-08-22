@@ -18,6 +18,7 @@ import Route exposing (Route)
 import Route.Path
 import Shared
 import Time exposing (Posix)
+import Validators
 import View exposing (View)
 
 
@@ -336,27 +337,27 @@ viewForm model =
         ]
         (case model.formVariant of
             SignIn ->
-                [ viewFormInput { field = Email, value = model.email, error = validateEmail model.email }
-                , viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
+                [ viewFormInput { field = Email, value = model.email, error = Validators.email model.email }
+                , viewFormInput { field = Password, value = model.password, error = Validators.password model.password }
                 , viewForgotPassword
                 , viewSubmitButton model
                 ]
 
             SignUp ->
-                [ viewFormInput { field = Email, value = model.email, error = validateEmail model.email }
-                , viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
-                , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = validatePasswords model.password model.passwordAgain }
+                [ viewFormInput { field = Email, value = model.email, error = Validators.email model.email }
+                , viewFormInput { field = Password, value = model.password, error = Validators.password model.password }
+                , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = Validators.passwords model.password model.passwordAgain }
                 , viewSubmitButton model
                 ]
 
             ForgotPassword ->
-                [ viewFormInput { field = Email, value = model.email, error = validateEmail model.email }
+                [ viewFormInput { field = Email, value = model.email, error = Validators.email model.email }
                 , viewSubmitButton model
                 ]
 
             SetNewPassword _ ->
-                [ viewFormInput { field = Password, value = model.password, error = validatePassword model.password }
-                , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = validatePasswords model.password model.passwordAgain }
+                [ viewFormInput { field = Password, value = model.password, error = Validators.password model.password }
+                , viewFormInput { field = PasswordAgain, value = model.passwordAgain, error = Validators.passwords model.password model.passwordAgain }
                 , viewSubmitButton model
                 ]
         )
@@ -405,53 +406,23 @@ isFormDisabled model =
     case model.formVariant of
         SignIn ->
             model.isSubmittingForm
-                || (validateEmail model.email /= Nothing)
-                || (validatePassword model.password /= Nothing)
+                || (Validators.email model.email /= Nothing)
+                || (Validators.password model.password /= Nothing)
 
         SignUp ->
             model.isSubmittingForm
-                || (validateEmail model.email /= Nothing)
-                || (validatePassword model.password /= Nothing)
-                || (validatePasswords model.password model.passwordAgain /= Nothing)
+                || (Validators.email model.email /= Nothing)
+                || (Validators.password model.password /= Nothing)
+                || (Validators.passwords model.password model.passwordAgain /= Nothing)
 
         ForgotPassword ->
-            model.isSubmittingForm || (validateEmail model.email /= Nothing)
+            model.isSubmittingForm || (Validators.email model.email /= Nothing)
 
         SetNewPassword _ ->
             model.isSubmittingForm
-                || (validateEmail model.email /= Nothing)
-                || (validatePassword model.password /= Nothing)
-                || (validatePasswords model.password model.passwordAgain /= Nothing)
-
-
-validateEmail : String -> Maybe String
-validateEmail email =
-    if
-        not (String.isEmpty email)
-            && (not (String.contains "@" email) || not (String.contains "." email))
-    then
-        Just "Please enter a valid email address."
-
-    else
-        Nothing
-
-
-validatePassword : String -> Maybe String
-validatePassword passwd =
-    if not (String.isEmpty passwd) && String.length passwd < 8 then
-        Just "Password must be at least 8 characters long."
-
-    else
-        Nothing
-
-
-validatePasswords : String -> String -> Maybe String
-validatePasswords passowrd1 password2 =
-    if not (String.isEmpty passowrd1) && passowrd1 /= password2 then
-        Just "Passwords do not match."
-
-    else
-        Nothing
+                || (Validators.email model.email /= Nothing)
+                || (Validators.password model.password /= Nothing)
+                || (Validators.passwords model.password model.passwordAgain /= Nothing)
 
 
 fromVariantToLabel : FormVariant -> String

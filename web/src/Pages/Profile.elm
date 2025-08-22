@@ -16,6 +16,7 @@ import Page exposing (Page)
 import Route exposing (Route)
 import Shared
 import Time.Format
+import Validators
 import View exposing (View)
 
 
@@ -258,10 +259,9 @@ viewPassword password =
                 [ A.class "space-y-4 max-w-md"
                 , Html.Events.onSubmit UserClickedSubmit
                 ]
-                -- TODO: implement validators
                 [ input { label = "Current Password", field = PasswordCurrent, value = password.current, error = Nothing }
-                , input { label = "New Password", field = PasswordNew, value = password.new, error = Nothing }
-                , input { label = "Confirm New Password", field = PasswordConfirm, value = password.confirm, error = Nothing }
+                , input { label = "New Password", field = PasswordNew, value = password.new, error = Validators.password password.new }
+                , input { label = "Confirm New Password", field = PasswordConfirm, value = password.confirm, error = Validators.passwords password.new password.confirm }
                 , Components.Form.submitButton
                     { disabled = isButtonDisabled
                     , text = "Change Password"
@@ -297,7 +297,7 @@ viewEmail me email =
                     , value = email.current
                     , placeholder = "Enter your new email address"
                     , onInput = UserChangedField EmailNew
-                    , error = Nothing
+                    , error = Validators.email email
                     , required = True
                     }
                 , Components.Form.submitButton
