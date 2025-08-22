@@ -86,6 +86,7 @@ type alias CanBeClicked =
 
 type ButtonStyle
     = Primary CanBeClicked
+    | PrimaryReverse CanBeClicked
     | Secondary CanBeClicked
     | SecondaryDisabled CanBeClicked
     | SecondaryDanger
@@ -120,6 +121,12 @@ buttonStyleToClass style appendClasses =
                 appendClasses
                 "px-6 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed transition-colors"
                 "px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
+
+        PrimaryReverse canBeClicked ->
+            getButtonClasses canBeClicked
+                appendClasses
+                "items-center gap-3 px-3 py-2 text-left rounded-md transition-colors bg-black text-white"
+                "items-center gap-3 px-3 py-2 text-left rounded-md transition-colors text-gray-700 hover:bg-gray-100"
 
         SecondaryDanger ->
             "text-gray-600 hover:text-red-600 transition-colors"
