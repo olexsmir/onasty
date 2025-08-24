@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,15 +24,17 @@ func TestRateLimiter_getVisitor(t *testing.T) {
 	assert.Len(t, limiter.visitors, 1)
 }
 
-// TODO: rewrite to use "testing/synctest" when it gets merged
 func TestRateLimiter_cleanupVisitors(t *testing.T) {
-	limiter := newLimiter(10, 20, time.Second/2)
-	limiter.getVisitor("192.168.9.1")
-	assert.Len(t, limiter.visitors, 1)
+	synctest.Test(t, func(t *testing.T) {
+		limiter := newLimiter(10, 20, time.Minute)
+		limiter.getVisitor("192.168.9.1")
+		assert.Len(t, limiter.visitors, 1)
 
-	time.Sleep(time.Second)
-	limiter.cleanupVisitors()
-	assert.Empty(t, limiter.visitors)
+		time.Sleep(61 * time.Second)
+
+		limiter.cleanupVisitors()
+		assert.Empty(t, limiter.visitors)
+	})
 }
 
 func TestMiddleware(t *testing.T) {
