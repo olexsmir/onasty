@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v5"
 	"github.com/olexsmir/onasty/internal/models"
 	"github.com/olexsmir/onasty/internal/store/psqlutil"
 )
