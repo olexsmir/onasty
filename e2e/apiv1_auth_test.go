@@ -347,16 +347,15 @@ type apiv1AuthChangePasswordRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_ChangePassword() {
-	password := e.uuid()
-	newPassword := e.uuid()
+	oldPassword, newPassword := e.uuid(), e.uuid()
 	email := e.uuid() + "@test.com"
-	_, toks := e.createAndSingIn(email, password)
+	_, toks := e.createAndSingIn(email, oldPassword)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/change-password",
 		e.jsonify(apiv1AuthChangePasswordRequest{
-			CurrentPassword: password,
+			CurrentPassword: oldPassword,
 			NewPassword:     newPassword,
 		}),
 		toks.AccessToken,
@@ -385,6 +384,10 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword_wrongPassword() {
 	)
 
 	e.Equal(http.StatusBadRequest, httpResp.Code)
+
+	var body errorResponse
+	e.readBodyAndUnjsonify(httpResp.Body, &body)
+	e.Equal(models.ErrUserWrongCredentials.Error(), body.Message)
 
 	userDB := e.getUserByEmail(email)
 
