@@ -120,7 +120,7 @@ func New(
 
 func (a *AuthSrv) SignUp(ctx context.Context, inp dtos.SignUp) error {
 	user := models.User{
-		ID:          uuid.Nil, // nil, since we cannot know it now
+		ID:          uuid.Nil, // nil, since we do not know it yet
 		Email:       inp.Email,
 		Activated:   false,
 		Password:    inp.Password,
