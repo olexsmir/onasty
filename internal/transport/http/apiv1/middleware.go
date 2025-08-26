@@ -106,14 +106,14 @@ func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 }
 
 func (a *APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) (uuid.UUID, error) {
-	tokenPayload, err := a.usersrv.ParseJWTToken(accessToken)
+	tokenPayload, err := a.authsrv.ParseJWTToken(accessToken)
 	if err != nil {
 		return uuid.Nil, err
 	}
 
 	userID := uuid.Must(uuid.FromString(tokenPayload.UserID))
 
-	ok, err := a.usersrv.CheckIfUserExists(ctx, userID)
+	ok, err := a.authsrv.CheckIfUserExists(ctx, userID)
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -122,7 +122,7 @@ func (a *APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) 
 		return uuid.Nil, ErrUnauthorized
 	}
 
-	ok, err = a.usersrv.CheckIfUserIsActivated(ctx, userID)
+	ok, err = a.authsrv.CheckIfUserIsActivated(ctx, userID)
 	if err != nil {
 		return uuid.Nil, err
 	}

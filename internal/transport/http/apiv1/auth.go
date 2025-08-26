@@ -20,7 +20,7 @@ func (a *APIV1) signUpHandler(c *gin.Context) {
 		return
 	}
 
-	if _, err := a.usersrv.SignUp(c.Request.Context(), dtos.SignUp{
+	if err := a.authsrv.SignUp(c.Request.Context(), dtos.SignUp{
 		Email:       req.Email,
 		Password:    req.Password,
 		CreatedAt:   time.Now(),
@@ -50,7 +50,7 @@ func (a *APIV1) signInHandler(c *gin.Context) {
 		return
 	}
 
-	toks, err := a.usersrv.SignIn(c.Request.Context(), dtos.SignIn{
+	toks, err := a.authsrv.SignIn(c.Request.Context(), dtos.SignIn{
 		Email:    req.Email,
 		Password: req.Password,
 	})
@@ -76,7 +76,7 @@ func (a *APIV1) refreshTokensHandler(c *gin.Context) {
 		return
 	}
 
-	toks, err := a.usersrv.RefreshTokens(c.Request.Context(), req.RefreshToken)
+	toks, err := a.authsrv.RefreshTokens(c.Request.Context(), req.RefreshToken)
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -177,7 +177,11 @@ func (a *APIV1) logOutHandler(c *gin.Context) {
 		return
 	}
 
-	if err := a.usersrv.Logout(c.Request.Context(), a.getUserID(c), req.RefreshToken); err != nil {
+	if err := a.authsrv.Logout(
+		c.Request.Context(),
+		a.getUserID(c),
+		req.RefreshToken,
+	); err != nil {
 		errorResponse(c, err)
 		return
 	}
@@ -186,7 +190,7 @@ func (a *APIV1) logOutHandler(c *gin.Context) {
 }
 
 func (a *APIV1) logOutAllHandler(c *gin.Context) {
-	if err := a.usersrv.LogoutAll(c.Request.Context(), a.getUserID(c)); err != nil {
+	if err := a.authsrv.LogoutAll(c.Request.Context(), a.getUserID(c)); err != nil {
 		errorResponse(c, err)
 		return
 	}
@@ -256,7 +260,7 @@ func (a *APIV1) changeEmailHandler(c *gin.Context) {
 const oatuhStateCookie = "oauth_state"
 
 func (a *APIV1) oauthLoginHandler(c *gin.Context) {
-	redirectInfo, err := a.usersrv.GetOAuthURL(c.Param("provider"))
+	redirectInfo, err := a.authsrv.GetOAuthURL(c.Param("provider"))
 	if err != nil {
 		errorResponse(c, err)
 		return
@@ -283,7 +287,7 @@ func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	tokens, err := a.usersrv.HandleOAuthLogin(
+	tokens, err := a.authsrv.HandleOAuthLogin(
 		c.Request.Context(),
 		c.Param("provider"),
 		c.Query("code"),

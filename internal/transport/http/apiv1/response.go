@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/models"
+	"github.com/olexsmir/onasty/internal/service/authsrv"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
-	"github.com/olexsmir/onasty/internal/service/usersrv"
 )
 
 var ErrUnauthorized = errors.New("unauthorized")
@@ -19,7 +19,7 @@ type response struct {
 }
 
 func errorResponse(c *gin.Context, err error) {
-	if errors.Is(err, usersrv.ErrProviderNotSupported) ||
+	if errors.Is(err, authsrv.ErrProviderNotSupported) ||
 		errors.Is(err, models.ErrResetPasswordTokenAlreadyUsed) ||
 		errors.Is(err, models.ErrResetPasswordTokenExpired) ||
 		errors.Is(err, models.ErrUserEmailIsAlreadyInUse) ||
