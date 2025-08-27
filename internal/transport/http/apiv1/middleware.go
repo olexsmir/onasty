@@ -90,6 +90,7 @@ func getTokenFromAuthHeaders(c *gin.Context) (token string, ok bool) { //nolint:
 
 // getUserId returns userId from the context
 // getting user id is only possible if user is authorized
+//
 // if userID is not set, [uuid.Nil] will be returned.
 func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 	userID, exists := c.Get(userIDCtxKey)
