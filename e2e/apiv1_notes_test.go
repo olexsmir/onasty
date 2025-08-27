@@ -3,6 +3,8 @@ package e2e_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -39,7 +41,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			name: "content only",
 			inp:  apiv1NoteCreateRequest{Content: e.uuid()}, //nolint:exhaustruct
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -58,7 +60,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -94,7 +96,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusBadRequest)
+				e.Equal(http.StatusBadRequest, r.Code)
 
 				var body errorResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -109,7 +111,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusBadRequest)
+				e.Equal(http.StatusBadRequest, r.Code)
 
 				var body errorResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -124,7 +126,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -165,7 +167,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				ExpiresAt:            time.Now().Add(time.Hour),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -194,6 +196,7 @@ type apiv1NoteGetResponse struct {
 }
 
 func (e *AppTestSuite) TestNoteV1_Get() {
+	// create note
 	content := e.uuid()
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -207,17 +210,123 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 	var bodyCreated apiv1NoteCreateResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
 
-	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
-	e.Equal(httpResp.Code, http.StatusOK)
+	// read note
+	httpResp2 := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusOK, httpResp2.Code)
 
 	var body apiv1NoteGetResponse
-	e.readBodyAndUnjsonify(httpResp.Body, &body)
+	e.readBodyAndUnjsonify(httpResp2.Body, &body)
 
 	e.Equal(content, body.Content)
 
 	dbNote := e.getNoteBySlug(bodyCreated.Slug)
-	e.Equal(dbNote.Content, "")
-	e.Equal(dbNote.ReadAt.IsZero(), false)
+	e.Empty(dbNote.Content)
+	e.False(dbNote.ReadAt.IsZero())
+}
+
+func (e *AppTestSuite) TestNoteV1_Get_alreadyRead() {
+	// create note
+	content := e.uuid()
+	httpRespCreated := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{Content: content}), //nolint:exhaustruct
+	)
+	e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+	// read note
+	httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(httpRespRead.Code, http.StatusOK)
+
+	var bodyRead apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead.Body, &bodyRead)
+
+	e.Equal(content, bodyRead.Content)
+
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
+	e.Empty(dbNote.Content)
+	e.False(dbNote.ReadAt.IsZero())
+
+	// read note once again
+	httpRespRead2 := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusNotFound, httpRespRead2.Code)
+
+	var bodyRead2 apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead2.Body, &bodyRead2)
+
+	dbNote2 := e.getNoteBySlug(bodyCreated.Slug)
+	e.Empty(dbNote2.Content)
+
+	e.Empty(bodyRead2.Content)
+	e.Equal(dbNote2.ReadAt.Unix(), bodyRead2.ReadAt.Unix())
+	e.Equal(dbNote2.CreatedAt.Unix(), bodyRead2.CreatedAt.Unix())
+	e.Equal(dbNote2.ExpiresAt.Unix(), bodyRead2.ExpiresAt.Unix())
+}
+
+func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBurnBeforeExpiration() {
+	// create note
+	content := e.uuid()
+	httpRespCreated := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:              content,
+			ExpiresAt:            time.Now().Add(time.Hour),
+			BurnBeforeExpiration: true,
+		}),
+	)
+	e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+	// read note
+	httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusOK, httpRespRead.Code)
+
+	var bodyRead apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead.Body, &bodyRead)
+
+	e.Equal(content, bodyRead.Content)
+
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
+	e.Equal(content, dbNote.Content)
+	e.True(dbNote.ReadAt.IsZero())
+}
+
+func (e *AppTestSuite) TestNoteV1_Get_ShouldBurnBeforeExpiration() {
+	// synctest is used here to ensure proper synchronization and isolation of test execution
+	// it still feels wrong to use synctest in e2e test, but it works nonetheless
+	synctest.Test(e.T(), func(_ *testing.T) {
+		// create note
+		content := e.uuid()
+		httpRespCreated := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/note",
+			e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content:              content,
+				ExpiresAt:            time.Now().Add(time.Hour),
+				BurnBeforeExpiration: true,
+			}),
+		)
+		e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+		var bodyCreated apiv1NoteCreateResponse
+		e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+		time.Sleep(2 * time.Hour)
+
+		// read note
+		httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+		e.Equal(http.StatusGone, httpRespRead.Code)
+
+		dbNote := e.getNoteBySlug(bodyCreated.Slug)
+		e.Equal(content, dbNote.Content)
+		e.True(dbNote.ReadAt.IsZero())
+	})
 }
 
 type apiv1NoteGetWithPasswordRequest struct {

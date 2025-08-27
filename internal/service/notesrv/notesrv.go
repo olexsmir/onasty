@@ -143,6 +143,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 
 	// since not every note should be burn before expiration
 	// we return early if it's not
+	// TODO: fix naming
 	if note.ShouldBeBurnt() {
 		return respNote, nil
 	}
@@ -230,8 +231,8 @@ func (n *NoteSrv) DeleteBySlug(
 }
 
 func (n *NoteSrv) getNote(ctx context.Context, inp GetNoteBySlugInput) (models.Note, error) {
-	if r, err := n.cache.GetNote(ctx, inp.Slug); err == nil {
-		return r, nil
+	if note, err := n.cache.GetNote(ctx, inp.Slug); err == nil {
+		return note, nil
 	}
 
 	note, err := n.getNoteFromDBasedOnInput(ctx, inp)
