@@ -43,6 +43,16 @@ func TestNote_Validate(t *testing.T) {
 		}
 		assert.EqualError(t, n.Validate(), ErrNoteExpired.Error())
 	})
+	t.Run("should fail if burn before expiration is set, and expiration time is not",
+		func(t *testing.T) {
+			n := Note{
+				Content:              "content",
+				BurnBeforeExpiration: true,
+			}
+
+			assert.EqualError(t, n.Validate(), ErrNoteCannotBeBurnt.Error())
+		},
+	)
 	t.Run("should fail if slug is empty", func(t *testing.T) {
 		n := Note{Content: "the content", Slug: " "}
 		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())

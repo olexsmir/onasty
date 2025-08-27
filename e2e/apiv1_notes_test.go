@@ -135,6 +135,19 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			},
 		},
 		{
+			name: "burn before expiration, but without expiration time",
+			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content:              e.uuid(),
+				BurnBeforeExpiration: true,
+			},
+			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
+				var body errorResponse
+				e.readBodyAndUnjsonify(r.Body, &body)
+
+				e.Equal(models.ErrNoteCannotBeBurnt.Error(), body.Message)
+			},
+		},
+		{
 			name: "set password",
 			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Content:  e.uuid(),
