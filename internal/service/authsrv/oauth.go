@@ -1,4 +1,4 @@
-package usersrv
+package authsrv
 
 import (
 	"context"
@@ -19,18 +19,18 @@ const (
 	githubProvider = "github"
 )
 
-func (u *UserSrv) GetOAuthURL(providerName string) (dtos.OAuthRedirect, error) {
+func (a *AuthSrv) GetOAuthURL(providerName string) (dtos.OAuthRedirect, error) {
 	state := uuid.Must(uuid.NewV4()).String()
 
 	switch providerName {
 	case googleProvider:
 		return dtos.OAuthRedirect{
-			URL:   u.googleOauth.GetAuthURL(state),
+			URL:   a.googleOauth.GetAuthURL(state),
 			State: state,
 		}, nil
 	case githubProvider:
 		return dtos.OAuthRedirect{
-			URL:   u.githubOauth.GetAuthURL(state),
+			URL:   a.githubOauth.GetAuthURL(state),
 			State: state,
 		}, nil
 	default:
@@ -38,31 +38,29 @@ func (u *UserSrv) GetOAuthURL(providerName string) (dtos.OAuthRedirect, error) {
 	}
 }
 
-func (u *UserSrv) HandleOAuthLogin(
+func (a *AuthSrv) HandleOAuthLogin(
 	ctx context.Context,
 	providerName, code string,
 ) (dtos.Tokens, error) {
-	userInfo, err := u.getUserInfoBasedOnProvider(ctx, providerName, code)
+	userInfo, err := a.getUserInfoBasedOnProvider(ctx, providerName, code)
 	if err != nil {
 		return dtos.Tokens{}, err
 	}
 
-	userID, err := u.getUserByOAuthIDOrCreateOne(ctx, userInfo)
+	userID, err := a.getUserByOAuthIDOrCreateOne(ctx, userInfo)
 	if err != nil {
 		return dtos.Tokens{}, err
 	}
 
-	if err = u.userstore.LinkOAuthIdentity(ctx, userID, userInfo.Provider, userInfo.ProviderID); err != nil {
+	if err = a.userstore.LinkOAuthIdentity(ctx, userID, userInfo.Provider, userInfo.ProviderID); err != nil {
 		slog.ErrorContext(ctx, "failed to link user identity", "user_id", userID, "err", err)
 		return dtos.Tokens{}, err
 	}
 
-	tokens, err := u.issueTokens(ctx, userID)
-
-	return tokens, err
+	return a.issueTokens(ctx, userID)
 }
 
-func (u *UserSrv) getUserInfoBasedOnProvider(
+func (a *AuthSrv) getUserInfoBasedOnProvider(
 	ctx context.Context,
 	providerName, code string,
 ) (oauth.UserInfo, error) {
@@ -71,9 +69,9 @@ func (u *UserSrv) getUserInfoBasedOnProvider(
 
 	switch providerName {
 	case googleProvider:
-		userInfo, err = u.googleOauth.ExchangeCode(ctx, code)
+		userInfo, err = a.googleOauth.ExchangeCode(ctx, code)
 	case githubProvider:
-		userInfo, err = u.githubOauth.ExchangeCode(ctx, code)
+		userInfo, err = a.githubOauth.ExchangeCode(ctx, code)
 	default:
 		return oauth.UserInfo{}, ErrProviderNotSupported
 	}
@@ -81,14 +79,14 @@ func (u *UserSrv) getUserInfoBasedOnProvider(
 	return userInfo, err
 }
 
-func (u *UserSrv) getUserByOAuthIDOrCreateOne(
+func (a *AuthSrv) getUserByOAuthIDOrCreateOne(
 	ctx context.Context,
 	info oauth.UserInfo,
 ) (uuid.UUID, error) {
-	user, err := u.userstore.GetByOAuthID(ctx, info.Provider, info.ProviderID)
+	user, err := a.userstore.GetByOAuthID(ctx, info.Provider, info.ProviderID)
 	if err != nil {
 		if errors.Is(err, models.ErrUserNotFound) {
-			uid, cerr := u.userstore.Create(ctx, models.User{
+			uid, cerr := a.userstore.Create(ctx, models.User{
 				ID:          uuid.Nil,
 				Email:       info.Email,
 				Activated:   true,

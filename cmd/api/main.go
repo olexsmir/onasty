@@ -18,6 +18,7 @@ import (
 	"github.com/olexsmir/onasty/internal/logger"
 	"github.com/olexsmir/onasty/internal/metrics"
 	"github.com/olexsmir/onasty/internal/oauth"
+	"github.com/olexsmir/onasty/internal/service/authsrv"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/changeemailrepo"
@@ -105,21 +106,29 @@ func run(ctx context.Context) error {
 	usercache := usercache.New(redisDB, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
-		sessionrepo,
 		vertokrepo,
 		pwdtokrepo,
 		changeemailrepo,
 		noterepo,
 		userPasswordHasher,
+		mailermq,
+		cfg.VerificationTokenTTL,
+		cfg.ResetPasswordTokenTTL,
+		cfg.ChangeEmailTokenTTL,
+	)
+
+	authsrv := authsrv.New(
+		userepo,
+		sessionrepo,
+		vertokrepo,
+		usercache,
+		userPasswordHasher,
 		jwtTokenizer,
 		mailermq,
-		usercache,
 		googleOauth,
 		githubOauth,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
-		cfg.ResetPasswordTokenTTL,
-		cfg.ChangeEmailTokenTTL,
 	)
 
 	rateLimiterConfig := ratelimit.Config{
@@ -135,6 +144,7 @@ func run(ctx context.Context) error {
 	}
 
 	handler := httptransport.NewTransport(
+		authsrv,
 		usersrv,
 		notesrv,
 		cfg.AppEnv,

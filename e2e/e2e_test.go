@@ -15,6 +15,7 @@ import (
 	"github.com/olexsmir/onasty/internal/hasher"
 	"github.com/olexsmir/onasty/internal/jwtutil"
 	"github.com/olexsmir/onasty/internal/logger"
+	"github.com/olexsmir/onasty/internal/service/authsrv"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/store/psql/changeemailrepo"
@@ -106,6 +107,7 @@ func (e *AppTestSuite) initDeps() {
 	changeemailrepo := changeemailrepo.New(e.postgresDB)
 
 	stubOAuthProvider := newOauthProviderStub()
+	mailerMockService := newMailerMockService()
 
 	notecache := notecache.New(e.redisDB, cfg.CacheUsersTTL)
 	noterepo := noterepo.New(e.postgresDB)
@@ -115,21 +117,29 @@ func (e *AppTestSuite) initDeps() {
 	usercache := usercache.New(e.redisDB, cfg.CacheUsersTTL)
 	usersrv := usersrv.New(
 		userepo,
-		sessionrepo,
 		vertokrepo,
 		pwdtokrepo,
 		changeemailrepo,
 		noterepo,
 		e.hasher,
-		e.jwtTokenizer,
-		newMailerMockService(),
+		mailerMockService,
+		cfg.VerificationTokenTTL,
+		cfg.ResetPasswordTokenTTL,
+		cfg.ChangeEmailTokenTTL,
+	)
+
+	authsrv := authsrv.New(
+		userepo,
+		sessionrepo,
+		vertokrepo,
 		usercache,
+		e.hasher,
+		e.jwtTokenizer,
+		mailerMockService,
 		stubOAuthProvider,
 		stubOAuthProvider,
 		cfg.JwtRefreshTokenTTL,
 		cfg.VerificationTokenTTL,
-		cfg.ResetPasswordTokenTTL,
-		cfg.ChangeEmailTokenTTL,
 	)
 
 	// for testing purposes, it's ok to have high values ig
@@ -140,6 +150,7 @@ func (e *AppTestSuite) initDeps() {
 	}
 
 	handler := httptransport.NewTransport(
+		authsrv,
 		usersrv,
 		notesrv,
 		cfg.AppEnv,

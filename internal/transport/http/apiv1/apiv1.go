@@ -3,12 +3,14 @@ package apiv1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/olexsmir/onasty/internal/config"
+	"github.com/olexsmir/onasty/internal/service/authsrv"
 	"github.com/olexsmir/onasty/internal/service/notesrv"
 	"github.com/olexsmir/onasty/internal/service/usersrv"
 	"github.com/olexsmir/onasty/internal/transport/http/ratelimit"
 )
 
 type APIV1 struct {
+	authsrv          authsrv.AuthServicer
 	usersrv          usersrv.UserServicer
 	notesrv          notesrv.NoteServicer
 	slowRatelimitCfg ratelimit.Config
@@ -17,6 +19,7 @@ type APIV1 struct {
 }
 
 func NewAPIV1(
+	as authsrv.AuthServicer,
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
 	slowRatelimitCfg ratelimit.Config,
@@ -24,6 +27,7 @@ func NewAPIV1(
 	domain string,
 ) *APIV1 {
 	return &APIV1{
+		authsrv:          as,
 		usersrv:          us,
 		notesrv:          ns,
 		slowRatelimitCfg: slowRatelimitCfg,
