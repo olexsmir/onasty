@@ -194,6 +194,7 @@ type apiv1NoteGetResponse struct {
 }
 
 func (e *AppTestSuite) TestNoteV1_Get() {
+	// create note
 	content := e.uuid()
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -207,17 +208,60 @@ func (e *AppTestSuite) TestNoteV1_Get() {
 	var bodyCreated apiv1NoteCreateResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &bodyCreated)
 
-	httpResp = e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
-	e.Equal(httpResp.Code, http.StatusOK)
+	// read note
+	httpResp2 := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusOK, httpResp2.Code)
 
 	var body apiv1NoteGetResponse
-	e.readBodyAndUnjsonify(httpResp.Body, &body)
+	e.readBodyAndUnjsonify(httpResp2.Body, &body)
 
 	e.Equal(content, body.Content)
 
 	dbNote := e.getNoteBySlug(bodyCreated.Slug)
-	e.Equal(dbNote.Content, "")
-	e.Equal(dbNote.ReadAt.IsZero(), false)
+	e.Empty(dbNote.Content)
+	e.False(dbNote.ReadAt.IsZero())
+}
+
+func (e *AppTestSuite) TestNoteV1_Get_alreadyRead() {
+	// create note
+	content := e.uuid()
+	httpRespCreated := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{Content: content}), //nolint:exhaustruct
+	)
+	e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+	// read note
+	httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(httpRespRead.Code, http.StatusOK)
+
+	var bodyRead apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead.Body, &bodyRead)
+
+	e.Equal(content, bodyRead.Content)
+
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
+	e.Empty(dbNote.Content)
+	e.False(dbNote.ReadAt.IsZero())
+
+	// // read not once again
+	httpRespRead2 := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusNotFound, httpRespRead2.Code)
+
+	var bodyRead2 apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead2.Body, &bodyRead2)
+
+	dbNote2 := e.getNoteBySlug(bodyCreated.Slug)
+	e.Empty(dbNote2.Content)
+
+	e.Empty(bodyRead2.Content)
+	e.Equal(dbNote2.ReadAt.Unix(), bodyRead2.ReadAt.Unix())
+	e.Equal(dbNote2.CreatedAt.Unix(), bodyRead2.CreatedAt.Unix())
+	e.Equal(dbNote2.ExpiresAt.Unix(), bodyRead2.ExpiresAt.Unix())
 }
 
 type apiv1NoteGetWithPasswordRequest struct {
