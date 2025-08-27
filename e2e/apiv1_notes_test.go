@@ -250,7 +250,7 @@ func (e *AppTestSuite) TestNoteV1_Get_alreadyRead() {
 	e.Empty(dbNote.Content)
 	e.False(dbNote.ReadAt.IsZero())
 
-	// // read not once again
+	// read note once again
 	httpRespRead2 := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
 	e.Equal(http.StatusNotFound, httpRespRead2.Code)
 
