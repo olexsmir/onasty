@@ -2,6 +2,7 @@ package jwtutil
 
 import (
 	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -46,15 +47,19 @@ func TestJWTUtil_Parse(t *testing.T) {
 }
 
 func TestJWTUtil_Parse_expired(t *testing.T) {
-	ttl := 100 * time.Millisecond
-	jwt := NewJWTUtil("key", ttl)
-	payload := Payload{UserID: "qwerty"}
+	ttl := 24 * time.Hour
 
-	token, err := jwt.AccessToken(payload)
-	require.NoError(t, err)
-	assert.NotEmpty(t, token)
+	synctest.Test(t, func(t *testing.T) {
+		jwt := NewJWTUtil("key", ttl)
+		payload := Payload{UserID: "qwerty"}
 
-	time.Sleep(ttl)
-	_, err = jwt.Parse(token)
-	require.Error(t, err)
+		token, err := jwt.AccessToken(payload)
+		require.NoError(t, err)
+		assert.NotEmpty(t, token)
+
+		time.Sleep(2 * ttl)
+
+		_, err = jwt.Parse(token)
+		require.EqualError(t, err, ErrTokenExpired.Error())
+	})
 }

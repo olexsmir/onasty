@@ -30,7 +30,7 @@ func TestRateLimiter_cleanupVisitors(t *testing.T) {
 		limiter.getVisitor("192.168.9.1")
 		assert.Len(t, limiter.visitors, 1)
 
-		time.Sleep(61 * time.Second)
+		time.Sleep(2 * time.Minute)
 
 		limiter.cleanupVisitors()
 		assert.Empty(t, limiter.visitors)
