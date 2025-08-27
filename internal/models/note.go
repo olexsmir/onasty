@@ -43,7 +43,7 @@ func (n Note) Validate() error {
 		return ErrNoteContentIsEmpty
 	}
 
-	if !slugPattern.MatchString(n.Slug) {
+	if n.Slug != "" && !slugPattern.MatchString(n.Slug) {
 		return ErrNoteSlugIsInvalid
 	}
 

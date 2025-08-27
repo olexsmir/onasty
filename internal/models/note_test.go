@@ -53,6 +53,10 @@ func TestNote_Validate(t *testing.T) {
 			assert.EqualError(t, n.Validate(), ErrNoteCannotBeBurnt.Error())
 		},
 	)
+	t.Run("should not fail if slug is not provided", func(t *testing.T) {
+		n := Note{Content: "the content"}
+		assert.NoError(t, n.Validate())
+	})
 	t.Run("should fail if slug is empty", func(t *testing.T) {
 		n := Note{Content: "the content", Slug: " "}
 		assert.EqualError(t, n.Validate(), ErrNoteSlugIsInvalid.Error())
