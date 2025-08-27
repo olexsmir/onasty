@@ -19,7 +19,7 @@ var (
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
 	ErrNoteSlugIsInvalid      = errors.New("note: slug is invalid")
 	ErrNoteCannotBeBurnt      = errors.New(
-		"note: cannot be burn before expiration if expiration time is not provided",
+		"note: cannot be burnt before expiration if expiration time is not provided",
 	)
 	ErrNoteExpired  = errors.New("note: expired")
 	ErrNoteNotFound = errors.New("note: not found")

@@ -357,7 +357,7 @@ viewBurnBeforeExpirationCheckbox isDisabled =
                 [ H.label [ A.for "burn", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
                     [ H.text "Keep the note until its expiration time, even if it has already been read." ]
                 , H.span [ A.class "block text-sm font-medium text-gray-500 cursor-pointer" ]
-                    [ H.text "Can be used only if 'Expiration Time is provided'" ]
+                    [ H.text "Can only be used if expiration time is set" ]
                 ]
             ]
         ]
