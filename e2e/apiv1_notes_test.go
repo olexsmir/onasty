@@ -264,6 +264,65 @@ func (e *AppTestSuite) TestNoteV1_Get_alreadyRead() {
 	e.Equal(dbNote2.ExpiresAt.Unix(), bodyRead2.ExpiresAt.Unix())
 }
 
+func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBurnBeforeExpiration() {
+	// create note
+	content := e.uuid()
+	httpRespCreated := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:              content,
+			ExpiresAt:            time.Now().Add(time.Hour),
+			BurnBeforeExpiration: true,
+		}),
+	)
+	e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+	// read note
+	httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusOK, httpRespRead.Code)
+
+	var bodyRead apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead.Body, &bodyRead)
+
+	e.Equal(content, bodyRead.Content)
+
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
+	e.Equal(content, dbNote.Content)
+	e.True(dbNote.ReadAt.IsZero())
+}
+
+func (e *AppTestSuite) TestNoteV1_Get_ShouldBurnBeforeExpiration() {
+	// create note
+	content := e.uuid()
+	httpRespCreated := e.httpRequest(
+		http.MethodPost,
+		"/api/v1/note",
+		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+			Content:              content,
+			ExpiresAt:            time.Now().Add(time.Second),
+			BurnBeforeExpiration: true,
+		}),
+	)
+	e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+	var bodyCreated apiv1NoteCreateResponse
+	e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+	time.Sleep(time.Second + (5 + time.Microsecond))
+
+	// read note
+	httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusGone, httpRespRead.Code)
+
+	dbNote := e.getNoteBySlug(bodyCreated.Slug)
+	e.Equal(content, dbNote.Content)
+	e.True(dbNote.ReadAt.IsZero())
+}
+
 type apiv1NoteGetWithPasswordRequest struct {
 	Password string `json:"password"`
 }
