@@ -287,7 +287,7 @@ viewCreateNoteForm model appUrl =
                 ]
             , H.div [ A.class "space-y-6" ]
                 [ viewExpirationTimeSelector
-                , viewBurnBeforeExpirationCheckbox
+                , viewBurnBeforeExpirationCheckbox (isCheckBoxDisabled model.expirationTime)
                 ]
             ]
         , H.div [ A.class "flex justify-end" ]
@@ -341,8 +341,8 @@ viewExpirationTimeSelector =
         ]
 
 
-viewBurnBeforeExpirationCheckbox : Html Msg
-viewBurnBeforeExpirationCheckbox =
+viewBurnBeforeExpirationCheckbox : Bool -> Html Msg
+viewBurnBeforeExpirationCheckbox isDisabled =
     H.div [ A.class "space-y-2" ]
         [ H.div [ A.class "flex items-start space-x-3" ]
             [ H.input
@@ -350,14 +350,22 @@ viewBurnBeforeExpirationCheckbox =
                 , A.id "burn"
                 , A.type_ "checkbox"
                 , A.class "mt-1 h-4 w-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
+                , A.disabled isDisabled
                 ]
                 []
             , H.div [ A.class "flex-1" ]
                 [ H.label [ A.for "burn", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
-                    [ H.text "Don't delete note until expiration time, even if it has been read it" ]
+                    [ H.text "Keep the note until its expiration time, even if it has already been read." ]
+                , H.span [ A.class "block text-sm font-medium text-gray-500 cursor-pointer" ]
+                    [ H.text "Can only be used if expiration time is set" ]
                 ]
             ]
         ]
+
+
+isCheckBoxDisabled : Maybe Int -> Bool
+isCheckBoxDisabled expirationTime =
+    expirationTime == Nothing
 
 
 isFormDisabled : Model -> Bool

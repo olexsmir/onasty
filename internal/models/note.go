@@ -18,8 +18,11 @@ var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
 	ErrNoteSlugIsInvalid      = errors.New("note: slug is invalid")
-	ErrNoteExpired            = errors.New("note: expired")
-	ErrNoteNotFound           = errors.New("note: not found")
+	ErrNoteCannotBeBurnt      = errors.New(
+		"note: cannot be burnt before expiration if expiration time is not provided",
+	)
+	ErrNoteExpired  = errors.New("note: expired")
+	ErrNoteNotFound = errors.New("note: not found")
 )
 
 type Note struct {
@@ -40,12 +43,16 @@ func (n Note) Validate() error {
 		return ErrNoteContentIsEmpty
 	}
 
-	if !slugPattern.MatchString(n.Slug) {
+	if n.Slug != "" && !slugPattern.MatchString(n.Slug) {
 		return ErrNoteSlugIsInvalid
 	}
 
 	if n.IsExpired() {
 		return ErrNoteExpired
+	}
+
+	if n.BurnBeforeExpiration && n.ExpiresAt.IsZero() {
+		return ErrNoteCannotBeBurnt
 	}
 
 	if _, exists := notAllowedSlugs[n.Slug]; exists {
