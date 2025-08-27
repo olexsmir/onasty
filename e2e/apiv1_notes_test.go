@@ -3,6 +3,8 @@ package e2e_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"testing"
+	"testing/synctest"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -296,31 +298,35 @@ func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBurnBeforeExpiration() {
 }
 
 func (e *AppTestSuite) TestNoteV1_Get_ShouldBurnBeforeExpiration() {
-	// create note
-	content := e.uuid()
-	httpRespCreated := e.httpRequest(
-		http.MethodPost,
-		"/api/v1/note",
-		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
-			Content:              content,
-			ExpiresAt:            time.Now().Add(time.Second),
-			BurnBeforeExpiration: true,
-		}),
-	)
-	e.Equal(http.StatusCreated, httpRespCreated.Code)
+	// synctest is used here to ensure proper synchronization and isolation of test execution
+	// it still feels wrong to use synctest in e2e test, but it works nonetheless
+	synctest.Test(e.T(), func(_ *testing.T) {
+		// create note
+		content := e.uuid()
+		httpRespCreated := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/note",
+			e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content:              content,
+				ExpiresAt:            time.Now().Add(time.Hour),
+				BurnBeforeExpiration: true,
+			}),
+		)
+		e.Equal(http.StatusCreated, httpRespCreated.Code)
 
-	var bodyCreated apiv1NoteCreateResponse
-	e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+		var bodyCreated apiv1NoteCreateResponse
+		e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
 
-	time.Sleep(time.Second + (5 + time.Microsecond))
+		time.Sleep(2 * time.Hour)
 
-	// read note
-	httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
-	e.Equal(http.StatusGone, httpRespRead.Code)
+		// read note
+		httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+		e.Equal(http.StatusGone, httpRespRead.Code)
 
-	dbNote := e.getNoteBySlug(bodyCreated.Slug)
-	e.Equal(content, dbNote.Content)
-	e.True(dbNote.ReadAt.IsZero())
+		dbNote := e.getNoteBySlug(bodyCreated.Slug)
+		e.Equal(content, dbNote.Content)
+		e.True(dbNote.ReadAt.IsZero())
+	})
 }
 
 type apiv1NoteGetWithPasswordRequest struct {
