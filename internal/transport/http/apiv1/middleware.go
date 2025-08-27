@@ -41,16 +41,18 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 // it is NOT required to be authorized for making the request for specific endpoint
 func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
-	if ok {
-		uid, err := a.validateAuthorizedUser(c.Request.Context(), token)
-		if err != nil {
-			errorResponse(c, err)
-			return
-		}
-
-		c.Set(userIDCtxKey, uid)
+	if !ok {
+		c.Next()
+		return
 	}
 
+	uid, err := a.validateAuthorizedUser(c.Request.Context(), token)
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
+	c.Set(userIDCtxKey, uid)
 	c.Next()
 }
 
