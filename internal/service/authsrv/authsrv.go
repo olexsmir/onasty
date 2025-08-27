@@ -213,10 +213,13 @@ func (a *AuthSrv) LogoutAll(ctx context.Context, userID uuid.UUID) error {
 }
 
 func (a *AuthSrv) CheckIfUserExists(ctx context.Context, uid uuid.UUID) (bool, error) {
-	if isExists, err := a.cache.GetIsExists(ctx, uid.String()); err == nil {
+	isExists, err := a.cache.GetIsExists(ctx, uid.String())
+	if err == nil {
 		return isExists, nil
 	}
-	isExists, err := a.userstore.CheckIfUserExists(ctx, uid)
+	slog.ErrorContext(ctx, "failed to fetch 'is user exists' cache", "err", err)
+
+	isExists, err = a.userstore.CheckIfUserExists(ctx, uid)
 	if err != nil {
 		return false, err
 	}
@@ -229,11 +232,13 @@ func (a *AuthSrv) CheckIfUserExists(ctx context.Context, uid uuid.UUID) (bool, e
 }
 
 func (a *AuthSrv) CheckIfUserIsActivated(ctx context.Context, uid uuid.UUID) (bool, error) {
-	if isActivated, err := a.cache.GetIsActivated(ctx, uid.String()); err == nil {
+	isActivated, err := a.cache.GetIsActivated(ctx, uid.String())
+	if err == nil {
 		return isActivated, nil
 	}
+	slog.ErrorContext(ctx, "failed to fetch 'is user activated' cache", "err", err)
 
-	isActivated, err := a.userstore.CheckIfUserIsActivated(ctx, uid)
+	isActivated, err = a.userstore.CheckIfUserIsActivated(ctx, uid)
 	if err != nil {
 		return false, err
 	}
