@@ -39,7 +39,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			name: "content only",
 			inp:  apiv1NoteCreateRequest{Content: e.uuid()}, //nolint:exhaustruct
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -58,7 +58,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -94,7 +94,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusBadRequest)
+				e.Equal(http.StatusBadRequest, r.Code)
 
 				var body errorResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -109,7 +109,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusBadRequest)
+				e.Equal(http.StatusBadRequest, r.Code)
 
 				var body errorResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -124,7 +124,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				Content: e.uuid(),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
@@ -165,7 +165,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				ExpiresAt:            time.Now().Add(time.Hour),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
-				e.Equal(r.Code, http.StatusCreated)
+				e.Equal(http.StatusCreated, r.Code)
 
 				var body apiv1NoteCreateResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
