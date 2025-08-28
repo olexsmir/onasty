@@ -42,7 +42,7 @@ type NoteServicer interface {
 	// GetAllUnreadByAuthorID returns all notes that ARE UNREAD and authored by author id.
 	GetAllUnreadByAuthorID(ctx context.Context, authorID uuid.UUID) ([]dtos.NoteDetailed, error)
 
-	// UpdateExpirationTimeSettings updates expiresAt and burnBeforeExpiration.
+	// UpdateExpirationTimeSettings updates expiresAt and keepBeforeExpiration.
 	// If notes is not found returns [models.ErrNoteNotFound].
 	UpdateExpirationTimeSettings(
 		ctx context.Context,
@@ -99,7 +99,7 @@ func (n *NoteSrv) Create(
 		Content:              inp.Content,
 		Slug:                 inp.Slug,
 		Password:             inp.Password,
-		BurnBeforeExpiration: inp.BurnBeforeExpiration,
+		KeepBeforeExpiration: inp.KeepBeforeExpiration,
 		CreatedAt:            inp.CreatedAt,
 		ExpiresAt:            inp.ExpiresAt,
 	}
@@ -135,7 +135,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 
 	respNote := dtos.GetNote{
 		Content:              note.Content,
-		BurnBeforeExpiration: note.BurnBeforeExpiration,
+		KeepBeforeExpiration: note.KeepBeforeExpiration,
 		ReadAt:               note.ReadAt,
 		CreatedAt:            note.CreatedAt,
 		ExpiresAt:            note.ExpiresAt,
@@ -143,8 +143,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 
 	// since not every note should be burn before expiration
 	// we return early if it's not
-	// TODO: fix naming
-	if note.ShouldBeBurnt() {
+	if note.ShouldPreserveOnRead() {
 		return respNote, nil
 	}
 
@@ -270,7 +269,7 @@ func (n *NoteSrv) mapNoteModelToDto(notes []models.Note) []dtos.NoteDetailed {
 		resNotes = append(resNotes, dtos.NoteDetailed{
 			Content:              note.Content,
 			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			KeepBeforeExpiration: note.KeepBeforeExpiration,
 			HasPassword:          note.Password != "",
 			CreatedAt:            note.CreatedAt,
 			ExpiresAt:            note.ExpiresAt,

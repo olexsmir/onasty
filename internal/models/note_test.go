@@ -31,7 +31,7 @@ func TestNote_Validate(t *testing.T) {
 		n := Note{
 			Slug:                 "some-slug",
 			Password:             "some-password",
-			BurnBeforeExpiration: false,
+			KeepBeforeExpiration: false,
 		}
 		assert.EqualError(t, n.Validate(), ErrNoteContentIsEmpty.Error())
 	})
@@ -43,14 +43,14 @@ func TestNote_Validate(t *testing.T) {
 		}
 		assert.EqualError(t, n.Validate(), ErrNoteExpired.Error())
 	})
-	t.Run("should fail if burn before expiration is set, and expiration time is not",
+	t.Run("should fail if keep before expiration is set, and expiration time is not",
 		func(t *testing.T) {
 			n := Note{
 				Content:              "content",
-				BurnBeforeExpiration: true,
+				KeepBeforeExpiration: true,
 			}
 
-			assert.EqualError(t, n.Validate(), ErrNoteCannotBeBurnt.Error())
+			assert.EqualError(t, n.Validate(), ErrNoteCannotBeKept.Error())
 		},
 	)
 	t.Run("should not fail if slug is not provided", func(t *testing.T) {
@@ -90,27 +90,27 @@ func TestNote_IsExpired(t *testing.T) {
 }
 
 //nolint:exhaustruct
-func TestNote_ShouldBeBurnt(t *testing.T) {
-	t.Run("should be burnt", func(t *testing.T) {
+func TestNote_ShouldPreserveOnRead(t *testing.T) {
+	t.Run("should keep", func(t *testing.T) {
 		note := Note{
-			BurnBeforeExpiration: true,
+			KeepBeforeExpiration: true,
 			ExpiresAt:            time.Now().Add(time.Hour),
 		}
-		assert.True(t, note.ShouldBeBurnt())
+		assert.True(t, note.ShouldPreserveOnRead())
 	})
-	t.Run("should not be burnt", func(t *testing.T) {
+	t.Run("should not be kept", func(t *testing.T) {
 		note := Note{
-			BurnBeforeExpiration: true,
+			KeepBeforeExpiration: true,
 			ExpiresAt:            time.Time{},
 		}
-		assert.False(t, note.ShouldBeBurnt())
+		assert.False(t, note.ShouldPreserveOnRead())
 	})
-	t.Run("could not be burnt when expiration and shouldBurn set to false", func(t *testing.T) {
+	t.Run("cannot be kept when expiration and shouldKeep set to false", func(t *testing.T) {
 		note := Note{
-			BurnBeforeExpiration: false,
+			KeepBeforeExpiration: false,
 			ExpiresAt:            time.Time{},
 		}
-		assert.False(t, note.ShouldBeBurnt())
+		assert.False(t, note.ShouldPreserveOnRead())
 	})
 }
 

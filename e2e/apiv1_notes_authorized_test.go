@@ -60,7 +60,7 @@ func (e *AppTestSuite) TestNoteV1_Delete() {
 
 type apiV1NotePatchRequest struct {
 	ExpiresAt            time.Time `json:"expires_at"`
-	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	KeepBeforeExpiration bool      `json:"keep_before_expiration"`
 }
 
 func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
@@ -71,7 +71,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
 			Content:              "sample content for the test",
 			ExpiresAt:            time.Now().Add(time.Minute),
-			BurnBeforeExpiration: false,
+			KeepBeforeExpiration: false,
 		}),
 		toks.AccessToken,
 	)
@@ -87,7 +87,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 		"/api/v1/note/"+body.Slug+"/expires",
 		e.jsonify(apiV1NotePatchRequest{
 			ExpiresAt:            patchTime,
-			BurnBeforeExpiration: true,
+			KeepBeforeExpiration: true,
 		}),
 		toks.AccessToken,
 	)
@@ -95,7 +95,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 	e.Equal(httpResp.Code, http.StatusOK)
 
 	dbNote := e.getNoteBySlug(body.Slug)
-	e.Equal(true, dbNote.BurnBeforeExpiration)
+	e.Equal(true, dbNote.KeepBeforeExpiration)
 	e.Equal(patchTime.Unix(), dbNote.ExpiresAt.Unix())
 }
 
@@ -106,7 +106,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime_notFound() {
 		"/api/v1/note/"+e.uuid(),
 		e.jsonify(apiV1NotePatchRequest{
 			ExpiresAt:            time.Now().Add(time.Hour),
-			BurnBeforeExpiration: true,
+			KeepBeforeExpiration: true,
 		}),
 		toks.AccessToken,
 	)
@@ -204,7 +204,7 @@ func (e *AppTestSuite) TestNoteV1_UpdatePassword_passwordNotProvided() {
 type apiv1NoteGetAllResponse struct {
 	Content              string    `json:"content"`
 	Slug                 string    `json:"slug"`
-	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	KeepBeforeExpiration bool      `json:"keep_before_expiration"`
 	HasPassword          bool      `json:"has_password"`
 	CreatedAt            time.Time `json:"created_at"`
 	ExpiresAt            time.Time `json:"expires_at"`

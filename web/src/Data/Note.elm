@@ -17,7 +17,7 @@ decodeCreateResponse =
 type alias Note =
     { content : String
     , readAt : Maybe Posix
-    , burnBeforeExpiration : Bool
+    , keepBeforeExpiration : Bool
     , createdAt : Posix
     , expiresAt : Maybe Posix
     }
@@ -28,7 +28,7 @@ decode =
     D.map5 Note
         (D.field "content" D.string)
         (D.maybe (D.field "read_at" Iso8601.decoder))
-        (D.field "burn_before_expiration" D.bool)
+        (D.field "keep_before_expiration" D.bool)
         (D.field "created_at" Iso8601.decoder)
         (D.maybe (D.field "expires_at" Iso8601.decoder))
 
