@@ -143,8 +143,7 @@ func (n *NoteSrv) GetBySlugAndRemoveIfNeeded(
 
 	// since not every note should be burn before expiration
 	// we return early if it's not
-	// TODO: fix naming
-	if note.ShouldBeBurnt() {
+	if note.ShouldPreserveOnRead() {
 		return respNote, nil
 	}
 

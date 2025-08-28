@@ -90,27 +90,27 @@ func TestNote_IsExpired(t *testing.T) {
 }
 
 //nolint:exhaustruct
-func TestNote_ShouldBeBurnt(t *testing.T) {
+func TestNote_ShouldPreserveOnRead(t *testing.T) {
 	t.Run("should be burnt", func(t *testing.T) {
 		note := Note{
 			BurnBeforeExpiration: true,
 			ExpiresAt:            time.Now().Add(time.Hour),
 		}
-		assert.True(t, note.ShouldBeBurnt())
+		assert.True(t, note.ShouldPreserveOnRead())
 	})
 	t.Run("should not be burnt", func(t *testing.T) {
 		note := Note{
 			BurnBeforeExpiration: true,
 			ExpiresAt:            time.Time{},
 		}
-		assert.False(t, note.ShouldBeBurnt())
+		assert.False(t, note.ShouldPreserveOnRead())
 	})
 	t.Run("could not be burnt when expiration and shouldBurn set to false", func(t *testing.T) {
 		note := Note{
 			BurnBeforeExpiration: false,
 			ExpiresAt:            time.Time{},
 		}
-		assert.False(t, note.ShouldBeBurnt())
+		assert.False(t, note.ShouldPreserveOnRead())
 	})
 }
 

@@ -67,7 +67,7 @@ func (n Note) IsExpired() bool {
 		n.ExpiresAt.Before(time.Now())
 }
 
-func (n Note) ShouldBeBurnt() bool {
+func (n Note) ShouldPreserveOnRead() bool {
 	return !n.ExpiresAt.IsZero() &&
 		n.BurnBeforeExpiration
 }
