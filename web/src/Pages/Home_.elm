@@ -42,7 +42,7 @@ type alias Model =
     , slug : Maybe String
     , password : Maybe String
     , expirationTime : Maybe Int
-    , dontBurnBeforeExpiration : Bool
+    , keepBeforeExpiration : Bool
     , apiError : Maybe Api.Error
     , userClickedCopyLink : Bool
     , now : Maybe Posix
@@ -61,7 +61,7 @@ init _ () =
       , slug = Nothing
       , password = Nothing
       , expirationTime = Nothing
-      , dontBurnBeforeExpiration = True
+      , keepBeforeExpiration = True
       , userClickedCopyLink = False
       , apiError = Nothing
       , now = Nothing
@@ -117,7 +117,7 @@ update shared msg model =
                 , content = model.content
                 , slug = model.slug
                 , password = model.password
-                , keepBeforeExpiration = not model.dontBurnBeforeExpiration
+                , keepBeforeExpiration = model.keepBeforeExpiration
                 , expiresAt = expiresAt
                 }
             )
@@ -165,8 +165,8 @@ update shared msg model =
             else
                 ( { model | expirationTime = String.toInt expirationTime }, Effect.none )
 
-        UserClickedCheckbox dontBurnBeforeExpiration  ->
-            ( { model | dontBurnBeforeExpiration = dontBurnBeforeExpiration }, Effect.none )
+        UserClickedCheckbox keepBeforeExpiration ->
+            ( { model | keepBeforeExpiration = keepBeforeExpiration }, Effect.none )
 
         ApiCreateNoteResponded (Ok response) ->
             ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug, apiError = Nothing }, Effect.none )
@@ -287,7 +287,7 @@ viewCreateNoteForm model appUrl =
                 ]
             , H.div [ A.class "space-y-6" ]
                 [ viewExpirationTimeSelector
-                , viewBurnBeforeExpirationCheckbox (isCheckBoxDisabled model.expirationTime)
+                , viewKeepBeforeExpirationCheckbox (isCheckBoxDisabled model.expirationTime)
                 ]
             ]
         , H.div [ A.class "flex justify-end" ]
@@ -341,20 +341,20 @@ viewExpirationTimeSelector =
         ]
 
 
-viewBurnBeforeExpirationCheckbox : Bool -> Html Msg
-viewBurnBeforeExpirationCheckbox isDisabled =
+viewKeepBeforeExpirationCheckbox : Bool -> Html Msg
+viewKeepBeforeExpirationCheckbox isDisabled =
     H.div [ A.class "space-y-2" ]
         [ H.div [ A.class "flex items-start space-x-3" ]
             [ H.input
                 [ E.onCheck UserClickedCheckbox
-                , A.id "burn"
+                , A.id "kept"
                 , A.type_ "checkbox"
                 , A.class "mt-1 h-4 w-4 text-black border-gray-300 rounded focus:ring-black focus:ring-2"
                 , A.disabled isDisabled
                 ]
                 []
             , H.div [ A.class "flex-1" ]
-                [ H.label [ A.for "burn", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
+                [ H.label [ A.for "kept", A.class "block text-sm font-medium text-gray-700 cursor-pointer" ]
                     [ H.text "Keep the note until its expiration time, even if it has already been read." ]
                 , H.span [ A.class "block text-sm font-medium text-gray-500 cursor-pointer" ]
                     [ H.text "Can only be used if expiration time is set" ]
