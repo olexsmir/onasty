@@ -117,7 +117,7 @@ update shared msg model =
                 , content = model.content
                 , slug = model.slug
                 , password = model.password
-                , burnBeforeExpiration = not model.dontBurnBeforeExpiration
+                , keepBeforeExpiration = not model.dontBurnBeforeExpiration
                 , expiresAt = expiresAt
                 }
             )
@@ -165,8 +165,8 @@ update shared msg model =
             else
                 ( { model | expirationTime = String.toInt expirationTime }, Effect.none )
 
-        UserClickedCheckbox burnBeforeExpiration ->
-            ( { model | dontBurnBeforeExpiration = burnBeforeExpiration }, Effect.none )
+        UserClickedCheckbox dontBurnBeforeExpiration  ->
+            ( { model | dontBurnBeforeExpiration = dontBurnBeforeExpiration }, Effect.none )
 
         ApiCreateNoteResponded (Ok response) ->
             ( { model | pageVariant = NoteCreated response.slug, slug = Just response.slug, apiError = Nothing }, Effect.none )

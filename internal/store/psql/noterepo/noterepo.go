@@ -48,7 +48,7 @@ type NoteStorer interface {
 		password string,
 	) (models.Note, error)
 
-	// UpdateExpirationTimeSettingsBySlug patches note by updating expiresAt and burnBeforeExpiration if one is passwd
+	// UpdateExpirationTimeSettingsBySlug patches note by updating expiresAt and keepBeforeExpiration if one is passwd
 	// Returns [models.ErrNoteNotFound] if note is not found.
 	UpdateExpirationTimeSettingsBySlug(
 		ctx context.Context,
@@ -91,8 +91,8 @@ func New(db *psqlutil.DB) *NoteRepo {
 func (s *NoteRepo) Create(ctx context.Context, inp models.Note) error {
 	query, args, err := pgq.
 		Insert("notes").
-		Columns("content", "slug", "password", "burn_before_expiration", "created_at", "expires_at").
-		Values(inp.Content, inp.Slug, inp.Password, inp.BurnBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
+		Columns("content", "slug", "password", "keep_before_expiration", "created_at", "expires_at").
+		Values(inp.Content, inp.Slug, inp.Password, inp.KeepBeforeExpiration, inp.CreatedAt, inp.ExpiresAt).
 		SQL()
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func (s *NoteRepo) Create(ctx context.Context, inp models.Note) error {
 
 func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.Note, error) {
 	query, args, err := pgq.
-		Select("content", "slug", "burn_before_expiration", "read_at", "created_at", "expires_at").
+		Select("content", "slug", "keep_before_expiration", "read_at", "created_at", "expires_at").
 		From("notes").
 		Where("(password is null or password = '')").
 		Where(pgq.Eq{"slug": slug}).
@@ -120,7 +120,7 @@ func (s *NoteRepo) GetBySlug(ctx context.Context, slug dtos.NoteSlug) (models.No
 	var note models.Note
 	var readAt sql.NullTime
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &readAt, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.Content, &note.Slug, &note.KeepBeforeExpiration, &readAt, &note.CreatedAt, &note.ExpiresAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{}, models.ErrNoteNotFound
 	}
@@ -158,7 +158,7 @@ func (s *NoteRepo) GetAllByAuthorID(
 	authorID uuid.UUID,
 ) ([]models.Note, error) {
 	query := `--sql
-select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
+select n.content, n.slug, n.keep_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
 from notes n
 inner join notes_authors na on n.id = na.note_id
 where na.user_id = $1`
@@ -171,7 +171,7 @@ func (s *NoteRepo) GetAllReadByAuthorID(
 	authorID uuid.UUID,
 ) ([]models.Note, error) {
 	query := `--sql
-select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
+select n.content, n.slug, n.keep_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
 from notes n
 inner join notes_authors na on n.id = na.note_id
 where na.user_id = $1
@@ -185,7 +185,7 @@ func (s *NoteRepo) GetAllUnreadByAuthorID(
 	authorID uuid.UUID,
 ) ([]models.Note, error) {
 	query := `--sql
-select n.content, n.slug, n.burn_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
+select n.content, n.slug, n.keep_before_expiration, n.password, n.read_at, n.created_at, n.expires_at
 from notes n
 inner join notes_authors na on n.id = na.note_id
 where na.user_id = $1
@@ -214,7 +214,7 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	passwd string,
 ) (models.Note, error) {
 	query, args, err := pgq.
-		Select("content", "slug", "burn_before_expiration", "read_at", "created_at", "expires_at").
+		Select("content", "slug", "keep_before_expiration", "read_at", "created_at", "expires_at").
 		From("notes").
 		Where(pgq.Eq{
 			"slug":     slug,
@@ -228,7 +228,7 @@ func (s *NoteRepo) GetBySlugAndPassword(
 	var note models.Note
 	var readAt sql.NullTime
 	err = s.db.QueryRow(ctx, query, args...).
-		Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &readAt, &note.CreatedAt, &note.ExpiresAt)
+		Scan(&note.Content, &note.Slug, &note.KeepBeforeExpiration, &readAt, &note.CreatedAt, &note.ExpiresAt)
 
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.Note{}, models.ErrNoteNotFound
@@ -247,7 +247,7 @@ func (s *NoteRepo) UpdateExpirationTimeSettingsBySlug(
 ) error {
 	query := `--sql
 update notes n
-set burn_before_expiration = COALESCE($1, n.burn_before_expiration),
+set keep_before_expiration = COALESCE($1, n.keep_before_expiration),
     expires_at = COALESCE($2, n.expires_at)
 from notes_authors na
 where n.slug = $3
@@ -255,7 +255,7 @@ where n.slug = $3
   and na.note_id = n.id`
 
 	ct, err := s.db.Exec(ctx, query,
-		patch.BurnBeforeExpiration, patch.ExpiresAt,
+		patch.KeepBeforeExpiration, patch.ExpiresAt,
 		slug, authorID.String())
 	if err != nil {
 		return err
@@ -392,7 +392,7 @@ func (s *NoteRepo) getAllNotes(
 	for rows.Next() {
 		var note models.Note
 		var readAt sql.NullTime
-		if err := rows.Scan(&note.Content, &note.Slug, &note.BurnBeforeExpiration, &note.Password,
+		if err := rows.Scan(&note.Content, &note.Slug, &note.KeepBeforeExpiration, &note.Password,
 			&readAt, &note.CreatedAt, &note.ExpiresAt); err != nil {
 			return nil, err
 		}

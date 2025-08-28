@@ -193,7 +193,7 @@ viewHeader options =
 viewShowNoteHeader : Zone -> String -> Note -> Html Msg
 viewShowNoteHeader zone slug note =
     H.div []
-        [ Components.Utils.viewIf note.burnBeforeExpiration
+        [ Components.Utils.viewIf note.keepBeforeExpiration
             (H.div [ A.class "bg-orange-50 border-b border-orange-200 p-4" ]
                 [ H.div [ A.class "flex items-center gap-3" ]
                     [ H.div [ A.class "w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0" ]

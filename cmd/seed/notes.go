@@ -13,7 +13,7 @@ var notesData = []struct {
 	id                   string
 	content              string
 	slug                 string
-	burnBeforeExpiration bool
+	keepBeforeExpiration bool
 	password             string
 	expiresAt            time.Time
 	hasAuthor            bool
@@ -22,12 +22,12 @@ var notesData = []struct {
 	{ //nolint:exhaustruct
 		content:              "that test note one",
 		slug:                 "one",
-		burnBeforeExpiration: false,
+		keepBeforeExpiration: false,
 	},
 	{ //nolint:exhaustruct
 		content:              "that test note two",
 		slug:                 "two",
-		burnBeforeExpiration: true,
+		keepBeforeExpiration: true,
 		password:             "",
 		expiresAt:            time.Now().Add(24 * time.Hour),
 	},
@@ -74,17 +74,17 @@ func seedNotes(
 
 		err := db.QueryRow(
 			ctx, `
-		insert into notes (content, slug, burn_before_expiration, password, expires_at)
+		insert into notes (content, slug, keep_before_expiration, password, expires_at)
 		values ($1, $2, $3, $4, $5)
 		on conflict (slug) do update set
 			content = excluded.content,
-			burn_before_expiration = excluded.burn_before_expiration,
+			keep_before_expiration = excluded.keep_before_expiration,
 			password = excluded.password,
 			expires_at = excluded.expires_at
 		returning id`,
 			note.content,
 			note.slug,
-			note.burnBeforeExpiration,
+			note.keepBeforeExpiration,
 			passwd,
 			note.expiresAt,
 		).Scan(&notesData[i].id)

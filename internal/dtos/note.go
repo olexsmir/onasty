@@ -10,7 +10,7 @@ type NoteSlug = string
 
 type GetNote struct {
 	Content              string
-	BurnBeforeExpiration bool
+	KeepBeforeExpiration bool
 	ReadAt               time.Time
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
@@ -25,7 +25,7 @@ type CreateNote struct {
 	Content              string
 	UserID               uuid.UUID
 	Slug                 NoteSlug
-	BurnBeforeExpiration bool
+	KeepBeforeExpiration bool
 	Password             string
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
@@ -34,7 +34,7 @@ type CreateNote struct {
 type NoteDetailed struct {
 	Content              string
 	Slug                 NoteSlug
-	BurnBeforeExpiration bool
+	KeepBeforeExpiration bool
 	HasPassword          bool
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
@@ -43,5 +43,5 @@ type NoteDetailed struct {
 
 type PatchNote struct {
 	ExpiresAt            *time.Time
-	BurnBeforeExpiration *bool
+	KeepBeforeExpiration *bool
 }

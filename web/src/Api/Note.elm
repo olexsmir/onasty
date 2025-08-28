@@ -15,7 +15,7 @@ create :
     , slug : Maybe String
     , password : Maybe String
     , expiresAt : Posix
-    , burnBeforeExpiration : Bool
+    , keepBeforeExpiration : Bool
     }
     -> Effect msg
 create options =
@@ -34,7 +34,7 @@ create options =
                 [ ( "content", E.string options.content )
                 , encodeMaybe "slug" E.string options.slug
                 , encodeMaybe "password" E.string options.password
-                , ( "burn_before_expiration", E.bool options.burnBeforeExpiration )
+                , ( "keep_before_expiration", E.bool options.keepBeforeExpiration )
                 , if options.expiresAt == Time.millisToPosix 0 then
                     ( "expires_at", E.null )
 

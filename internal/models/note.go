@@ -18,8 +18,8 @@ var (
 	ErrNoteContentIsEmpty     = errors.New("note: content is empty")
 	ErrNoteSlugIsAlreadyInUse = errors.New("note: slug is already in use")
 	ErrNoteSlugIsInvalid      = errors.New("note: slug is invalid")
-	ErrNoteCannotBeBurnt      = errors.New(
-		"note: cannot be burnt before expiration if expiration time is not provided",
+	ErrNoteCannotBeKept       = errors.New(
+		"note: cannot be kept before expiration if expiration time is not provided",
 	)
 	ErrNoteExpired  = errors.New("note: expired")
 	ErrNoteNotFound = errors.New("note: not found")
@@ -30,7 +30,7 @@ type Note struct {
 	Content              string
 	Slug                 string
 	Password             string
-	BurnBeforeExpiration bool
+	KeepBeforeExpiration bool
 	ReadAt               time.Time
 	CreatedAt            time.Time
 	ExpiresAt            time.Time
@@ -51,8 +51,8 @@ func (n Note) Validate() error {
 		return ErrNoteExpired
 	}
 
-	if n.BurnBeforeExpiration && n.ExpiresAt.IsZero() {
-		return ErrNoteCannotBeBurnt
+	if n.KeepBeforeExpiration && n.ExpiresAt.IsZero() {
+		return ErrNoteCannotBeKept
 	}
 
 	if _, exists := notAllowedSlugs[n.Slug]; exists {
@@ -69,7 +69,7 @@ func (n Note) IsExpired() bool {
 
 func (n Note) ShouldPreserveOnRead() bool {
 	return !n.ExpiresAt.IsZero() &&
-		n.BurnBeforeExpiration
+		n.KeepBeforeExpiration
 }
 
 func (n Note) IsRead() bool {

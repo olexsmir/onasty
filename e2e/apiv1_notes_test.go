@@ -16,7 +16,7 @@ type (
 		Content              string    `json:"content"`
 		Slug                 string    `json:"slug"`
 		Password             string    `json:"password"`
-		BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+		KeepBeforeExpiration bool      `json:"keep_before_expiration"`
 		ExpiresAt            time.Time `json:"expires_at"`
 	}
 	apiv1NoteCreateResponse struct {
@@ -137,16 +137,16 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			},
 		},
 		{
-			name: "burn before expiration, but without expiration time",
+			name: "keep before expiration, but without expiration time",
 			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Content:              e.uuid(),
-				BurnBeforeExpiration: true,
+				KeepBeforeExpiration: true,
 			},
 			assert: func(r *httptest.ResponseRecorder, _ apiv1NoteCreateRequest) {
 				var body errorResponse
 				e.readBodyAndUnjsonify(r.Body, &body)
 
-				e.Equal(models.ErrNoteCannotBeBurnt.Error(), body.Message)
+				e.Equal(models.ErrNoteCannotBeKept.Error(), body.Message)
 			},
 		},
 		{
@@ -163,7 +163,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 			name: "all possible fields",
 			inp: apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Content:              e.uuid(),
-				BurnBeforeExpiration: true,
+				KeepBeforeExpiration: true,
 				ExpiresAt:            time.Now().Add(time.Hour),
 			},
 			assert: func(r *httptest.ResponseRecorder, inp apiv1NoteCreateRequest) {
@@ -176,7 +176,7 @@ func (e *AppTestSuite) TestNoteV1_Create() {
 				e.NotEmpty(dbNote)
 
 				e.Equal(dbNote.Content, inp.Content)
-				e.Equal(dbNote.BurnBeforeExpiration, inp.BurnBeforeExpiration)
+				e.Equal(dbNote.KeepBeforeExpiration, inp.KeepBeforeExpiration)
 				e.Equal(dbNote.ExpiresAt.Unix(), inp.ExpiresAt.Unix())
 			},
 		},
@@ -266,7 +266,7 @@ func (e *AppTestSuite) TestNoteV1_Get_alreadyRead() {
 	e.Equal(dbNote2.ExpiresAt.Unix(), bodyRead2.ExpiresAt.Unix())
 }
 
-func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBurnBeforeExpiration() {
+func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBeKeptBeforeExpiration() {
 	// create note
 	content := e.uuid()
 	httpRespCreated := e.httpRequest(
@@ -275,7 +275,7 @@ func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBurnBeforeExpiration() {
 		e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
 			Content:              content,
 			ExpiresAt:            time.Now().Add(time.Hour),
-			BurnBeforeExpiration: true,
+			KeepBeforeExpiration: true,
 		}),
 	)
 	e.Equal(http.StatusCreated, httpRespCreated.Code)
@@ -297,7 +297,7 @@ func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBurnBeforeExpiration() {
 	e.True(dbNote.ReadAt.IsZero())
 }
 
-func (e *AppTestSuite) TestNoteV1_Get_ShouldBurnBeforeExpiration() {
+func (e *AppTestSuite) TestNoteV1_Get_ShouldKeepBeforeExpiration_expired() {
 	// synctest is used here to ensure proper synchronization and isolation of test execution
 	// it still feels wrong to use synctest in e2e test, but it works nonetheless
 	synctest.Test(e.T(), func(_ *testing.T) {
@@ -309,7 +309,7 @@ func (e *AppTestSuite) TestNoteV1_Get_ShouldBurnBeforeExpiration() {
 			e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
 				Content:              content,
 				ExpiresAt:            time.Now().Add(time.Hour),
-				BurnBeforeExpiration: true,
+				KeepBeforeExpiration: true,
 			}),
 		)
 		e.Equal(http.StatusCreated, httpRespCreated.Code)

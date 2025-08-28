@@ -13,7 +13,7 @@ type createNoteRequest struct {
 	Content              string    `json:"content"`
 	Slug                 string    `json:"slug"`
 	Password             string    `json:"password"`
-	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	KeepBeforeExpiration bool      `json:"keep_before_expiration"`
 	ExpiresAt            time.Time `json:"expires_at"`
 }
 
@@ -28,14 +28,12 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: burn_before_expiration shouldn't be set if user has not set or specified expires_at
-
 	slug, err := a.notesrv.Create(c.Request.Context(), dtos.CreateNote{
 		Content:              req.Content,
 		UserID:               a.getUserID(c),
 		Slug:                 req.Slug,
 		Password:             req.Password,
-		BurnBeforeExpiration: req.BurnBeforeExpiration,
+		KeepBeforeExpiration: req.KeepBeforeExpiration,
 		CreatedAt:            time.Now(),
 		ExpiresAt:            req.ExpiresAt,
 	}, a.getUserID(c))
@@ -50,7 +48,7 @@ func (a *APIV1) createNoteHandler(c *gin.Context) {
 type getNoteBySlugResponse struct {
 	Content              string    `json:"content"`
 	ReadAt               time.Time `json:"read_at,omitzero"`
-	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	KeepBeforeExpiration bool      `json:"keep_before_expiration"`
 	CreatedAt            time.Time `json:"created_at"`
 	ExpiresAt            time.Time `json:"expires_at,omitzero"`
 }
@@ -78,7 +76,7 @@ func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
 		ReadAt:               note.ReadAt,
 		CreatedAt:            note.CreatedAt,
 		ExpiresAt:            note.ExpiresAt,
-		BurnBeforeExpiration: note.BurnBeforeExpiration,
+		KeepBeforeExpiration: note.KeepBeforeExpiration,
 	})
 }
 
@@ -115,7 +113,7 @@ func (a *APIV1) getNoteBySlugAndPasswordHandler(c *gin.Context) {
 		ReadAt:               note.ReadAt,
 		CreatedAt:            note.CreatedAt,
 		ExpiresAt:            note.ExpiresAt,
-		BurnBeforeExpiration: note.BurnBeforeExpiration,
+		KeepBeforeExpiration: note.KeepBeforeExpiration,
 	})
 }
 
@@ -140,7 +138,7 @@ func (a *APIV1) getNoteMetadataByIDHandler(c *gin.Context) {
 type getNotesResponse struct {
 	Content              string    `json:"content"`
 	Slug                 string    `json:"slug"`
-	BurnBeforeExpiration bool      `json:"burn_before_expiration"`
+	KeepBeforeExpiration bool      `json:"keep_before_expiration"`
 	HasPassword          bool      `json:"has_password"`
 	CreatedAt            time.Time `json:"created_at"`
 	ExpiresAt            time.Time `json:"expires_at,omitzero"`
@@ -179,7 +177,7 @@ func (a *APIV1) getUnReadNotesHandler(c *gin.Context) {
 
 type updateNoteRequest struct {
 	ExpiresAt            *time.Time `json:"expires_at,omitempty"`
-	BurnBeforeExpiration *bool      `json:"burn_before_expiration,omitempty"`
+	KeepBeforeExpiration *bool      `json:"keep_before_expiration,omitempty"`
 }
 
 func (a *APIV1) updateNoteHandler(c *gin.Context) {
@@ -189,12 +187,10 @@ func (a *APIV1) updateNoteHandler(c *gin.Context) {
 		return
 	}
 
-	// TODO: burn_before_expiration shouldn't be set if user has not set or specified expires_at
-
 	if err := a.notesrv.UpdateExpirationTimeSettings(
 		c.Request.Context(),
 		dtos.PatchNote{
-			BurnBeforeExpiration: req.BurnBeforeExpiration,
+			KeepBeforeExpiration: req.KeepBeforeExpiration,
 			ExpiresAt:            req.ExpiresAt,
 		},
 		c.Param("slug"),
@@ -250,7 +246,7 @@ func mapNotesDTOToResponse(notes []dtos.NoteDetailed) []getNotesResponse {
 		response = append(response, getNotesResponse{
 			Content:              note.Content,
 			Slug:                 note.Slug,
-			BurnBeforeExpiration: note.BurnBeforeExpiration,
+			KeepBeforeExpiration: note.KeepBeforeExpiration,
 			HasPassword:          note.HasPassword,
 			CreatedAt:            note.CreatedAt,
 			ExpiresAt:            note.ExpiresAt,
