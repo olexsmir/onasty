@@ -295,6 +295,21 @@ func (e *AppTestSuite) TestNoteV1_Get_ShouldNotBeKeptBeforeExpiration() {
 	dbNote := e.getNoteBySlug(bodyCreated.Slug)
 	e.Equal(content, dbNote.Content)
 	e.True(dbNote.ReadAt.IsZero())
+
+	// read note again
+	httpRespRead2 := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+	e.Equal(http.StatusOK, httpRespRead2.Code)
+
+	var body2 apiv1NoteGetResponse
+	e.readBodyAndUnjsonify(httpRespRead2.Body, &body2)
+
+	dbNote2 := e.getNoteBySlug(bodyCreated.Slug)
+	e.Equal(content, dbNote2.Content)
+	e.Equal(body2.Content, dbNote.Content)
+	e.True(dbNote2.ReadAt.IsZero())
+
+	e.Equal(bodyRead, body2)
+	e.Equal(dbNote, dbNote2)
 }
 
 func (e *AppTestSuite) TestNoteV1_Get_ShouldKeepBeforeExpiration_expired() {
@@ -310,6 +325,37 @@ func (e *AppTestSuite) TestNoteV1_Get_ShouldKeepBeforeExpiration_expired() {
 				Content:              content,
 				ExpiresAt:            time.Now().Add(time.Hour),
 				KeepBeforeExpiration: true,
+			}),
+		)
+		e.Equal(http.StatusCreated, httpRespCreated.Code)
+
+		var bodyCreated apiv1NoteCreateResponse
+		e.readBodyAndUnjsonify(httpRespCreated.Body, &bodyCreated)
+
+		time.Sleep(2 * time.Hour)
+
+		// read note
+		httpRespRead := e.httpRequest(http.MethodGet, "/api/v1/note/"+bodyCreated.Slug, nil)
+		e.Equal(http.StatusGone, httpRespRead.Code)
+
+		dbNote := e.getNoteBySlug(bodyCreated.Slug)
+		e.Equal(content, dbNote.Content)
+		e.True(dbNote.ReadAt.IsZero())
+	})
+}
+
+func (e *AppTestSuite) TestNoteV1_Get_expired() {
+	// synctest is used here to ensure proper synchronization and isolation of test execution
+	// it still feels wrong to use synctest in e2e test, but it works nonetheless
+	synctest.Test(e.T(), func(_ *testing.T) {
+		// create note
+		content := e.uuid()
+		httpRespCreated := e.httpRequest(
+			http.MethodPost,
+			"/api/v1/note",
+			e.jsonify(apiv1NoteCreateRequest{ //nolint:exhaustruct
+				Content:   content,
+				ExpiresAt: time.Now().Add(time.Hour),
 			}),
 		)
 		e.Equal(http.StatusCreated, httpRespCreated.Code)
