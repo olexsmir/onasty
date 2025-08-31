@@ -116,7 +116,7 @@ func (u *UserSrv) ChangePassword(
 	}
 
 	if err = u.hasher.Compare(user.Password, inp.CurrentPassword); err != nil {
-		return models.ErrUserWrongCredentials
+		return models.ErrUserNotFound
 	}
 
 	newPass, err := u.hasher.Hash(inp.NewPassword)

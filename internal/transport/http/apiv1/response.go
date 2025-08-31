@@ -28,7 +28,6 @@ func errorResponse(c *gin.Context, err error) {
 		errors.Is(err, models.ErrUserInvalidEmail) ||
 		errors.Is(err, models.ErrUserInvalidPassword) ||
 		errors.Is(err, models.ErrUserNotFound) ||
-		errors.Is(err, models.ErrUserWrongCredentials) ||
 		// notes
 		errors.Is(err, notesrv.ErrNotePasswordNotProvided) ||
 		errors.Is(err, models.ErrNoteContentIsEmpty) ||

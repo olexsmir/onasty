@@ -171,7 +171,7 @@ func (a *AuthSrv) SignIn(ctx context.Context, inp dtos.SignIn) (dtos.Tokens, err
 
 	if err = a.hasher.Compare(user.Password, inp.Password); err != nil {
 		if errors.Is(err, hasher.ErrMismatchedHashes) {
-			return dtos.Tokens{}, models.ErrUserWrongCredentials
+			return dtos.Tokens{}, models.ErrUserNotFound
 		}
 		return dtos.Tokens{}, err
 	}

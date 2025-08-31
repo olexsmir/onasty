@@ -227,14 +227,14 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 			email:        "wrong@email.com",
 			password:     e.uuid(),
 			expectedCode: http.StatusBadRequest,
-			expectedMsg:  models.ErrUserWrongCredentials.Error(),
+			expectedMsg:  models.ErrUserNotFound.Error(),
 		},
 		{
 			name:         "wrong password",
 			email:        email,
 			password:     "wrong-wrong",
 			expectedCode: http.StatusBadRequest,
-			expectedMsg:  models.ErrUserWrongCredentials.Error(),
+			expectedMsg:  models.ErrUserNotFound.Error(),
 		},
 	}
 
@@ -381,7 +381,7 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword_wrongPassword() {
 
 	var body errorResponse
 	e.readBodyAndUnjsonify(httpResp.Body, &body)
-	e.Equal(models.ErrUserWrongCredentials.Error(), body.Message)
+	e.Equal(models.ErrUserNotFound.Error(), body.Message)
 
 	userDB := e.getUserByEmail(email)
 
