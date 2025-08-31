@@ -264,7 +264,7 @@ type apiv1AuthRefreshTokensRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
-	uid, toks := e.createAndSingIn(e.randomEmail(), "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/refresh-tokens",
@@ -301,7 +301,7 @@ type apiV1AuthLogoutRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_Logout() {
-	uid, toks := e.createAndSingIn(e.randomEmail(), "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 
 	sessionDB := e.getLastSessionByUserID(uid)
 	e.NotEmpty(sessionDB.RefreshToken)
@@ -321,7 +321,7 @@ func (e *AppTestSuite) TestAuthV1_Logout() {
 }
 
 func (e *AppTestSuite) TestAuthV1_LogoutAll() {
-	uid, toks := e.createAndSingIn(e.randomEmail(), "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 
 	var res int
 	query := "select count(*) from sessions where user_id = $1"
@@ -400,7 +400,7 @@ type (
 
 func (e *AppTestSuite) TestAuthV1_ResetPassword() {
 	email := e.randomEmail()
-	uid, _ := e.createAndSingIn(email, "password")
+	uid, _ := e.createAndSingIn(email, e.uuid())
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -435,7 +435,7 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword() {
 }
 
 func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
-	_, _ = e.createAndSingIn(e.randomEmail(), "password")
+	_, _ = e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/reset-password",
@@ -511,7 +511,7 @@ type getMeResponse struct {
 
 func (e *AppTestSuite) TestApiV1_getMe() {
 	email := e.randomEmail()
-	uid, toks := e.createAndSingIn(email, "password")
+	uid, toks := e.createAndSingIn(email, e.uuid())
 
 	httpResp := e.httpRequest(http.MethodGet, "/api/v1/me", nil, toks.AccessToken)
 
