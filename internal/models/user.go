@@ -11,13 +11,11 @@ import (
 var (
 	ErrUserEmailIsAlreadyInUse = errors.New("user: email is already in use")
 	ErrUserIsAlreadyVerified   = errors.New("user: user is already verified")
+	ErrUserIsNotActivated      = errors.New("user: user is not activated")
+	ErrUserNotFound            = errors.New("user: not found")
 
 	ErrResetPasswordTokenAlreadyUsed = errors.New("reset password token is already used")
 	ErrVerificationTokenNotFound     = errors.New("user: verification token not found")
-	ErrUserIsNotActivated            = errors.New("user: user is not activated")
-
-	ErrUserNotFound         = errors.New("user: not found")
-	ErrUserWrongCredentials = errors.New("user: wrong credentials")
 
 	ErrUserInvalidEmail    = errors.New("user: invalid email")
 	ErrUserInvalidPassword = errors.New("user: password too short, minimum 6 chars")
