@@ -7,7 +7,7 @@ import (
 )
 
 func (e *AppTestSuite) TestNoteV1_Create_authorized() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/note",
@@ -28,7 +28,7 @@ func (e *AppTestSuite) TestNoteV1_Create_authorized() {
 }
 
 func (e *AppTestSuite) TestNoteV1_Delete() {
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/note",
@@ -64,7 +64,7 @@ type apiV1NotePatchRequest struct {
 }
 
 func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/note",
@@ -100,7 +100,7 @@ func (e *AppTestSuite) TestNoteV1_updateExpirationTime() {
 }
 
 func (e *AppTestSuite) TestNoteV1_updateExpirationTime_notFound() {
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPatch,
 		"/api/v1/note/"+e.uuid(),
@@ -119,7 +119,7 @@ type apiV1NoteSetPasswordRequest struct {
 }
 
 func (e *AppTestSuite) TestNoteV1_UpdatePassword() {
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/note",
@@ -157,7 +157,7 @@ func (e *AppTestSuite) TestNoteV1_UpdatePassword() {
 }
 
 func (e *AppTestSuite) TestNoteV1_UpdatePassword_notFound() {
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPatch,
 		"/api/v1/note/"+e.uuid()+"/password",
@@ -171,7 +171,7 @@ func (e *AppTestSuite) TestNoteV1_UpdatePassword_notFound() {
 }
 
 func (e *AppTestSuite) TestNoteV1_UpdatePassword_passwordNotProvided() {
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/note",
@@ -224,7 +224,7 @@ func (e *AppTestSuite) TestNoteV1_GetAll() {
 		{slug: e.uuid(), content: e.uuid(), read: false},
 	}
 
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 
 	// create notes
 	for _, ni := range notesInfo {
@@ -273,7 +273,7 @@ func (e *AppTestSuite) TestNoteV1_GetAllRead() {
 		{slug: e.uuid(), content: e.uuid()},
 	}
 
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 
 	// create few notes
 	for _, ni := range notesInfo {
@@ -333,7 +333,7 @@ func (e *AppTestSuite) TestNoteV1_GetAllUnread() {
 			func(n notesTestData) bool { return n.read }),
 	)
 
-	_, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, toks := e.createAndSingIn(e.randomEmail(), e.uuid())
 
 	// create notes
 	for _, ni := range notesInfo {
