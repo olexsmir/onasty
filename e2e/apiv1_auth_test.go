@@ -18,8 +18,7 @@ type apiv1AuthSignUpRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_SignUP() {
-	email := e.uuid() + "test@test.com"
-	password := "password"
+	email, password := e.randomEmail(), "password"
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -47,7 +46,7 @@ func (e *AppTestSuite) TestAuthV1_SignUP_badrequest() {
 	}{
 		{name: "all fields empty", email: "", password: ""},
 		{name: "non valid email", email: "email", password: "password"},
-		{name: "non valid password", email: "test@test.com", password: "12345"},
+		{name: "non valid password", email: e.randomEmail(), password: "12345"},
 	}
 	for _, t := range tests {
 		httpResp := e.httpRequest(
@@ -200,11 +199,9 @@ func (e *AppTestSuite) TestAuthV1_SignIn() {
 }
 
 func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
-	password := "password"
-	email := e.uuid() + "@test.com"
-	e.insertUser(email, "password", true)
+	email, unactivatedEmail, password := e.randomEmail(), e.randomEmail(), e.uuid()
 
-	unactivatedEmail := e.uuid() + "@test.com"
+	e.insertUser(email, password, true)
 	e.insertUser(unactivatedEmail, password, false)
 
 	//exhaustruct:ignore
@@ -228,7 +225,7 @@ func (e *AppTestSuite) TestAuthV1_SignIn_wrong() {
 		{
 			name:         "wrong email",
 			email:        "wrong@email.com",
-			password:     password,
+			password:     e.uuid(),
 			expectedCode: http.StatusBadRequest,
 			expectedMsg:  models.ErrUserWrongCredentials.Error(),
 		},
@@ -267,7 +264,7 @@ type apiv1AuthRefreshTokensRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_RefreshTokens() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/refresh-tokens",
@@ -304,7 +301,7 @@ type apiV1AuthLogoutRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_Logout() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), "password")
 
 	sessionDB := e.getLastSessionByUserID(uid)
 	e.NotEmpty(sessionDB.RefreshToken)
@@ -324,7 +321,7 @@ func (e *AppTestSuite) TestAuthV1_Logout() {
 }
 
 func (e *AppTestSuite) TestAuthV1_LogoutAll() {
-	uid, toks := e.createAndSingIn(e.uuid()+"@test.com", "password")
+	uid, toks := e.createAndSingIn(e.randomEmail(), "password")
 
 	var res int
 	query := "select count(*) from sessions where user_id = $1"
@@ -347,8 +344,7 @@ type apiv1AuthChangePasswordRequest struct {
 }
 
 func (e *AppTestSuite) TestAuthV1_ChangePassword() {
-	oldPassword, newPassword := e.uuid(), e.uuid()
-	email := e.uuid() + "@test.com"
+	email, oldPassword, newPassword := e.randomEmail(), e.uuid(), e.uuid()
 	_, toks := e.createAndSingIn(email, oldPassword)
 
 	httpResp := e.httpRequest(
@@ -368,10 +364,8 @@ func (e *AppTestSuite) TestAuthV1_ChangePassword() {
 }
 
 func (e *AppTestSuite) TestAuthV1_ChangePassword_wrongPassword() {
-	password := e.uuid()
-	newPassword := e.uuid()
-	email := e.uuid() + "@test.com"
-	_, toks := e.createAndSingIn(email, password)
+	email, oldPassword, newPassword := e.randomEmail(), e.uuid(), e.uuid()
+	_, toks := e.createAndSingIn(email, oldPassword)
 
 	httpResp := e.httpRequest(
 		http.MethodPost,
@@ -405,7 +399,7 @@ type (
 )
 
 func (e *AppTestSuite) TestAuthV1_ResetPassword() {
-	email := e.uuid() + "@test.com"
+	email := e.randomEmail()
 	uid, _ := e.createAndSingIn(email, "password")
 
 	httpResp := e.httpRequest(
@@ -441,7 +435,7 @@ func (e *AppTestSuite) TestAuthV1_ResetPassword() {
 }
 
 func (e *AppTestSuite) TestAuthV1_ResetPassword_nonExistentUser() {
-	_, _ = e.createAndSingIn(e.uuid()+"@test.com", "password")
+	_, _ = e.createAndSingIn(e.randomEmail(), "password")
 	httpResp := e.httpRequest(
 		http.MethodPost,
 		"/api/v1/auth/reset-password",
@@ -516,7 +510,7 @@ type getMeResponse struct {
 }
 
 func (e *AppTestSuite) TestApiV1_getMe() {
-	email := e.uuid() + "@test.com"
+	email := e.randomEmail()
 	uid, toks := e.createAndSingIn(email, "password")
 
 	httpResp := e.httpRequest(http.MethodGet, "/api/v1/me", nil, toks.AccessToken)
