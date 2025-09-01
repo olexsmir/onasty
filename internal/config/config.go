@@ -5,7 +5,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
+)
+
+var (
+	instance *Config
+	once     sync.Once
 )
 
 // Environment represents current app environment.
@@ -71,64 +77,73 @@ type Config struct {
 }
 
 func NewConfig() *Config {
-	return &Config{
-		AppEnv:  Environment(getenvOrDefault("APP_ENV", "debug")),
-		AppURL:  getenvOrDefault("APP_URL", ""),
-		NatsURL: getenvOrDefault("NATS_URL", ""),
+	once.Do(func() {
+		instance = &Config{
+			AppEnv:  Environment(getenvOrDefault("APP_ENV", "debug")),
+			AppURL:  getenvOrDefault("APP_URL", ""),
+			NatsURL: getenvOrDefault("NATS_URL", ""),
 
-		CORSAllowedOrigins: strings.Split(getenvOrDefault("CORS_ALLOWED_ORIGINS", "*"), ","),
-		CORSMaxAge:         mustParseDuration(getenvOrDefault("CORS_MAX_AGE", "12h")),
+			CORSAllowedOrigins: strings.Split(getenvOrDefault("CORS_ALLOWED_ORIGINS", "*"), ","),
+			CORSMaxAge:         mustParseDuration(getenvOrDefault("CORS_MAX_AGE", "12h")),
 
-		HTTPPort:            mustGetenvOrDefaultInt("HTTP_PORT", 3000),
-		HTTPWriteTimeout:    mustParseDuration(getenvOrDefault("HTTP_WRITE_TIMEOUT", "10s")),
-		HTTPReadTimeout:     mustParseDuration(getenvOrDefault("HTTP_READ_TIMEOUT", "10s")),
-		HTTPHeaderMaxSizeMb: mustGetenvOrDefaultInt("HTTP_HEADER_MAX_SIZE_MB", 1),
+			HTTPPort:            mustGetenvOrDefaultInt("HTTP_PORT", 3000),
+			HTTPWriteTimeout:    mustParseDuration(getenvOrDefault("HTTP_WRITE_TIMEOUT", "10s")),
+			HTTPReadTimeout:     mustParseDuration(getenvOrDefault("HTTP_READ_TIMEOUT", "10s")),
+			HTTPHeaderMaxSizeMb: mustGetenvOrDefaultInt("HTTP_HEADER_MAX_SIZE_MB", 1),
 
-		PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
-		PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),
-		NotePasswordSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
+			PostgresDSN:      getenvOrDefault("POSTGRESQL_DSN", ""),
+			PasswordSalt:     getenvOrDefault("PASSWORD_SALT", ""),
+			NotePasswordSalt: getenvOrDefault("NOTE_PASSWORD_SALT", ""),
 
-		RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
-		RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),
-		RedisDB:       mustGetenvOrDefaultInt(getenvOrDefault("REDIS_DB", "0"), 0),
+			RedisAddr:     getenvOrDefault("REDIS_ADDR", ""),
+			RedisPassword: getenvOrDefault("REDIS_PASSWORD", ""),
+			RedisDB:       mustGetenvOrDefaultInt(getenvOrDefault("REDIS_DB", "0"), 0),
 
-		CacheUsersTTL: mustParseDuration(getenvOrDefault("CACHE_USERS_TTL", "1h")),
-		CacheNoteTTL:  mustParseDuration(getenvOrDefault("CACHE_NOTE_TTL", "1h")),
+			CacheUsersTTL: mustParseDuration(getenvOrDefault("CACHE_USERS_TTL", "1h")),
+			CacheNoteTTL:  mustParseDuration(getenvOrDefault("CACHE_NOTE_TTL", "1h")),
 
-		JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
-		JwtAccessTokenTTL: mustParseDuration(
-			getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m"),
-		),
-		JwtRefreshTokenTTL: mustParseDuration(
-			getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
-		),
+			JwtSigningKey: getenvOrDefault("JWT_SIGNING_KEY", ""),
+			JwtAccessTokenTTL: mustParseDuration(
+				getenvOrDefault("JWT_ACCESS_TOKEN_TTL", "15m"),
+			),
+			JwtRefreshTokenTTL: mustParseDuration(
+				getenvOrDefault("JWT_REFRESH_TOKEN_TTL", "24h"),
+			),
 
-		GoogleClientID:    getenvOrDefault("GOOGLE_CLIENTID", ""),
-		GoogleSecret:      getenvOrDefault("GOOGLE_SECRET", ""),
-		GoogleRedirectURL: getenvOrDefault("GOOGLE_REDIRECTURL", ""),
+			GoogleClientID:    getenvOrDefault("GOOGLE_CLIENTID", ""),
+			GoogleSecret:      getenvOrDefault("GOOGLE_SECRET", ""),
+			GoogleRedirectURL: getenvOrDefault("GOOGLE_REDIRECTURL", ""),
 
-		GitHubClientID:    getenvOrDefault("GITHUB_CLIENTID", ""),
-		GitHubSecret:      getenvOrDefault("GITHUB_SECRET", ""),
-		GitHubRedirectURL: getenvOrDefault("GITHUB_REDIRECTURL", ""),
+			GitHubClientID:    getenvOrDefault("GITHUB_CLIENTID", ""),
+			GitHubSecret:      getenvOrDefault("GITHUB_SECRET", ""),
+			GitHubRedirectURL: getenvOrDefault("GITHUB_REDIRECTURL", ""),
 
-		VerificationTokenTTL:  mustParseDuration(getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h")),
-		ResetPasswordTokenTTL: mustParseDuration(getenvOrDefault("RESET_PASSWORD_TOKEN_TTL", "1h")),
-		ChangeEmailTokenTTL:   mustParseDuration(getenvOrDefault("CHANGE_EMAIL_TOKEN_TTL", "24h")),
+			VerificationTokenTTL: mustParseDuration(
+				getenvOrDefault("VERIFICATION_TOKEN_TTL", "24h"),
+			),
+			ResetPasswordTokenTTL: mustParseDuration(
+				getenvOrDefault("RESET_PASSWORD_TOKEN_TTL", "1h"),
+			),
+			ChangeEmailTokenTTL: mustParseDuration(
+				getenvOrDefault("CHANGE_EMAIL_TOKEN_TTL", "24h"),
+			),
 
-		MetricsPort:    mustGetenvOrDefaultInt("METRICS_PORT", 3001),
-		MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",
+			MetricsPort:    mustGetenvOrDefaultInt("METRICS_PORT", 3001),
+			MetricsEnabled: getenvOrDefault("METRICS_ENABLED", "true") == "true",
 
-		LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
-		LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),
-		LogShowLine: getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
+			LogLevel:    getenvOrDefault("LOG_LEVEL", "debug"),
+			LogFormat:   getenvOrDefault("LOG_FORMAT", "json"),
+			LogShowLine: getenvOrDefault("LOG_SHOW_LINE", "true") == "true",
 
-		RateLimiterRPS:       mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
-		RateLimiterBurst:     mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
-		RateLimiterTTL:       mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
-		SlowRateLimiterRPS:   mustGetenvOrDefaultInt("SLOW_RATELIMITER_RPS", 2),
-		SlowRateLimiterBurst: mustGetenvOrDefaultInt("SLOW_RATELIMITER_BURST", 2),
-		SlowRateLimiterTTL:   mustParseDuration(getenvOrDefault("SLOW_RATELIMITER_TTL", "1m")),
-	}
+			RateLimiterRPS:       mustGetenvOrDefaultInt("RATELIMITER_RPS", 100),
+			RateLimiterBurst:     mustGetenvOrDefaultInt("RATELIMITER_BURST", 10),
+			RateLimiterTTL:       mustParseDuration(getenvOrDefault("RATELIMITER_TTL", "1m")),
+			SlowRateLimiterRPS:   mustGetenvOrDefaultInt("SLOW_RATELIMITER_RPS", 2),
+			SlowRateLimiterBurst: mustGetenvOrDefaultInt("SLOW_RATELIMITER_BURST", 2),
+			SlowRateLimiterTTL:   mustParseDuration(getenvOrDefault("SLOW_RATELIMITER_TTL", "1m")),
+		}
+	})
+	return instance
 }
 
 func getenvOrDefault(key, def string) string {
