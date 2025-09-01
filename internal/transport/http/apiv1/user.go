@@ -38,7 +38,7 @@ type changePasswordRequest struct {
 func (a *APIV1) changePasswordHandler(c *gin.Context) {
 	var req changePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -63,7 +63,7 @@ type requestResetPasswordRequest struct {
 func (a *APIV1) requestResetPasswordHandler(c *gin.Context) {
 	var req requestResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -87,7 +87,7 @@ type resetPasswordRequest struct {
 func (a *APIV1) resetPasswordHandler(c *gin.Context) {
 	var req resetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -112,7 +112,7 @@ type changeEmailRequest struct {
 func (a *APIV1) requestEmailChangeHandler(c *gin.Context) {
 	var req changeEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -160,7 +160,7 @@ type resendVerificationEmailRequest struct {
 func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
 	var req resendVerificationEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
