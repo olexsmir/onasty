@@ -24,7 +24,7 @@ type createNoteResponse struct {
 func (a *APIV1) createNoteHandler(c *gin.Context) {
 	var req createNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -87,7 +87,7 @@ type getNoteBuySlugAndPasswordRequest struct {
 func (a *APIV1) getNoteBySlugAndPasswordHandler(c *gin.Context) {
 	var req getNoteBuySlugAndPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -183,7 +183,7 @@ type updateNoteRequest struct {
 func (a *APIV1) updateNoteHandler(c *gin.Context) {
 	var req updateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -223,7 +223,7 @@ type setNotePasswordRequest struct {
 func (a *APIV1) setNotePasswordHandler(c *gin.Context) {
 	var req setNotePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 

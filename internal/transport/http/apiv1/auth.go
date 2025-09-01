@@ -16,7 +16,7 @@ type signUpRequest struct {
 func (a *APIV1) signUpHandler(c *gin.Context) {
 	var req signUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -46,7 +46,7 @@ type signInResponse struct {
 func (a *APIV1) signInHandler(c *gin.Context) {
 	var req signInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -72,7 +72,7 @@ type refreshTokenRequest struct {
 func (a *APIV1) refreshTokensHandler(c *gin.Context) {
 	var req refreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 
@@ -95,7 +95,7 @@ type logoutRequest struct {
 func (a *APIV1) logOutHandler(c *gin.Context) {
 	var req logoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		newError(c, http.StatusBadRequest, "invalid request")
+		invalidRequest(c)
 		return
 	}
 

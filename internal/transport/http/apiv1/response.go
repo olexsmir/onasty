@@ -59,6 +59,10 @@ func errorResponse(c *gin.Context, err error) {
 	newInternalError(c, err)
 }
 
+func invalidRequest(c *gin.Context) {
+	newError(c, http.StatusBadRequest, "invalid request")
+}
+
 func newError(c *gin.Context, status int, msg string) {
 	slog.ErrorContext(c.Request.Context(), msg, "status", status)
 	c.AbortWithStatusJSON(status, response{msg})
