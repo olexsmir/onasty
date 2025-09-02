@@ -95,6 +95,8 @@ services:
     volumes:
       - ./.docker/grafana:/var/lib/grafana
       - ./infra/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./infra/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards
     ports:
       - 3069:3000
 
