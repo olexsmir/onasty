@@ -119,8 +119,10 @@ services:
     image: swaggerapi/swagger-ui
     container_name: swagger-ui
     ports:
-      - "8080:8080"
+      - 8080:8080
     volumes:
-      - ./api:/usr/share/nginx/html/api:ro
+      - ./api/dist/bundle.yml:/usr/share/nginx/html/openapi.yml:ro
     environment:
-      SWAGGER_JSON: /usr/share/nginx/html/api/openapi.yml
+      SWAGGER_JSON_URL: openapi.yml
+    depends_on:
+      - core
