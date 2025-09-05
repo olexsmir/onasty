@@ -5,8 +5,8 @@ info:
 servers:
   - url: http://localhost:8000/api
 paths:
-  # TODO: /ping
-  # TODO: /me
+  /ping:
+    $ref: "./paths/ping.yml"
 
   # -- AUTH V1 -------------------------------------------------------
   /v1/auth/signup:
@@ -38,6 +38,8 @@ paths:
     $ref: "./paths/auth/change-password.yml"
   /v1/auth/change-email:
     $ref: "./paths/auth/change-email.yml"
+  /v1/me:
+    $ref: "./paths/auth/me.yml"
 
   # -- NOTES V1 ------------------------------------------------------
   # TODO:

@@ -1,0 +1,20 @@
+description: Account info
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "user@email.com"
+        created_at:
+          type: string
+          format: date-time
+          example: 2025-07-05T16:30:00Z
+        last_login_at:
+          type: string
+          format: date-time
+          example: 2025-09-05T16:30:00Z
+        notes_created:
+          type: integer
+          example: 69

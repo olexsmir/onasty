@@ -1,0 +1,20 @@
+get:
+  tags: [API health]
+  summary: Check if api is up
+  security:
+    - {}
+
+  responses:
+    '200':
+      description: API is up
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "pong"
+
+    '400':
+      $ref: '../components/responses/ErrorResponse.yml'
