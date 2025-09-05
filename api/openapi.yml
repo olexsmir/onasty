@@ -15,6 +15,7 @@ info:
 servers:
   # TODO: add hosted url
   - url: http://localhost:8000/api
+  - url: http://core:8000/api
 
 components:
   securitySchemes:
