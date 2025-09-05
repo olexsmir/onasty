@@ -1,0 +1,40 @@
+get:
+  tags: [Notes]
+  summary: Read note
+  security:
+    - {}
+
+  parameters:
+    - name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    '200':
+      $ref: '../../components/responses/NoteGet.yml'
+    '404':
+      $ref: '../../components/responses/NoteNotFoundMaybeWithContent.yml'
+
+
+delete:
+  tags: [Notes]
+  summary: Delete a note
+  security:
+    - Bearer: []
+
+  parameters:
+    - name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    '204':
+      description: Note deleted
+    '401':
+      description: Unauthorized
+    '404':
+      $ref: '../../components/responses/NoteNotFound.yml'

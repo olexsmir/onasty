@@ -1,0 +1,35 @@
+patch:
+  tags: [Notes]
+  summary: Change note's expiration time
+  security:
+    - Bearer: []
+
+  parameters:
+    - name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            expires_at:
+              type: string
+              format: date-time
+            keep_before_expiration:
+              type: boolean
+
+  responses:
+    '200':
+      description: Note updated
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '401':
+      description: Unauthorized
+    '404':
+      $ref: '../../components/responses/NoteNotFound.yml'

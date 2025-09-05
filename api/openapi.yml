@@ -42,7 +42,24 @@ paths:
     $ref: "./paths/auth/me.yml"
 
   # -- NOTES V1 ------------------------------------------------------
-  # TODO:
+  /v1/note/{slug}/view:
+    $ref: "./paths/note/note-slug-view.yml"
+  /v1/note/{slug}/meta:
+    $ref: "./paths/note/note-slug-meta.yml"
+  # possibly protected
+  /v1/note:
+    $ref: "./paths/note/note.yml"
+  /v1/note/{slug}:
+    $ref: "./paths/note/note-slug.yml"
+  # protected
+  /v1/note/read:
+    $ref: "./paths/note/note-read.yml"
+  /v1/note/unread:
+    $ref: "./paths/note/note-unread.yml"
+  /v1/note/{slug}/expires:
+    $ref: "./paths/note/note-slug-expires.yml"
+  /v1/note/{slug}/password:
+    $ref: "./paths/note/note-slug-password.yml"
 
 components:
   securitySchemes:

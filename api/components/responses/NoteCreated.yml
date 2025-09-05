@@ -1,0 +1,9 @@
+description: Note created
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: be541fd3-a716-46af-8bb4-89585e787b89

@@ -1,0 +1,11 @@
+get:
+  tags: [Notes]
+  summary: Get all read notes created by user
+  security:
+    - Bearer: []
+
+  responses:
+    '200':
+      $ref: '../../components/responses/NoteGetAll.yml'
+    '401':
+      description: Unauthorized

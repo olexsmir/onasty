@@ -1,0 +1,19 @@
+type: object
+required:
+  - content
+properties:
+  content:
+    type: string
+    example: some-secret-content
+  slug:
+    type: string
+    example: unique-slug
+  password:
+    type: string
+    example: securePassword123
+  keep_before_expiration:
+    type: boolean
+  expires_at:
+    type: string
+    format: date-time
+    example: 2025-09-05T16:30:00Z

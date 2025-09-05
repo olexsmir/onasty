@@ -1,0 +1,25 @@
+type: object
+required:
+  - content
+  - read_at
+  - keep_before_expiration
+  - created_at
+  - expires_at
+properties:
+  content:
+    type: string
+    example: note content
+  read_at:
+    type: string
+    format: date-time
+    example: 2025-09-05T16:30:00Z
+  keep_before_expiration:
+    type: boolean
+  created_at:
+    type: string
+    format: date-time
+    example: 2025-09-05T16:30:00Z
+  expires_at:
+    type: string
+    format: date-time
+    example: 2025-09-05T16:30:00Z

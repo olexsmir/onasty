@@ -1,0 +1,18 @@
+get:
+  tags: [Notes]
+  summary: Get note metadata
+  security:
+    - {}
+
+  parameters:
+    - name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    '200':
+      $ref: '../../components/responses/NoteMetadata.yml'
+    '404':
+      $ref: '../../components/responses/NoteNotFound.yml'
