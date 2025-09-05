@@ -1,0 +1,25 @@
+post:
+  tags: [Auth]
+  summary: Refresh jwt tokens
+  security:
+    - {}
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/RefreshTokens.yml'
+  responses:
+    '200':
+      description: Successfully refreshed tokens
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/JwtTokens.yml'
+
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

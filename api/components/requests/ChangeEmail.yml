@@ -1,0 +1,8 @@
+type: object
+required:
+  - new_email
+properties:
+  new_email:
+    type: string
+    format: email
+    example: "new_email@example.com"

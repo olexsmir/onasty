@@ -1,0 +1,20 @@
+get:
+  tags: [Account]
+  summary: Verify account
+  security:
+    - {}
+
+  parameters:
+    - name: token
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    '200':
+      description: User activated
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

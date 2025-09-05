@@ -1,0 +1,24 @@
+post:
+  tags: [Auth]
+  summary: Logout (current session)
+  security:
+    - Bearer: []
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/RefreshTokens.yml'
+
+  responses:
+    '200':
+      description: Logged out
+    '404':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '401':
+      description: Unauthorized
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

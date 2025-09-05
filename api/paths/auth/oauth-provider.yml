@@ -1,0 +1,23 @@
+get:
+  tags: [OAuth]
+  summary: Initiate OAuth login
+  security:
+    - {}
+
+  parameters:
+    - name: provider
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [google, github]
+
+  responses:
+    '200':
+      description: CANNOT BE RETURNED it's here just to make redocly linter not angry at this code
+    '302':
+      description: Redirect to OAuth provider
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

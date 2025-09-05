@@ -1,0 +1,17 @@
+post:
+  tags: [Auth]
+  summary: Logout (all sessions)
+  security:
+    - Bearer: []
+
+  responses:
+    '200':
+      description: User logged out
+    '401':
+      description: Unauthorized
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '404':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'
