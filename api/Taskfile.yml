@@ -6,6 +6,3 @@ tasks:
 
   lint:
     - bunx redocly lint --config redocly.yml openapi.yml
-
-  redocly-preview:
-    - bunx redocly preview --product realm
