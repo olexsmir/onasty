@@ -2,8 +2,27 @@ openapi: 3.1.0
 info:
   title: Onasty API
   version: 1.0.0
+  description: |
+    Welcome to the reference for the Onasty API!
+
+    ## Rate limiting
+    All requests are rate limited using various strategies,
+    to ensure the API remains responsive for everyone.
+    Only make one request at a time.
+    If you receive an HTTP response with a [429 status](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#429),
+    please wait a full minute before resuming API usage.
+
 servers:
+  # TODO: add hosted url
   - url: http://localhost:8000/api
+
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
 paths:
   /ping:
     $ref: "./paths/ping.yml"
@@ -60,10 +79,3 @@ paths:
     $ref: "./paths/note/note-slug-expires.yml"
   /v1/note/{slug}/password:
     $ref: "./paths/note/note-slug-password.yml"
-
-components:
-  securitySchemes:
-    Bearer:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
