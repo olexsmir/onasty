@@ -1,0 +1,24 @@
+post:
+  tags: [Account]
+  summary: Change email (sends a confirmation email)
+  security:
+    - Bearer: []
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/ChangeEmail.yml'
+
+  responses:
+    '200':
+      description: Successfully send the email
+    '401':
+      description: Unauthorized
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '404':
+      $ref: '../../components/responses/UserNotFound.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

@@ -1,0 +1,8 @@
+version: "3"
+
+tasks:
+  bundle:
+    - bunx redocly bundle openapi.yml -o dist/bundle.yml
+
+  lint:
+    - bunx redocly lint --config redocly.yml openapi.yml

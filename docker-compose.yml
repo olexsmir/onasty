@@ -114,3 +114,15 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./infra/promtail/config.yaml:/etc/promtail/config.yaml
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - 8080:8080
+    volumes:
+      - ./api/dist/bundle.yml:/usr/share/nginx/html/openapi.yml:ro
+    environment:
+      SWAGGER_JSON_URL: openapi.yml
+    depends_on:
+      - core

@@ -1,0 +1,52 @@
+get:
+  tags: [OAuth]
+  summary: OAuth callback handler
+  security:
+    - {}
+
+  parameters:
+    - name: provider
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [google, github]
+
+    - name: code
+      in: query
+      required: true
+      description: Authorization code from OAuth provider
+      schema:
+        type: string
+        example: "4/0AX4XfWjYxT5..."
+
+    - name: state
+      in: query
+      required: false
+      description: CSRF protection state parameter
+      schema:
+        type: string
+
+  responses:
+    '200':
+      description: OAuth login successful
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/JwtTokens.yml'
+
+    # TODO: unimplemented
+    # '302':
+    #   description: Redirect to frontend with tokens (alternative flow)
+    #   headers:
+    #     Location:
+    #       description: Frontend URL with tokens as query params or hash
+    #       schema:
+    #         type: string
+    #         example: "onasty.local/api/v1/auth/success?access=...&refresh=..."
+
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

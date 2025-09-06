@@ -1,0 +1,13 @@
+get:
+  tags: [Account]
+  summary: Get account info
+  security:
+    - Bearer: []
+
+  responses:
+    '200':
+      $ref: '../../components/responses/Me.yml'
+    '401':
+      description: Unauthorized
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

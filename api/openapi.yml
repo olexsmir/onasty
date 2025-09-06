@@ -1,0 +1,82 @@
+openapi: 3.1.0
+info:
+  title: Onasty API
+  version: 1.0.0
+  description: |
+    Welcome to the reference for the Onasty API!
+
+    ## Rate limiting
+    All requests are rate limited using various strategies,
+    to ensure the API remains responsive for everyone.
+    Only make one request at a time.
+    If you receive an HTTP response with a [429 status](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#429),
+    please wait a full minute before resuming API usage.
+
+servers:
+  # TODO: add hosted url
+  - url: http://localhost:8000/api
+  - url: http://core:8000/api
+
+components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /ping:
+    $ref: "./paths/ping.yml"
+
+  # -- AUTH V1 -------------------------------------------------------
+  /v1/auth/signup:
+    $ref: "./paths/auth/signup.yml"
+  /v1/auth/signin:
+    $ref: "./paths/auth/signin.yml"
+  /v1/auth/refresh-tokens:
+    $ref: "./paths/auth/refresh-tokens.yml"
+  /v1/auth/verify/{token}:
+    $ref: "./paths/auth/verify-token.yml"
+  /v1/auth/resend-verification-email:
+    $ref: "./paths/auth/resend-verification-email.yml"
+  /v1/auth/reset-password:
+    $ref: "./paths/auth/reset-password.yml"
+  /v1/auth/reset-password/{token}:
+    $ref: "./paths/auth/reset-password-token.yml"
+  /v1/auth/change-email/{token}:
+    $ref: "./paths/auth/change-email-token.yml"
+  /v1/auth/oauth/{provider}:
+    $ref: "./paths/auth/oauth-provider.yml"
+  /v1/auth/oauth/{provider}/callback:
+    $ref: "./paths/auth/oauth-provider-callback.yml"
+  # protected
+  /v1/auth/logout:
+    $ref: "./paths/auth/logout.yml"
+  /v1/auth/logout/all:
+    $ref: "./paths/auth/logout-all.yml"
+  /v1/auth/change-password:
+    $ref: "./paths/auth/change-password.yml"
+  /v1/auth/change-email:
+    $ref: "./paths/auth/change-email.yml"
+  /v1/me:
+    $ref: "./paths/auth/me.yml"
+
+  # -- NOTES V1 ------------------------------------------------------
+  /v1/note/{slug}/view:
+    $ref: "./paths/note/note-slug-view.yml"
+  /v1/note/{slug}/meta:
+    $ref: "./paths/note/note-slug-meta.yml"
+  # possibly protected
+  /v1/note:
+    $ref: "./paths/note/note.yml"
+  /v1/note/{slug}:
+    $ref: "./paths/note/note-slug.yml"
+  # protected
+  /v1/note/read:
+    $ref: "./paths/note/note-read.yml"
+  /v1/note/unread:
+    $ref: "./paths/note/note-unread.yml"
+  /v1/note/{slug}/expires:
+    $ref: "./paths/note/note-slug-expires.yml"
+  /v1/note/{slug}/password:
+    $ref: "./paths/note/note-slug-password.yml"

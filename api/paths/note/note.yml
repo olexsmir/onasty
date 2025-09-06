@@ -1,0 +1,31 @@
+post:
+  tags: [Notes]
+  summary: Create note
+  security:
+    - Bearer: []
+    - {}
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/CreateNote.yml'
+
+  responses:
+    '201':
+      $ref: '../../components/responses/NoteCreated.yml'
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+
+get:
+  tags: [Notes]
+  summary: Get all note created by user
+  security:
+    - Bearer: []
+
+  responses:
+    '200':
+      $ref: '../../components/responses/NoteGetAll.yml'
+    '401':
+      description: Unauthorized

@@ -1,0 +1,32 @@
+name: openapi
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["api/**"]
+  pull_request:
+    paths: ["api/**"]
+
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - name: Read .tool-versions
+        uses: marocchino/tool-versions-action@v1
+        id: versions
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ steps.versions.outputs.bun }}
+
+      - name: Install deps
+        run: bun install --frozen-lockfile
+
+      - name: Lint
+        run: bunx redocly lint --config redocly.yml openapi.yml

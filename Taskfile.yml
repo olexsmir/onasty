@@ -9,6 +9,10 @@ includes:
     taskfile: ./web/Taskfile.yml
     dir: ./web/
 
+  api:
+    taskfile: ./api/Taskfile.yml
+    dir: ./api/
+
 env:
   COMPOSE_BAKE: 1
 
@@ -22,7 +26,12 @@ tasks:
 
   lint:
     - golangci-lint run
-    - task: frontend:lint
+
+  lint:all:
+    deps:
+      - lint
+      - frontend:lint
+      - api:lint
 
   docker:up:
     - docker compose up -d --build --remove-orphans

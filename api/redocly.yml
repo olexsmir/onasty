@@ -1,0 +1,7 @@
+extends:
+  - recommended-strict
+
+rules:
+  info-license: off
+  operation-operationId: off
+  no-server-example.com: off

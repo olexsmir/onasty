@@ -1,0 +1,22 @@
+post:
+  tags: [Account]
+  summary: Resend verification email
+  security:
+    - {}
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/EmailRequest.yml'
+
+  responses:
+    '200':
+      description: Successfully resend the email
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '404':
+      $ref: '../../components/responses/UserNotFound.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

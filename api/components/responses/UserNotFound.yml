@@ -1,0 +1,9 @@
+description: User not found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "user: not found"

@@ -1,0 +1,9 @@
+type: object
+properties:
+  access_token:
+    type: string
+    example: "jwt.token.string"
+
+  refresh_token:
+    type: string
+    example: "refresh-token"

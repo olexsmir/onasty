@@ -1,0 +1,19 @@
+post:
+  tags: [Auth]
+  summary: Sign up
+  security:
+    - {}
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/Signup.yml'
+  responses:
+    '201':
+      description: User created
+    '404':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

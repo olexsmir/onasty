@@ -1,0 +1,22 @@
+get:
+  tags: [Account]
+  summary: Confirm email change
+  security:
+    - {}
+
+  parameters:
+    - name: token
+      in: path
+      required: true
+      schema:
+        type: string
+
+  responses:
+    '200':
+      description: Email change confirmed
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+    '404':
+      $ref: '../../components/responses/UserNotFound.yml'
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'

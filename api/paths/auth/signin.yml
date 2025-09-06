@@ -1,0 +1,25 @@
+post:
+  tags: [Auth]
+  summary: Sign in
+  security:
+    - {}
+
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../../components/requests/Signin.yml'
+  responses:
+    '200':
+      description: Successfully signed in
+      content:
+        application/json:
+          schema:
+            $ref: '../../components/schemas/JwtTokens.yml'
+
+    '400':
+      $ref: '../../components/responses/ErrorResponse.yml'
+
+    '500':
+      $ref: '../../components/responses/ErrorResponse.yml'
