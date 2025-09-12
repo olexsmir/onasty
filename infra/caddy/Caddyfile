@@ -1,0 +1,16 @@
+your.domain.name {
+    encode gzip
+
+    reverse_proxy /api/* core:8000
+
+    root * /srv/frontend
+    try_files {path} /index.html
+    file_server
+
+    header {
+        Strict-Transport-Security max-age=31536000;
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+    }
+}

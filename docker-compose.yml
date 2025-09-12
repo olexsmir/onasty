@@ -18,7 +18,7 @@ services:
     container_name: onasty-core
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: core.Dockerfile
     env_file: .env
     ports:
       - 8000:8000
@@ -35,7 +35,7 @@ services:
     container_name: onasty-mailer
     build:
       context: .
-      dockerfile: ./mailer/Dockerfile
+      dockerfile: mailer.Dockerfile
     env_file: ./mailer/.env
     depends_on:
       - runtime
@@ -66,6 +66,7 @@ services:
 
   nats:
     image: nats:2.10
+    container_name: onasty-nats
     ports:
       - 4222:4222
 

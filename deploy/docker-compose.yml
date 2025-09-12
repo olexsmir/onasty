@@ -1,0 +1,133 @@
+services:
+  caddy:
+    image: caddy:2.7-alpine
+    container_name: onasty-caddy-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../infra/caddy:/etc/caddy:ro
+      - ./frontend:/srv/frontend  # frontend dist
+      - caddy_data:/data
+    networks: [onasty]
+    restart: unless-stopped
+    depends_on:
+      - core
+
+  core:
+    image: onasty:core # TODO: use registry link
+    container_name: onasty-core-prod
+    ports:
+      - 8000:8000
+      - 8001:8001
+    environment:
+      - APP_ENV=prod
+      - APP_URL
+      - NATS_URL=nats:4222
+      - CORS_ALLOWED_ORIGINS
+      - CORS_MAX_AGE
+      - HTTP_PORT
+      - HTTP_WRITE_TIMEOUT
+      - HTTP_READ_TIMEOUT
+      - HTTP_HEADER_MAX_SIZE_MB
+      - POSTGRESQL_DSN
+      - REDIS_ADDR
+      - REDIS_PASSWORD
+      - REDIS_DB
+      - CACHE_NOTE_TTL
+      - CACHE_USERS_TTL
+      - PASSWORD_SALT
+      - NOTE_PASSWORD_SALT
+      - JWT_SIGNING_KEY
+      - JWT_ACCESS_TOKEN_TTL
+      - JWT_REFRESH_TOKEN_TTL
+      - VERIFICATION_TOKEN_TTL
+      - RESET_PASSWORD_TOKEN_TTL
+      - CHANGE_EMAIL_TOKEN_TTL
+      - GOOGLE_CLIENTID
+      - GOOGLE_SECRET
+      - GOOGLE_REDIRECTURL
+      - GITHUB_CLIENTID
+      - GITHUB_SECRET
+      - GITHUB_REDIRECTURL
+      - METRICS_PORT
+      - METRICS_ENABLED
+      - LOG_LEVEL
+      - LOG_FORMAT
+      - LOG_SHOW_LINE
+      - RATELIMITER_TTL
+      - RATELIMITER_RPS
+      - RATELIMITER_BURST
+      - SLOW_RATELIMITER_TTL
+      - SLOW_RATELIMITER_RPS
+      - SLOW_RATELIMITER_BURST
+    restart: unless-stopped
+    networks: [onasty]
+    depends_on:
+      - mailer
+      - redis
+      - postgres
+      - nats
+
+  mailer:
+    image: onasty:mailer  # TODO: use registry link
+    container_name: onasty-mailer-prod
+    ports:
+      - 8002:8002
+    environment:
+      - APP_URL
+      - FRONTEND_URL
+      - NATS_URL
+      - MAILGUN_FROM
+      - MAILGUN_DOMAIN
+      - MAILGUN_API_KEY
+      - LOG_LEVEL
+      - LOG_FORMAT
+      - LOG_SHOW_LINE
+      - METRICS_PORT
+      - METRICS_ENABLED
+    restart: unless-stopped
+    networks: [onasty]
+    depends_on:
+      - nats
+
+  nats:
+    image: nats:2.10
+    container_name: onasty-nats-prod
+    ports:
+      - 4222:4222
+    restart: unless-stopped
+    networks: [onasty]
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: onasty-redis-prod
+    command: redis-server --appendonly yes
+    ports:
+      - 6379:6379
+    restart: unless-stopped
+    networks: [onasty]
+    volumes:
+      - onasty-redis:/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: onasty-postgres-prod
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: onasty
+    volumes:
+      - onasty-postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks: [onasty]
+    restart: unless-stopped
+
+volumes:
+  onasty-postgres:
+  onasty-redis:
+  caddy_data:
+
+networks:
+  onasty:
