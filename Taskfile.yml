@@ -49,7 +49,7 @@ tasks:
     - task: frontend:test
 
   test:unit:
-    - '{{.gotest}} --count=1 -v --short ./...'
+    - '{{.gotest}} -v --short ./...'
 
   test:e2e:
-    - '{{.gotest}} --count=1 -v ./e2e/'
+    - '{{.gotest}} -v ./e2e/'
