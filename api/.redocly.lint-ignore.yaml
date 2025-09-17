@@ -1,0 +1,7 @@
+paths/auth/oauth-provider-callback.yml:
+  operation-2xx-response:
+    - '#/get/responses'
+
+paths/auth/oauth-provider.yml:
+  operation-2xx-response:
+    - '#/get/responses'

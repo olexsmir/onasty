@@ -28,22 +28,14 @@ get:
         type: string
 
   responses:
-    '200':
-      description: OAuth login successful
-      content:
-        application/json:
+    '302':
+      description: Redirect to frontend with tokens
+      headers:
+        Location:
+          description: Frontend URL with tokens or error as query params
           schema:
-            $ref: '../../components/schemas/JwtTokens.yml'
-
-    # TODO: unimplemented
-    # '302':
-    #   description: Redirect to frontend with tokens (alternative flow)
-    #   headers:
-    #     Location:
-    #       description: Frontend URL with tokens as query params or hash
-    #       schema:
-    #         type: string
-    #         example: "onasty.local/api/v1/auth/success?access=...&refresh=..."
+            type: string
+            example: "onasty.local/api/v1/auth/callback?access_token=...&refresh_token=...&error=..."
 
     '400':
       $ref: '../../components/responses/ErrorResponse.yml'
