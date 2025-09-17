@@ -1,4 +1,4 @@
-module Components.Form exposing (ButtonStyle(..), CanBeClicked, InputStyle(..), button, input, submitButton)
+module Components.Form exposing (ButtonStyle(..), CanBeClicked, InputStyle(..), button, input, oauthButton, submitButton)
 
 import Html as H exposing (Html)
 import Html.Attributes as A
@@ -90,6 +90,7 @@ type ButtonStyle
     | Secondary CanBeClicked
     | SecondaryDisabled CanBeClicked
     | SecondaryDanger
+    | OauthButton CanBeClicked
 
 
 button : { text : String, disabled : Bool, onClick : msg, style : ButtonStyle } -> Html msg
@@ -111,6 +112,21 @@ submitButton opts =
         , A.disabled opts.disabled
         ]
         [ H.text opts.text ]
+
+
+oauthButton : { text : String, disabled : Bool, onClick : msg, iconURL : String } -> Html msg
+oauthButton { text, disabled, onClick, iconURL } =
+    H.button
+        [ A.type_ "button"
+        , A.class (buttonStyleToClass (OauthButton (not disabled)) "mt-2")
+        , A.disabled disabled
+        , E.onClick onClick
+        ]
+        [ H.div [ A.class "flex" ]
+            [ H.img [ A.class "w-5 h-5 mr-3", A.src iconURL ] []
+            , H.text text
+            ]
+        ]
 
 
 buttonStyleToClass : ButtonStyle -> String -> String
@@ -142,6 +158,12 @@ buttonStyleToClass style appendClasses =
                 appendClasses
                 "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-400 cursor-not-allowed"
                 "w-full px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors mt-3 border border-gray-300 text-gray-700 hover:bg-gray-50"
+
+        OauthButton canBeClicked ->
+            getButtonClasses canBeClicked
+                appendClasses
+                "w-full flex items-center justify-center gap-3 px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700"
+                "w-full flex items-center justify-center gap-3 px-4 py-2 rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 opacity-50 cursor-not-allowed"
 
 
 getButtonClasses : Bool -> String -> String -> String -> String

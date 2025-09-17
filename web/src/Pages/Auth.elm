@@ -88,11 +88,17 @@ type Msg
     | UserChangedFormVariant FormVariant
     | UserClickedSubmit
     | UserClickedResendActivationEmail
+    | UserClickedOAuth Provider
     | ApiSignInResponded (Result Api.Error Credentials)
     | ApiSignUpResponded (Result Api.Error ())
     | ApiForgotPasswordResponded (Result Api.Error ())
     | ApiSetNewPasswordResponded (Result Api.Error ())
     | ApiResendVerificationEmail (Result Api.Error ())
+
+
+type Provider
+    = Github
+    | Google
 
 
 type Field
@@ -148,6 +154,14 @@ update msg model =
                 SetNewPassword token ->
                     Api.Auth.resetPassword { onResponse = ApiSetNewPasswordResponded, token = token, password = model.password }
             )
+
+        UserClickedOAuth provider ->
+            case provider of
+                Github ->
+                    ( model, Effect.loadExternalUrl "/api/v1/oauth/github" )
+
+                Google ->
+                    ( model, Effect.loadExternalUrl "/api/v1/oauth/google" )
 
         UserClickedResendActivationEmail ->
             ( { model | lastClicked = model.now }
@@ -223,11 +237,11 @@ view model =
     , body =
         [ H.div [ A.class "min-h-screen flex items-center justify-center bg-gray-50 p-4" ]
             [ H.div [ A.class "w-full max-w-md bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                -- TODO: add oauth buttons
                 [ viewBanner model
                 , viewBoxHeader model.formVariant
                 , H.div [ A.class "px-6 pb-6 space-y-4" ]
                     [ viewChangeVariant model.formVariant
+                    , viewOauthButtons model.isSubmittingForm
                     , H.div [ A.class "border-t border-gray-200" ] []
                     , viewForm model
                     ]
@@ -325,6 +339,24 @@ viewChangeVariant variant =
             , disabled = variant == SignUp
             , style = Components.Form.Primary (variant == SignUp)
             , onClick = UserChangedFormVariant SignUp
+            }
+        ]
+
+
+viewOauthButtons : Bool -> Html Msg
+viewOauthButtons isSubmittingForm =
+    H.div []
+        [ Components.Form.oauthButton
+            { text = "Sign in with Google"
+            , onClick = UserClickedOAuth Google
+            , disabled = isSubmittingForm
+            , iconURL = "/static/google.svg"
+            }
+        , Components.Form.oauthButton
+            { text = "Sign in with GitHub"
+            , onClick = UserClickedOAuth Github
+            , disabled = isSubmittingForm
+            , iconURL = "/static/github.svg"
             }
         ]
 
