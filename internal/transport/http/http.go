@@ -20,6 +20,7 @@ type Transport struct {
 	notesrv notesrv.NoteServicer
 
 	env         config.Environment
+	appURL      string
 	frontendURL string
 
 	corsAllowedOrigins []string
@@ -33,7 +34,7 @@ func NewTransport(
 	us usersrv.UserServicer,
 	ns notesrv.NoteServicer,
 	env config.Environment,
-	frontendURL string,
+	appURL, frontendURL string,
 	corsAllowedOrigins []string,
 	corsMaxAge time.Duration,
 	ratelimitCfg ratelimit.Config,
@@ -44,6 +45,7 @@ func NewTransport(
 		usersrv:            us,
 		notesrv:            ns,
 		env:                env,
+		appURL:             appURL,
 		frontendURL:        frontendURL,
 		corsAllowedOrigins: corsAllowedOrigins,
 		corsMaxAge:         corsMaxAge,
@@ -66,7 +68,15 @@ func (t *Transport) Handler() http.Handler {
 	{
 		api.GET("/ping", t.pingHandler)
 		apiv1.
-			NewAPIV1(t.authsrv, t.usersrv, t.notesrv, t.slowRatelimitCfg, t.env, t.frontendURL).
+			NewAPIV1(
+				t.authsrv,
+				t.usersrv,
+				t.notesrv,
+				t.slowRatelimitCfg,
+				t.env,
+				t.appURL,
+				t.frontendURL,
+			).
 			Routes(api.Group("/v1"))
 	}
 

@@ -17,6 +17,7 @@ type APIV1 struct {
 	env              config.Environment
 	slowRatelimitCfg ratelimit.Config
 
+	appURL      string
 	frontendURL string
 }
 
@@ -26,6 +27,7 @@ func NewAPIV1(
 	ns notesrv.NoteServicer,
 	slowRatelimitCfg ratelimit.Config,
 	env config.Environment,
+	appURL string,
 	frontendURL string,
 ) *APIV1 {
 	return &APIV1{
@@ -34,6 +36,7 @@ func NewAPIV1(
 		notesrv:          ns,
 		slowRatelimitCfg: slowRatelimitCfg,
 		env:              env,
+		appURL:           appURL,
 		frontendURL:      frontendURL,
 	}
 }
