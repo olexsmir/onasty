@@ -2,6 +2,7 @@ package apiv1
 
 import (
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -143,10 +144,15 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 }
 
 func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
-	state := c.Query("state")
+	redURL, err := url.Parse(a.frontendURL + "/oauth/callback")
+	if err != nil {
+		errorResponse(c, err)
+		return
+	}
+
 	storedState, err := c.Cookie(oatuhStateCookie)
-	if err != nil || state != storedState {
-		newError(c, http.StatusBadRequest, "invalid oauth state")
+	if err != nil || c.Query("state") != storedState {
+		a.oauthCallbackErrorResponse(c, redURL)
 		return
 	}
 
@@ -156,12 +162,19 @@ func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
 		c.Query("code"),
 	)
 	if err != nil {
-		errorResponse(c, err)
+		a.oauthCallbackErrorResponse(c, redURL)
 		return
 	}
 
-	c.JSON(http.StatusOK, signInResponse{
-		AccessToken:  tokens.Access,
-		RefreshToken: tokens.Refresh,
-	})
+	redURL.RawQuery = url.Values{
+		"access_token":  {tokens.Access},
+		"refresh_token": {tokens.Refresh},
+	}.Encode()
+
+	c.Redirect(http.StatusFound, redURL.String())
+}
+
+func (a *APIV1) oauthCallbackErrorResponse(c *gin.Context, u *url.URL) {
+	u.RawQuery = url.Values{"error": {"internal server error"}}.Encode()
+	c.Redirect(http.StatusFound, u.String())
 }
