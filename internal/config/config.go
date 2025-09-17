@@ -22,9 +22,10 @@ func (e Environment) IsDevMode() bool {
 }
 
 type Config struct {
-	AppEnv  Environment
-	AppURL  string
-	NatsURL string
+	AppEnv      Environment
+	AppURL      string
+	FrontendURL string
+	NatsURL     string
 
 	CORSAllowedOrigins []string
 	CORSMaxAge         time.Duration
@@ -79,9 +80,10 @@ type Config struct {
 func NewConfig() *Config {
 	once.Do(func() {
 		instance = &Config{
-			AppEnv:  Environment(getenvOrDefault("APP_ENV", "debug")),
-			AppURL:  getenvOrDefault("APP_URL", ""),
-			NatsURL: getenvOrDefault("NATS_URL", ""),
+			AppEnv:      Environment(getenvOrDefault("APP_ENV", "debug")),
+			AppURL:      getenvOrDefault("APP_URL", ""),
+			FrontendURL: getenvOrDefault("FRONTEND_URL", ""),
+			NatsURL:     getenvOrDefault("NATS_URL", ""),
 
 			CORSAllowedOrigins: strings.Split(getenvOrDefault("CORS_ALLOWED_ORIGINS", "*"), ","),
 			CORSMaxAge:         mustParseDuration(getenvOrDefault("CORS_MAX_AGE", "12h")),

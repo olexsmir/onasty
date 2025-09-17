@@ -10,12 +10,14 @@ import (
 )
 
 type APIV1 struct {
-	authsrv          authsrv.AuthServicer
-	usersrv          usersrv.UserServicer
-	notesrv          notesrv.NoteServicer
-	slowRatelimitCfg ratelimit.Config
+	authsrv authsrv.AuthServicer
+	usersrv usersrv.UserServicer
+	notesrv notesrv.NoteServicer
+
 	env              config.Environment
-	domain           string
+	slowRatelimitCfg ratelimit.Config
+
+	frontendURL string
 }
 
 func NewAPIV1(
@@ -24,7 +26,7 @@ func NewAPIV1(
 	ns notesrv.NoteServicer,
 	slowRatelimitCfg ratelimit.Config,
 	env config.Environment,
-	domain string,
+	frontendURL string,
 ) *APIV1 {
 	return &APIV1{
 		authsrv:          as,
@@ -32,7 +34,7 @@ func NewAPIV1(
 		notesrv:          ns,
 		slowRatelimitCfg: slowRatelimitCfg,
 		env:              env,
-		domain:           domain,
+		frontendURL:      frontendURL,
 	}
 }
 
