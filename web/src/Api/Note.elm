@@ -1,10 +1,11 @@
-module Api.Note exposing (create, get, getMetadata)
+module Api.Note exposing (create, delete, get, getAll, getMetadata)
 
 import Api
 import Data.Note as Note exposing (CreateResponse, Metadata, Note)
 import Effect exposing (Effect)
 import Http
 import Iso8601
+import Json.Decode as D
 import Json.Encode as E
 import Time exposing (Posix)
 
@@ -78,6 +79,17 @@ get options =
                 }
 
 
+delete : { onResponse : Result Api.Error () -> msg, slug : String } -> Effect msg
+delete options =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note/" ++ options.slug
+        , method = "DELETE"
+        , body = Http.emptyBody
+        , onResponse = options.onResponse
+        , decoder = D.succeed ()
+        }
+
+
 getMetadata :
     { onResponse : Result Api.Error Metadata -> msg
     , slug : String
@@ -90,4 +102,15 @@ getMetadata options =
         , body = Http.emptyBody
         , onResponse = options.onResponse
         , decoder = Note.decodeMetadata
+        }
+
+
+getAll : { onResponse : Result Api.Error (List Note) -> msg } -> Effect msg
+getAll opts =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note"
+        , method = "GET"
+        , body = Http.emptyBody
+        , onResponse = opts.onResponse
+        , decoder = D.list Note.decode
         }

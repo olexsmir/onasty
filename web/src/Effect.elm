@@ -1,7 +1,7 @@
 module Effect exposing
     ( Effect, none, batch, map, toCmd, sendCmd, sendMsg
     , pushRoute, replaceRoute, pushRoutePath, replaceRoutePath, loadExternalUrl, back
-    , sendApiRequest, sendToClipboard
+    , sendApiRequest, sendToClipboard, confirmRequest
     , signin, logout, refreshTokens, saveUser, clearUser
     )
 
@@ -9,7 +9,7 @@ module Effect exposing
 
 @docs Effect, none, batch, map, toCmd, sendCmd, sendMsg
 @docs pushRoute, replaceRoute, pushRoutePath, replaceRoutePath, loadExternalUrl, back
-@docs sendApiRequest, sendToClipboard
+@docs sendApiRequest, sendToClipboard, confirmRequest
 @docs signin, logout, refreshTokens, saveUser, clearUser
 
 -}
@@ -45,6 +45,7 @@ type Effect msg
       -- SHARED
     | SendSharedMsg Shared.Msg.Msg
     | SendToLocalStorage { key : String, value : Json.Encode.Value }
+    | SendConfirmRequest String
     | SendToClipboard String
     | SendApiRequest
         { endpoint : String
@@ -176,6 +177,11 @@ sendToClipboard text =
     SendToClipboard text
 
 
+confirmRequest : String -> Effect msg
+confirmRequest msg =
+    SendConfirmRequest msg
+
+
 refreshTokens : Effect msg
 refreshTokens =
     SendSharedMsg Shared.Msg.TriggerTokenRefresh
@@ -244,6 +250,9 @@ map fn effect =
         SendToClipboard text ->
             SendToClipboard text
 
+        SendConfirmRequest msg ->
+            SendConfirmRequest msg
+
         SendApiRequest opts ->
             SendApiRequest
                 { endpoint = opts.endpoint
@@ -296,6 +305,9 @@ toCmd options effect =
 
         SendToClipboard text ->
             Ports.sendToClipboard text
+
+        SendConfirmRequest msg ->
+            Ports.confirmRequest msg
 
         SendApiRequest opts ->
             let
