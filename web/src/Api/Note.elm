@@ -1,4 +1,4 @@
-module Api.Note exposing (create, get, getAll, getAllRead, getAllUnread, getMetadata)
+module Api.Note exposing (create, delete, get, getAll, getMetadata)
 
 import Api
 import Data.Note as Note exposing (CreateResponse, Metadata, Note)
@@ -77,6 +77,17 @@ get options =
                 , onResponse = options.onResponse
                 , decoder = Note.decode
                 }
+
+
+delete : { onResponse : Result Api.Error () -> msg, slug : String } -> Effect msg
+delete options =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note/" ++ options.slug
+        , method = "DELETE"
+        , body = Http.emptyBody
+        , onResponse = options.onResponse
+        , decoder = D.succeed ()
+        }
 
 
 getMetadata :

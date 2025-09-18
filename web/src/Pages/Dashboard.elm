@@ -12,6 +12,7 @@ import Html.Attributes as A
 import Html.Events as E
 import Layouts
 import Page exposing (Page)
+import Ports
 import Route exposing (Route)
 import Route.Path
 import Shared
@@ -33,12 +34,17 @@ page _ shared _ =
 
 type alias Model =
     { notes : Api.Response (List Note)
+    , noteToDeleteSlug : Maybe String
+    , apiError : Maybe Api.Error
     }
 
 
 init : () -> ( Model, Effect Msg )
 init () =
-    ( { notes = Api.Loading }
+    ( { notes = Api.Loading
+      , noteToDeleteSlug = Nothing
+      , apiError = Nothing
+      }
     , Api.Note.getAll { onResponse = ApiNotesResponded }
     )
 
@@ -51,7 +57,9 @@ type Msg
     = UserClickedCreateNewNote
     | UserClickedViewNote String
     | UserClickedDeleteNote String
+    | UserConfirmedDeleteion Bool
     | ApiNotesResponded (Result Api.Error (List Note))
+    | ApiNoteDeleted (Result Api.Error ())
 
 
 update : Msg -> Model -> ( Model, Effect Msg )
@@ -61,10 +69,25 @@ update msg model =
             ( model, Effect.pushRoutePath Route.Path.Home_ )
 
         UserClickedViewNote slug ->
-            ( model, Effect.none )
+            ( model, Effect.pushRoutePath (Route.Path.Secret_Slug_ { slug = slug }) )
 
         UserClickedDeleteNote slug ->
-            ( model, Effect.none )
+            ( { model | noteToDeleteSlug = Just slug }
+            , Effect.confirmRequest "Are you sure you want to delete this note?"
+            )
+
+        UserConfirmedDeleteion ok ->
+            case ( ok, model.noteToDeleteSlug ) of
+                ( True, Just slug ) ->
+                    ( { model | noteToDeleteSlug = Nothing }
+                    , Api.Note.delete
+                        { onResponse = ApiNoteDeleted
+                        , slug = slug
+                        }
+                    )
+
+                _ ->
+                    ( { model | noteToDeleteSlug = Nothing }, Effect.none )
 
         ApiNotesResponded (Ok notes) ->
             ( { model | notes = Api.Success notes }, Effect.none )
@@ -72,10 +95,16 @@ update msg model =
         ApiNotesResponded (Err error) ->
             ( { model | notes = Api.Failure error }, Effect.none )
 
+        ApiNoteDeleted (Ok _) ->
+            ( { model | apiError = Nothing }, Effect.none )
+
+        ApiNoteDeleted (Err err) ->
+            ( { model | apiError = Just err }, Effect.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Ports.confirmResponse UserConfirmedDeleteion
 
 
 
