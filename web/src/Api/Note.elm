@@ -1,10 +1,11 @@
-module Api.Note exposing (create, get, getMetadata)
+module Api.Note exposing (create, get, getAll, getAllRead, getAllUnread, getMetadata)
 
 import Api
 import Data.Note as Note exposing (CreateResponse, Metadata, Note)
 import Effect exposing (Effect)
 import Http
 import Iso8601
+import Json.Decode as D
 import Json.Encode as E
 import Time exposing (Posix)
 
@@ -90,4 +91,15 @@ getMetadata options =
         , body = Http.emptyBody
         , onResponse = options.onResponse
         , decoder = Note.decodeMetadata
+        }
+
+
+getAll : { onResponse : Result Api.Error (List Note) -> msg } -> Effect msg
+getAll opts =
+    Effect.sendApiRequest
+        { endpoint = "/api/v1/note"
+        , method = "GET"
+        , body = Http.emptyBody
+        , onResponse = opts.onResponse
+        , decoder = D.list Note.decode
         }

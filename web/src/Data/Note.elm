@@ -15,7 +15,8 @@ decodeCreateResponse =
 
 
 type alias Note =
-    { content : String
+    { slug : String
+    , content : String
     , readAt : Maybe Posix
     , keepBeforeExpiration : Bool
     , createdAt : Posix
@@ -25,7 +26,8 @@ type alias Note =
 
 decode : Decoder Note
 decode =
-    D.map5 Note
+    D.map6 Note
+        (D.field "slug" D.string)
         (D.field "content" D.string)
         (D.maybe (D.field "read_at" Iso8601.decoder))
         (D.field "keep_before_expiration" D.bool)
