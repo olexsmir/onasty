@@ -13,8 +13,6 @@ get:
         enum: [google, github]
 
   responses:
-    '200':
-      description: CANNOT BE RETURNED it's here just to make redocly linter not angry at this code
     '302':
       description: Redirect to OAuth provider
     '400':

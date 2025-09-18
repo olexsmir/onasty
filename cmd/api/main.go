@@ -149,6 +149,7 @@ func run(ctx context.Context) error {
 		notesrv,
 		cfg.AppEnv,
 		cfg.AppURL,
+		cfg.FrontendURL,
 		cfg.CORSAllowedOrigins,
 		cfg.CORSMaxAge,
 		rateLimiterConfig,
