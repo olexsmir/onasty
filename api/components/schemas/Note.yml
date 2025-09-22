@@ -1,11 +1,15 @@
 type: object
 required:
+  - slug
   - content
   - read_at
   - keep_before_expiration
   - created_at
   - expires_at
 properties:
+  slug:
+    type: string
+    example: f87abf56-3f01-4709-bf54-7aa0e1a6407b
   content:
     type: string
     example: note content

@@ -24,4 +24,11 @@ export const onReady = ({ app }) => {
       }
     });
   }
+
+  if (app.ports?.confirmRequest && app.ports?.confirmResponse) {
+    app.ports.confirmRequest.subscribe(msg => {
+      const res = window.confirm(msg);
+      app.ports.confirmResponse.send(res);
+    });
+  }
 };
