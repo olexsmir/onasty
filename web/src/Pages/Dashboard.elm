@@ -123,7 +123,7 @@ view shared model =
         timeFormat =
             Time.Format.toString shared.timeZone
     in
-    { title = "Pages.Dashboard"
+    { title = "Dashboard"
     , body =
         [ Components.Utils.commonContainer
             [ H.div [ A.class "w-full max-w-6xl mx-auto" ]
