@@ -19,6 +19,7 @@ type alias Note =
     , content : String
     , readAt : Maybe Posix
     , keepBeforeExpiration : Bool
+    , hasPassword : Bool
     , createdAt : Posix
     , expiresAt : Maybe Posix
     }
@@ -26,11 +27,12 @@ type alias Note =
 
 decode : Decoder Note
 decode =
-    D.map6 Note
+    D.map7 Note
         (D.field "slug" D.string)
         (D.field "content" D.string)
         (D.maybe (D.field "read_at" Iso8601.decoder))
         (D.field "keep_before_expiration" D.bool)
+        (D.field "has_password" D.bool)
         (D.field "created_at" Iso8601.decoder)
         (D.maybe (D.field "expires_at" Iso8601.decoder))
 

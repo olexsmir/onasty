@@ -178,6 +178,25 @@ viewNotes apiResp timeFormat =
 
 viewNoteCard : Note -> (Posix -> String) -> Html Msg
 viewNoteCard note timeFormat =
+    let
+        viewNoteTime text maybeTime =
+            Components.Utils.viewMaybe maybeTime
+                (\r ->
+                    H.div [ A.class "flex items-center" ]
+                        [ H.p []
+                            [ H.span [ A.class "font-bold" ] [ H.text text ]
+                            , H.span [] [ H.text (timeFormat r) ]
+                            ]
+                        ]
+                )
+
+        viewNoteBadges text cond colorClasses =
+            Components.Utils.viewIf cond
+                (H.span
+                    [ A.class ("inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full " ++ colorClasses) ]
+                    [ H.span [] [ H.text text ] ]
+                )
+    in
     H.div
         [ A.class
             (if note.readAt /= Nothing then
@@ -191,41 +210,19 @@ viewNoteCard note timeFormat =
             [ H.div [ A.class "flex-1 min-w-0" ]
                 [ H.p [ A.class "text-gray-700 text-sm mb-3" ] [ H.text (truncateContent note.content) ]
                 , H.div [ A.class "flex flex-wrap items-center gap-4 text-xs text-gray-500 mb-2" ]
-                    [ H.div [ A.class "flex items-center gap-1" ]
+                    [ H.div [ A.class "items-center" ]
                         [ H.p []
                             [ H.span [ A.class "font-bold" ] [ H.text "Created " ]
                             , H.span [] [ H.text (timeFormat note.createdAt) ]
                             ]
-                        , Components.Utils.viewMaybe note.expiresAt
-                            (\e ->
-                                H.div [ A.class "flex items-center gap-1" ]
-                                    [ H.p []
-                                        [ H.span [ A.class "font-bold" ] [ H.text "Expires " ]
-                                        , H.span [] [ H.text (timeFormat e) ]
-                                        ]
-                                    ]
-                            )
-                        , Components.Utils.viewMaybe note.readAt
-                            (\r ->
-                                H.div [ A.class "flex items-center gap-1" ]
-                                    [ H.p []
-                                        [ H.span [ A.class "font-bold" ] [ H.text "Read " ]
-                                        , H.span [] [ H.text (timeFormat r) ]
-                                        ]
-                                    ]
-                            )
+                        , viewNoteTime "Read " note.readAt
+                        , viewNoteTime "Expires " note.expiresAt
                         ]
                     ]
                 , H.div [ A.class "flex flex-wrap gap-2" ]
-                    [ Components.Utils.viewIf note.keepBeforeExpiration
-                        (H.span [ A.class "inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full" ]
-                            [ H.span [] [ H.text "Burn after reading" ] ]
-                        )
-                    , Components.Utils.viewMaybe note.readAt
-                        (\_ ->
-                            H.span [ A.class "inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full" ]
-                                [ H.span [] [ H.text "Read" ] ]
-                        )
+                    [ viewNoteBadges "Burn after reading" note.keepBeforeExpiration "bg-orange-100 text-orange-800"
+                    , viewNoteBadges "Has password" note.hasPassword "bg-blue-100 text-blue-800"
+                    , viewNoteBadges "Read" (note.readAt /= Nothing) "bg-red-100 text-red-100"
                     ]
                 ]
             , H.div [ A.class "flex items-center gap-2 ml-4" ]
