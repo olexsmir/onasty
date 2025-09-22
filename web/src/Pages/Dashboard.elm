@@ -3,6 +3,7 @@ module Pages.Dashboard exposing (Model, Msg, page)
 import Api exposing (Response(..))
 import Api.Note
 import Auth
+import Components.Box
 import Components.Form
 import Components.Utils
 import Data.Note exposing (Note)
@@ -128,8 +129,8 @@ view shared model =
         [ Components.Utils.commonContainer
             [ H.div [ A.class "w-full max-w-6xl mx-auto" ]
                 [ H.div [ A.class "bg-white rounded-lg border border-gray-200 shadow-sm" ]
-                    [ -- TODO: view error
-                      viewHeader
+                    [ Components.Utils.viewMaybe model.apiError (\e -> Components.Box.error (Api.errorMessage e))
+                    , viewHeader
                     , H.div [ A.class "p-6" ] [ viewNotes model.notes timeFormat ]
                     ]
                 ]
