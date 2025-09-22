@@ -79,11 +79,17 @@ update msg model =
         UserConfirmedDeleteion ok ->
             case ( ok, model.noteToDeleteSlug ) of
                 ( True, Just slug ) ->
-                    ( { model | noteToDeleteSlug = Nothing }
-                    , Api.Note.delete
-                        { onResponse = ApiNoteDeleted
-                        , slug = slug
-                        }
+                    let
+                        newNotes =
+                            case model.notes of
+                                Success notes ->
+                                    Success (List.filter (\n -> n.slug /= slug) notes)
+
+                                _ ->
+                                    model.notes
+                    in
+                    ( { model | notes = newNotes, noteToDeleteSlug = Nothing }
+                    , Api.Note.delete { onResponse = ApiNoteDeleted, slug = slug }
                     )
 
                 _ ->
