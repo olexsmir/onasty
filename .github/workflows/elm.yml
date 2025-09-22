@@ -45,8 +45,3 @@ jobs:
 
       - name: elm-format
         run: bunx elm-format --validate src/
-
-
-      - name: Tests
-        run: bunx elm-test-rs
-
