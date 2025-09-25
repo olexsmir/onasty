@@ -1,6 +1,9 @@
 version: "3"
 
 tasks:
+  install:
+    - bun install
+
   bundle:
     - bunx redocly bundle openapi.yml -o dist/bundle.yml
 
