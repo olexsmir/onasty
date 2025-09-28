@@ -15,7 +15,7 @@ type getMeResponse struct {
 	NotesCreated int       `json:"notes_created"`
 }
 
-func (a *APIV1) getMeHandler(c *gin.Context) {
+func (a APIV1) getMeHandler(c *gin.Context) {
 	uinfo, err := a.usersrv.GetUserInfo(c.Request.Context(), a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
@@ -35,7 +35,7 @@ type changePasswordRequest struct {
 	NewPassword     string `json:"new_password"`
 }
 
-func (a *APIV1) changePasswordHandler(c *gin.Context) {
+func (a APIV1) changePasswordHandler(c *gin.Context) {
 	var req changePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -60,7 +60,7 @@ type requestResetPasswordRequest struct {
 	Email string `json:"email"`
 }
 
-func (a *APIV1) requestResetPasswordHandler(c *gin.Context) {
+func (a APIV1) requestResetPasswordHandler(c *gin.Context) {
 	var req requestResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -84,7 +84,7 @@ type resetPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (a *APIV1) resetPasswordHandler(c *gin.Context) {
+func (a APIV1) resetPasswordHandler(c *gin.Context) {
 	var req resetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -109,7 +109,7 @@ type changeEmailRequest struct {
 	NewEmail string `json:"new_email"`
 }
 
-func (a *APIV1) requestEmailChangeHandler(c *gin.Context) {
+func (a APIV1) requestEmailChangeHandler(c *gin.Context) {
 	var req changeEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -129,7 +129,7 @@ func (a *APIV1) requestEmailChangeHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (a *APIV1) changeEmailHandler(c *gin.Context) {
+func (a APIV1) changeEmailHandler(c *gin.Context) {
 	if err := a.usersrv.ChangeEmail(
 		c.Request.Context(),
 		c.Param("token"),
@@ -141,7 +141,7 @@ func (a *APIV1) changeEmailHandler(c *gin.Context) {
 	c.String(http.StatusOK, "email changed")
 }
 
-func (a *APIV1) verifyHandler(c *gin.Context) {
+func (a APIV1) verifyHandler(c *gin.Context) {
 	if err := a.usersrv.Verify(
 		c.Request.Context(),
 		c.Param("token"),
@@ -157,7 +157,7 @@ type resendVerificationEmailRequest struct {
 	Email string `json:"email"`
 }
 
-func (a *APIV1) resendVerificationEmailHandler(c *gin.Context) {
+func (a APIV1) resendVerificationEmailHandler(c *gin.Context) {
 	var req resendVerificationEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
