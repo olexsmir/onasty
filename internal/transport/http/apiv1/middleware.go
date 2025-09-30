@@ -17,7 +17,7 @@ const userIDCtxKey = "userID"
 // and if so sets user metadata to context
 //
 // being authorized is required for making the request for specific endpoint
-func (a *APIV1) authorizedMiddleware(c *gin.Context) {
+func (a APIV1) authorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if !ok {
 		errorResponse(c, ErrUnauthorized)
@@ -39,7 +39,7 @@ func (a *APIV1) authorizedMiddleware(c *gin.Context) {
 // if so sets user metadata to context
 //
 // it is NOT required to be authorized for making the request for specific endpoint
-func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
+func (a APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	token, ok := getTokenFromAuthHeaders(c)
 	if ok {
 		uid, err := a.validateAuthorizedUser(c.Request.Context(), token)
@@ -54,7 +54,7 @@ func (a *APIV1) couldBeAuthorizedMiddleware(c *gin.Context) {
 	c.Next()
 }
 
-func (a *APIV1) metricsMiddleware(c *gin.Context) {
+func (a APIV1) metricsMiddleware(c *gin.Context) {
 	start := time.Now()
 	c.Next()
 	latency := time.Since(start)
@@ -92,7 +92,7 @@ func getTokenFromAuthHeaders(c *gin.Context) (token string, ok bool) { //nolint:
 // getting user id is only possible if user is authorized
 //
 // if userID is not set, [uuid.Nil] will be returned.
-func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
+func (a APIV1) getUserID(c *gin.Context) uuid.UUID {
 	userID, exists := c.Get(userIDCtxKey)
 	if !exists {
 		return uuid.Nil
@@ -106,7 +106,7 @@ func (a *APIV1) getUserID(c *gin.Context) uuid.UUID {
 	return uid
 }
 
-func (a *APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) (uuid.UUID, error) {
+func (a APIV1) validateAuthorizedUser(ctx context.Context, accessToken string) (uuid.UUID, error) {
 	tokenPayload, err := a.authsrv.ParseJWTToken(accessToken)
 	if err != nil {
 		return uuid.Nil, err

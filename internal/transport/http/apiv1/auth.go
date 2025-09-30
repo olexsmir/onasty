@@ -14,7 +14,7 @@ type signUpRequest struct {
 	Password string `json:"password"`
 }
 
-func (a *APIV1) signUpHandler(c *gin.Context) {
+func (a APIV1) signUpHandler(c *gin.Context) {
 	var req signUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -44,7 +44,7 @@ type signInResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (a *APIV1) signInHandler(c *gin.Context) {
+func (a APIV1) signInHandler(c *gin.Context) {
 	var req signInRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -70,7 +70,7 @@ type refreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (a *APIV1) refreshTokensHandler(c *gin.Context) {
+func (a APIV1) refreshTokensHandler(c *gin.Context) {
 	var req refreshTokenRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -93,7 +93,7 @@ type logoutRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (a *APIV1) logOutHandler(c *gin.Context) {
+func (a APIV1) logOutHandler(c *gin.Context) {
 	var req logoutRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -112,7 +112,7 @@ func (a *APIV1) logOutHandler(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-func (a *APIV1) logOutAllHandler(c *gin.Context) {
+func (a APIV1) logOutAllHandler(c *gin.Context) {
 	if err := a.authsrv.LogoutAll(c.Request.Context(), a.getUserID(c)); err != nil {
 		errorResponse(c, err)
 		return
@@ -123,7 +123,7 @@ func (a *APIV1) logOutAllHandler(c *gin.Context) {
 
 const oatuhStateCookie = "oauth_state"
 
-func (a *APIV1) oauthLoginHandler(c *gin.Context) {
+func (a APIV1) oauthLoginHandler(c *gin.Context) {
 	redirectInfo, err := a.authsrv.GetOAuthURL(c.Param("provider"))
 	if err != nil {
 		errorResponse(c, err)
@@ -143,7 +143,7 @@ func (a *APIV1) oauthLoginHandler(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther, redirectInfo.URL)
 }
 
-func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
+func (a APIV1) oauthCallbackHandler(c *gin.Context) {
 	redURL, err := url.Parse(a.frontendURL + "/oauth/callback")
 	if err != nil {
 		errorResponse(c, err)
@@ -174,7 +174,7 @@ func (a *APIV1) oauthCallbackHandler(c *gin.Context) {
 	c.Redirect(http.StatusFound, redURL.String())
 }
 
-func (a *APIV1) oauthCallbackErrorResponse(c *gin.Context, u *url.URL) {
+func (a APIV1) oauthCallbackErrorResponse(c *gin.Context, u *url.URL) {
 	u.RawQuery = url.Values{"error": {"internal server error"}}.Encode()
 	c.Redirect(http.StatusFound, u.String())
 }

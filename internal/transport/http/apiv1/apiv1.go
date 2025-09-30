@@ -41,7 +41,7 @@ func NewAPIV1(
 	}
 }
 
-func (a *APIV1) Routes(r *gin.RouterGroup) {
+func (a APIV1) Routes(r *gin.RouterGroup) {
 	r.Use(a.metricsMiddleware)
 
 	r.GET("/me", a.authorizedMiddleware, a.getMeHandler)
@@ -95,6 +95,6 @@ func (a *APIV1) Routes(r *gin.RouterGroup) {
 	}
 }
 
-func (a *APIV1) slowRateLimit() gin.HandlerFunc {
+func (a APIV1) slowRateLimit() gin.HandlerFunc {
 	return ratelimit.MiddlewareWithConfig(a.slowRatelimitCfg)
 }

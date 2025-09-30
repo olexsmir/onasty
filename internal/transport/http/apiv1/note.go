@@ -21,7 +21,7 @@ type createNoteResponse struct {
 	Slug string `json:"slug"`
 }
 
-func (a *APIV1) createNoteHandler(c *gin.Context) {
+func (a APIV1) createNoteHandler(c *gin.Context) {
 	var req createNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -53,7 +53,7 @@ type getNoteBySlugResponse struct {
 	ExpiresAt            time.Time `json:"expires_at,omitzero"`
 }
 
-func (a *APIV1) getNoteBySlugHandler(c *gin.Context) {
+func (a APIV1) getNoteBySlugHandler(c *gin.Context) {
 	note, err := a.notesrv.GetBySlugAndRemoveIfNeeded(
 		c.Request.Context(),
 		notesrv.GetNoteBySlugInput{
@@ -84,7 +84,7 @@ type getNoteBuySlugAndPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (a *APIV1) getNoteBySlugAndPasswordHandler(c *gin.Context) {
+func (a APIV1) getNoteBySlugAndPasswordHandler(c *gin.Context) {
 	var req getNoteBuySlugAndPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -122,7 +122,7 @@ type getNoteMetadataBySlugResponse struct {
 	HasPassword bool      `json:"has_password"`
 }
 
-func (a *APIV1) getNoteMetadataByIDHandler(c *gin.Context) {
+func (a APIV1) getNoteMetadataByIDHandler(c *gin.Context) {
 	meta, err := a.notesrv.GetNoteMetadataBySlug(c.Request.Context(), c.Param("slug"))
 	if err != nil {
 		errorResponse(c, err)
@@ -145,7 +145,7 @@ type getNotesResponse struct {
 	ReadAt               time.Time `json:"read_at,omitzero"`
 }
 
-func (a *APIV1) getNotesHandler(c *gin.Context) {
+func (a APIV1) getNotesHandler(c *gin.Context) {
 	notes, err := a.notesrv.GetAllByAuthorID(c.Request.Context(), a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
@@ -155,7 +155,7 @@ func (a *APIV1) getNotesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, mapNotesDTOToResponse(notes))
 }
 
-func (a *APIV1) getReadNotesHandler(c *gin.Context) {
+func (a APIV1) getReadNotesHandler(c *gin.Context) {
 	notes, err := a.notesrv.GetAllReadByAuthorID(c.Request.Context(), a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
@@ -165,7 +165,7 @@ func (a *APIV1) getReadNotesHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, mapNotesDTOToResponse(notes))
 }
 
-func (a *APIV1) getUnReadNotesHandler(c *gin.Context) {
+func (a APIV1) getUnReadNotesHandler(c *gin.Context) {
 	notes, err := a.notesrv.GetAllUnreadByAuthorID(c.Request.Context(), a.getUserID(c))
 	if err != nil {
 		errorResponse(c, err)
@@ -180,7 +180,7 @@ type updateNoteRequest struct {
 	KeepBeforeExpiration *bool      `json:"keep_before_expiration,omitempty"`
 }
 
-func (a *APIV1) updateNoteHandler(c *gin.Context) {
+func (a APIV1) updateNoteHandler(c *gin.Context) {
 	var req updateNoteRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
@@ -203,7 +203,7 @@ func (a *APIV1) updateNoteHandler(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-func (a *APIV1) deleteNoteHandler(c *gin.Context) {
+func (a APIV1) deleteNoteHandler(c *gin.Context) {
 	if err := a.notesrv.DeleteBySlug(
 		c.Request.Context(),
 		c.Param("slug"),
@@ -220,7 +220,7 @@ type setNotePasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (a *APIV1) setNotePasswordHandler(c *gin.Context) {
+func (a APIV1) setNotePasswordHandler(c *gin.Context) {
 	var req setNotePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		invalidRequest(c)
