@@ -11,7 +11,7 @@ require (
 	github.com/henvic/pgq v0.0.4
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/mailgun/mailgun-go/v4 v4.23.0
-	github.com/nats-io/nats.go v1.45.0
+	github.com/nats-io/nats.go v1.46.1
 	github.com/prometheus/client_golang v1.23.0
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/stretchr/testify v1.11.1
