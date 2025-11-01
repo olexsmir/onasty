@@ -18,7 +18,7 @@ require (
 	github.com/testcontainers/testcontainers-go v0.39.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.38.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.39.0
-	golang.org/x/oauth2 v0.30.0
+	golang.org/x/oauth2 v0.32.0
 	golang.org/x/time v0.13.0
 )
 
