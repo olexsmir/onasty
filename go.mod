@@ -16,7 +16,7 @@ require (
 	github.com/redis/go-redis/v9 v9.16.0
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.40.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.39.0
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.40.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.40.0
 	golang.org/x/oauth2 v0.32.0
 	golang.org/x/time v0.13.0
